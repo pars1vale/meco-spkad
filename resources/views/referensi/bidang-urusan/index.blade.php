@@ -169,7 +169,7 @@
             if (last !== group) {
               $(rows).eq(i).before(
                 '<tr class="group bg-light-primary fw-bolder">' +
-                '<td colspan="2" class="fw-bold fs-4 px-4 py-3">' +
+                '<td colspan="2" class="fw-bold fs-5 px-4 py-3">' +
                 group +
                 '</td></tr>'
               );

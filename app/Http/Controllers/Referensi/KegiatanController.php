@@ -11,6 +11,7 @@ class KegiatanController extends Controller
 
     public function index()
     {
+
         $data = DB::table('data_prog_keg')
             ->select(
                 'id_urusan',
@@ -22,17 +23,18 @@ class KegiatanController extends Controller
                 'id_program',
                 'kode_program',
                 'nama_program',
-                'id_giat',
                 'kode_giat',
                 'nama_giat'
             )
-            // ->distinct()
             ->orderBy('kode_urusan')
             ->orderBy('kode_bidang_urusan')
             ->orderBy('kode_program')
             ->orderBy('kode_giat')
             ->get()
-            ->groupBy('id_urusan'); // dikelompokkan per urusan
+            ->unique(function ($item) {
+                return $item->kode_giat . $item->nama_giat; // Gabungan keduanya sebagai key unik
+            })
+            ->groupBy('id_urusan');
 
         return view('referensi.kegiatan.index', compact('data'));
     }

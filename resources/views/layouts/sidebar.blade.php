@@ -37,8 +37,9 @@
             <!--begin:Menu item-->
             <div class="menu-item">
               <!--begin:Menu link-->
-              <a class="menu-link {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }}" href="{{ route('referensi.bidang-urusan.index') }}"
-                title="Seluruh Data Bidang Urusan" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('referensi.bidang-urusan.index') ? 'active' : '' }}"
+                href="{{ route('referensi.bidang-urusan.index') }}" title="Seluruh Data Bidang Urusan" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -63,7 +64,7 @@
             <!--begin:Menu item-->
             <div class="menu-item">
               <!--begin:Menu link-->
-              <a class="menu-link {{ Request::routeIs('referensi.kegiatan.index') }}" href="{{ route('referensi.kegiatan.index') }}"
+              <a class="menu-link {{ Request::routeIs('referensi.kegiatan.index') ? 'active' : '' }}" href="{{ route('referensi.kegiatan.index') }}"
                 title="Seluruh Data Kegiatan" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>

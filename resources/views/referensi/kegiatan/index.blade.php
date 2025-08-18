@@ -79,9 +79,12 @@
                           {{-- <td class="fw-bold">{{ $kegiatan->id_giat }}</td> --}}
                           <td class="fw-bold">{{ $kegiatan->kode_giat }}</td>
                           <td>{{ $kegiatan->nama_giat }}</td>
-                          <td class="d-none">[URUSAN] {{ $urusan->kode_urusan }} {{ $urusan->nama_urusan }}</td>
+                          {{-- <td class="d-none">[URUSAN] {{ $urusan->kode_urusan }} {{ $urusan->nama_urusan }}</td>
                           <td class="d-none">[BIDANG URUSAN] {{ $bidang->kode_bidang_urusan }} {{ $bidang->nama_bidang_urusan }}</td>
-                          <td class="d-none">[PROGRAM] {{ $program->kode_program }} {{ $program->nama_program }}</td>
+                          <td class="d-none">[PROGRAM] {{ $program->kode_program }} {{ $program->nama_program }}</td> --}}
+                          <td class="d-none">[URUSAN] {{ $urusan->nama_urusan }}</td>
+                          <td class="d-none">[BIDANG URUSAN] {{ $bidang->nama_bidang_urusan }}</td>
+                          <td class="d-none">[PROGRAM] {{ $program->nama_program }}</td>
                         </tr>
                       @endforeach
                     @endforeach
