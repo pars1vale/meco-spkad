@@ -77,8 +77,9 @@
             <!--begin:Menu item-->
             <div class="menu-item">
               <!--begin:Menu link-->
-              <a class="menu-link" href="https://preview.keenthemes.com/html/metronic/docs/getting-started/changelog" target="_blank"
-                title="Seluruh Data Sub Kegiatan" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('referensi.sub-kegiatan.index') ? 'active' : '' }}"
+                href="{{ route('referensi.sub-kegiatan.index') }}" title="Seluruh Data Sub Kegiatan" data-bs-toggle="tooltip" data-bs-trigger="hover"
+                data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
