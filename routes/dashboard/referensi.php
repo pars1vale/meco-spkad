@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Referensi\AkunController;
 use App\Http\Controllers\Referensi\BidangUrusanController;
 use App\Http\Controllers\Referensi\ProgramController;
 use App\Http\Controllers\Referensi\KegiatanController;
@@ -22,4 +23,6 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     // Sub Kegiatan
     Route::get('/sub-kegiatan', [SubKegiatanController::class, 'index'])
         ->name('referensi.sub-kegiatan.index');
+
+    Route::get('/akun', [AkunController::class, 'index'])->name('referensi.akun.index');
 });
