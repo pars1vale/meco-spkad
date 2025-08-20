@@ -5,6 +5,7 @@ use App\Http\Controllers\Referensi\BidangUrusanController;
 use App\Http\Controllers\Referensi\ProgramController;
 use App\Http\Controllers\Referensi\KegiatanController;
 use App\Http\Controllers\Referensi\SubKegiatanController;
+use App\Http\Controllers\Referensi\SumberDanaController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('referensi')->group(function () {
@@ -24,5 +25,11 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     Route::get('/sub-kegiatan', [SubKegiatanController::class, 'index'])
         ->name('referensi.sub-kegiatan.index');
 
-    Route::get('/akun', [AkunController::class, 'index'])->name('referensi.akun.index');
+    // Akun
+    Route::get('/akun', [AkunController::class, 'index'])
+        ->name('referensi.akun.index');
+
+    // Sumber Dana
+    Route::get('/sumber-dana', [SumberDanaController::class, 'index'])
+        ->name('referensi.sumber-dana.index');
 });
