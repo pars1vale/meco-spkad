@@ -6,9 +6,14 @@ use App\Http\Controllers\Referensi\ProgramController;
 use App\Http\Controllers\Referensi\KegiatanController;
 use App\Http\Controllers\Referensi\SubKegiatanController;
 use App\Http\Controllers\Referensi\SumberDanaController;
+use App\Http\Controllers\Referensi\UrusanController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('referensi')->group(function () {
+    // urusan
+    Route::get('/urusan', [UrusanController::class, 'index'])
+        ->name('referensi.urusan.index');
+
     // Bidang Urusan
     Route::get('/bidang-urusan', [BidangUrusanController::class, 'index'])
         ->name('referensi.bidang-urusan.index');
