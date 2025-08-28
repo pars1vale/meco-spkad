@@ -4,7 +4,7 @@
     <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
       <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
         <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Kegiatan</h1>
+          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Sub Kegiatan</h1>
           <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
             <li class="breadcrumb-item text-muted">
               <a href="{{ url('/') }}" class="text-muted text-hover-primary">Home</a>
@@ -16,7 +16,7 @@
             <li class="breadcrumb-item">
               <span class="bullet bg-gray-400 w-5px h-2px"></span>
             </li>
-            <li class="breadcrumb-item text-muted">Kegiatan</li>
+            <li class="breadcrumb-item text-muted">Sub Kegiatan</li>
           </ul>
         </div>
       </div>
@@ -30,7 +30,7 @@
           <div class="card-title">
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Kegiatan">
+              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Subkegiatan">
             </div>
           </div>
         </div>
@@ -41,19 +41,19 @@
               <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
               <div class="d-flex flex-column">
                 <h4 class="mb-1 text-warning">Tidak ada data</h4>
-                <span>Tidak ada data Kegiatan yang ditemukan.</span>
+                <span>Tidak ada data Subkegiatan yang ditemukan.</span>
               </div>
             </div>
           @else
-            <table id="kt_kegiatan_table" class="table align-middle table-row-dashed fs-6 gy-5">
+            <table id="kt_subkegiatan_table" class="table align-middle table-row-dashed fs-6 gy-5">
               <thead>
                 <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                   <th class="min-w-100px">Kode</th>
-                  {{-- <th class="min-w-300px">id Kegiatan</th> --}}
-                  <th class="min-w-300px">Nama Kegiatan</th>
+                  <th class="min-w-300px">Nama Subkegiatan</th>
                   <th class="d-none">Urusan Group</th>
                   <th class="d-none">Bidang Group</th>
                   <th class="d-none">Program Group</th>
+                  <th class="d-none">Kegiatan Group</th>
                 </tr>
               </thead>
               <tbody class="fw-semibold text-gray-600">
@@ -72,20 +72,24 @@
                     @foreach ($programGrouped as $programGroup)
                       @php
                         $program = $programGroup->first();
+                        $kegiatanGrouped = $programGroup->groupBy('id_giat');
                       @endphp
 
-                      @foreach ($programGroup as $kegiatan)
-                        <tr>
-                          {{-- <td class="fw-bold">{{ $kegiatan->id_giat }}</td> --}}
-                          <td class="fw-bold">{{ $kegiatan->kode_giat }}</td>
-                          <td>{{ $kegiatan->nama_giat }}</td>
-                          {{-- <td class="d-none">[URUSAN] {{ $urusan->kode_urusan }} {{ $urusan->nama_urusan }}</td>
-                          <td class="d-none">[BIDANG URUSAN] {{ $bidang->kode_bidang_urusan }} {{ $bidang->nama_bidang_urusan }}</td>
-                          <td class="d-none">[PROGRAM] {{ $program->kode_program }} {{ $program->nama_program }}</td> --}}
-                          <td class="d-none">[URUSAN] {{ $urusan->nama_urusan }}</td>
-                          <td class="d-none">[BIDANG URUSAN] {{ $bidang->nama_bidang_urusan }}</td>
-                          <td class="d-none">[PROGRAM] {{ $program->nama_program }}</td>
-                        </tr>
+                      @foreach ($kegiatanGrouped as $kegiatanGroup)
+                        @php
+                          $kegiatan = $kegiatanGroup->first();
+                        @endphp
+
+                        @foreach ($kegiatanGroup as $subkegiatan)
+                          <tr>
+                            <td class="fw-bold">{{ $subkegiatan->kode_sub_giat }}</td>
+                            <td>{{ $subkegiatan->nama_sub_giat }}</td>
+                            <td class="d-none">[URUSAN] {{ $urusan->nama_urusan }}</td>
+                            <td class="d-none">[BIDANG URUSAN] {{ $bidang->nama_bidang_urusan }}</td>
+                            <td class="d-none">[PROGRAM] {{ $program->nama_program }}</td>
+                            <td class="d-none">[KEGIATAN] {{ $kegiatan->nama_giat }}</td>
+                          </tr>
+                        @endforeach
                       @endforeach
                     @endforeach
                   @endforeach
@@ -100,7 +104,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      var table = $('#kt_kegiatan_table').DataTable({
+      var table = $('#kt_subkegiatan_table').DataTable({
         responsive: true,
         searchDelay: 500,
         processing: true,
@@ -109,10 +113,11 @@
           [2, 'asc'],
           [3, 'asc'],
           [4, 'asc'],
+          [5, 'asc'],
           [0, 'asc']
         ],
         columnDefs: [{
-            targets: [2, 3, 4],
+            targets: [2, 3, 4, 5],
             visible: false
           },
           {
@@ -139,38 +144,51 @@
           var lastUrusan = null;
           var lastBidang = null;
           var lastProgram = null;
+          var lastKegiatan = null;
 
           api.column(2, {
             page: 'current'
           }).data().each(function(urusan, i) {
             var bidang = api.cell(rows[i], 3).data();
             var program = api.cell(rows[i], 4).data();
+            var kegiatan = api.cell(rows[i], 5).data();
 
             if (lastUrusan !== urusan) {
               $(rows[i]).before(
                 '<tr class="group bg-light-primary">' +
-                '<td colspan="2" class="fw-bold fs-6 px-4 py-3">' + urusan + '</td></tr>'
+                '<td colspan="2" class="fw-bold fs-6 px-1 py-3">' + urusan + '</td></tr>'
               );
               lastUrusan = urusan;
               lastBidang = null;
               lastProgram = null;
+              lastKegiatan = null;
             }
 
             if (lastBidang !== bidang) {
               $(rows[i]).before(
                 '<tr class="group bg-secondary">' +
-                '<td colspan="2" class="fw-bold fs-6 px-5 py-2">' + bidang + '</td></tr>'
+                '<td colspan="2" class="fw-bold fs-6 px-1 py-2">' + bidang + '</td></tr>'
               );
               lastBidang = bidang;
               lastProgram = null;
+              lastKegiatan = null;
             }
 
             if (lastProgram !== program) {
               $(rows[i]).before(
                 '<tr class="group bg-light">' +
-                '<td colspan="2" class="fw-bold fs-6 px-6 py-2">' + program + '</td></tr>'
+                '<td colspan="2" class="fw-bold fs-6 px-1 py-2">' + program + '</td></tr>'
               );
               lastProgram = program;
+              lastKegiatan = null;
+            }
+
+            if (lastKegiatan !== kegiatan) {
+              $(rows[i]).before(
+                '<tr class="group bg-light-warning">' +
+                '<td colspan="2" class="fw-bold fs-6 px-1 py-2">' + kegiatan + '</td></tr>'
+              );
+              lastKegiatan = kegiatan;
             }
           });
         }
@@ -180,11 +198,12 @@
         table.search(this.value).draw();
       });
 
-      $('#kt_kegiatan_table').on('click', 'tr.group', function() {
+      $('#kt_subkegiatan_table').on('click', 'tr.group', function() {
         var colIdx;
         if ($(this).hasClass('bg-light-primary')) colIdx = 2;
         else if ($(this).hasClass('bg-secondary')) colIdx = 3;
-        else colIdx = 4;
+        else if ($(this).hasClass('bg-light')) colIdx = 4;
+        else colIdx = 5;
 
         var currentOrder = table.order()[0];
         if (currentOrder[0] === colIdx && currentOrder[1] === 'asc') {

@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Referensi;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class KegiatanController extends Controller
+class SubKegiatanController extends Controller
 {
-
     public function index()
     {
-
-        $data = DB::table('data_prog_keg')
+        $data = DB::table('data_prog_keg') // sesuaikan dengan nama tabel sebenarnya
             ->select(
                 'id_urusan',
                 'kode_urusan',
@@ -20,22 +18,22 @@ class KegiatanController extends Controller
                 'id_bidang_urusan',
                 'kode_bidang_urusan',
                 'nama_bidang_urusan',
-                'id_program',
                 'kode_program',
                 'nama_program',
                 'kode_giat',
-                'nama_giat'
+                'nama_giat',
+                'kode_sub_giat',
+                'nama_sub_giat'
             )
+            ->distinct()
             ->orderBy('kode_urusan')
             ->orderBy('kode_bidang_urusan')
             ->orderBy('kode_program')
             ->orderBy('kode_giat')
+            ->orderBy('kode_sub_giat')
             ->get()
-            ->unique(function ($item) {
-                return $item->kode_giat . $item->nama_giat; // Gabungan keduanya sebagai key unik
-            })
-            ->groupBy('id_urusan');
+            ->groupBy('id_urusan'); // Group berdasarkan urusan utama
 
-        return view('referensi.kegiatan.index', compact('data'));
+        return view('referensi.sub-kegiatan.index', compact('data'));
     }
 }
