@@ -30,7 +30,6 @@ class BidangUrusanController extends Controller
     public function index()
     {
         $data = collect();
-
         try {
             // Menggunakan eager loading untuk menghindari N+1 problem
             $bidangUrusans = BidangUrusan::with('urusan')
@@ -53,21 +52,6 @@ class BidangUrusanController extends Controller
                     ['nama_bidang_urusan', 'asc']
                 ]);
             });
-
-            // Tambahkan statistik untuk debugging/monitoring
-            // $stats = [
-            //     'total_bidang_urusan' => $bidangUrusans->count(),
-            //     'total_urusan' => $data->count(),
-            //     'duplicate_codes' => $this->getDuplicateCodesStats($bidangUrusans)
-            // ];
-
-            // // Log statistik untuk monitoring
-            // if ($stats['duplicate_codes']->count() > 0) {
-            //     \Log::info('Bidang Urusan dengan kode duplikat ditemukan:', [
-            //         'duplicate_count' => $stats['duplicate_codes']->count(),
-            //         'duplicates' => $stats['duplicate_codes']->toArray()
-            //     ]);
-            // }
         } catch (\Exception $e) {
             \Log::error('Error fetching bidang urusan data: ' . $e->getMessage());
 
