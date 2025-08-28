@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('bidang_urusan', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary(); // Manual ID, bukan auto-increment
             $table->unsignedBigInteger('id_urusan'); // Foreign key ke urusan
-            $table->string('kode_bidang_urusan')->unique();
+            $table->string('kode_bidang_urusan');
             $table->string('nama_bidang_urusan');
             $table->timestamp('time_stamp')->nullable();
             $table->timestamps();

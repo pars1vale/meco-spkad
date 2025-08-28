@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('program', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary(); // Manual ID dari data source
             $table->unsignedBigInteger('id_bidang_urusan'); // Foreign key ke bidang_urusan
-            $table->string('kode_program')->unique();
+            $table->string('kode_program');
             $table->string('nama_program');
             $table->timestamp('time_stamp')->nullable();
             $table->timestamps();
