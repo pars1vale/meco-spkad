@@ -143,7 +143,7 @@
             if (lastBidang !== bidang) {
               $(rows[i]).before(
                 '<tr class="group bg-secondary">' +
-                '<td colspan="2" class="fw-bold fs-5 px-5 py-2">' +
+                '<td colspan="2" class="fw-bold fs-5 px-4 py-3">' +
                 bidang +
                 '</td></tr>'
               );

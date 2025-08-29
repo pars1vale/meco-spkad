@@ -31,7 +31,6 @@ class BidangUrusanController extends Controller
     {
         $data = collect();
         try {
-            // Menggunakan eager loading untuk menghindari N+1 problem
             $bidangUrusans = BidangUrusan::with('urusan')
                 ->join('urusan', 'bidang_urusan.id_urusan', '=', 'urusan.id')
                 ->select([
