@@ -26,8 +26,6 @@
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
-
-      <!-- Hidden session messages for SweetAlert2 -->
       <div id="session-messages" style="display: none;">
         @if (session('success'))
           <div data-type="success" data-message="{{ session('success') }}"></div>
@@ -36,7 +34,6 @@
           <div data-type="error" data-message="{{ session('error') }}"></div>
         @endif
       </div>
-
       <div class="card">
         <div class="card-header border-0 pt-6">
           <div class="card-title">

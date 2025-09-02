@@ -96,10 +96,8 @@ class UrusanController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data yang dipilih tidak valid.'
-            ], 422);
+            return redirect()->back()
+                ->with('error', 'Data yang dipilih tidak valid.');
         }
 
         try {
@@ -112,23 +110,17 @@ class UrusanController extends Controller
                 ->toArray();
 
             if (!empty($urusanWithRelations)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak dapat menghapus urusan: ' . implode(', ', $urusanWithRelations) . ' karena masih memiliki bidang urusan terkait.'
-                ], 422);
+                return redirect()->back()
+                    ->with('error', 'Tidak dapat menghapus urusan: ' . implode(', ', $urusanWithRelations) . ' karena masih memiliki bidang urusan terkait.');
             }
 
             $deletedCount = Urusan::whereIn('id', $ids)->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => "{$deletedCount} data urusan berhasil dihapus."
-            ]);
+            return redirect()->back()
+                ->with('success', "{$deletedCount} data urusan berhasil dihapus.");
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data urusan. ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Gagal menghapus data urusan. ' . $e->getMessage());
         }
     }
 }
