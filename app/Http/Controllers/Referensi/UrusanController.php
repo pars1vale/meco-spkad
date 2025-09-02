@@ -63,6 +63,53 @@ class UrusanController extends Controller
         }
     }
 
+    public function edit($id)
+    {
+        try {
+            $urusan = Urusan::findOrFail($id);
+            return view('referensi.urusan.edit', compact('urusan'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('referensi.urusan.index')
+                ->with('error', 'Data urusan tidak ditemukan.');
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'kode_urusan' => 'required|max:10|unique:urusan,kode_urusan,' . $id,
+            'nama_urusan' => 'required|max:255',
+        ], [
+            'kode_urusan.required' => 'Kode urusan wajib diisi.',
+            'kode_urusan.unique' => 'Kode urusan sudah digunakan.',
+            'kode_urusan.max' => 'Kode urusan maksimal 10 karakter.',
+            'nama_urusan.required' => 'Nama urusan wajib diisi.',
+            'nama_urusan.max' => 'Nama urusan maksimal 255 karakter.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data urusan. Silakan periksa input Anda.');
+        }
+
+        try {
+            $urusan = Urusan::findOrFail($id);
+            $urusan->update([
+                'kode_urusan' => $request->kode_urusan,
+                'nama_urusan' => $request->nama_urusan,
+            ]);
+
+            return redirect()->route('referensi.urusan.index')
+                ->with('success', 'Data urusan berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data urusan. ' . $e->getMessage());
+        }
+    }
+
     public function destroy($id)
     {
         try {

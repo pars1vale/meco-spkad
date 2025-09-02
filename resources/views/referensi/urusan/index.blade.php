@@ -46,8 +46,8 @@
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
               <div class="w-150px me-3">
               </div>
-              <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#kt_customers_export_modal">
-                <i class="ki-outline ki-exit-up fs-2"></i>Export</button>
+              {{-- <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#kt_customers_export_modal">
+                <i class="ki-outline ki-exit-up fs-2"></i>Export</button> --}}
               <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_urusan">Tambah Urusan</button>
             </div>
             <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
@@ -95,7 +95,8 @@
                     <td>{{ $item->nama_urusan }}</td>
                     <td>
                       <div class="d-flex justify-content-end">
-                        <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit Urusan">
+                        <a href="{{ route('urusan.edit', $item->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                          title="Edit Urusan">
                           <i class="ki-outline ki-pencil fs-2"></i>
                         </a>
                         <form action="{{ route('urusan.destroy', $item->id) }}" method="POST" class="d-inline delete-form">

@@ -13,6 +13,8 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     // urusan
     Route::get('/urusan', [UrusanController::class, 'index'])->name('referensi.urusan.index');
     Route::post('/urusan', [UrusanController::class, 'store'])->name('urusan.store');
+    Route::get('/urusan/{id}/edit', [UrusanController::class, 'edit'])->name('urusan.edit');
+    Route::put('/urusan/{id}', [UrusanController::class, 'update'])->name('urusan.update');
     Route::delete('/urusan/{id}', [UrusanController::class, 'destroy'])->name('urusan.destroy');
     Route::post('/urusan/bulk-delete', [UrusanController::class, 'bulkDelete'])->name('urusan.bulk-delete');
 
