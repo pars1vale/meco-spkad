@@ -19,8 +19,12 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     Route::post('/urusan/bulk-delete', [UrusanController::class, 'bulkDelete'])->name('urusan.bulk-delete');
 
     // Bidang Urusan
-    Route::get('/bidang-urusan', [BidangUrusanController::class, 'index'])
-        ->name('referensi.bidang-urusan.index');
+    Route::get('/bidang-urusan', [BidangUrusanController::class, 'index'])->name('referensi.bidang-urusan.index');
+    Route::post('/bidang-urusan', [BidangUrusanController::class, 'store'])->name('bidang-urusan.store');
+    Route::get('/bidang-urusan/{id}/edit', [BidangUrusanController::class, 'edit'])->name('bidang-urusan.edit');
+    Route::put('/bidang-urusan/{id}', [BidangUrusanController::class, 'update'])->name('bidang-urusan.update');
+    Route::delete('/bidang-urusan/{id}', [BidangUrusanController::class, 'destroy'])->name('bidang-urusan.destroy');
+    Route::post('/bidang-urusan/bulk-delete', [BidangUrusanController::class, 'bulkDelete'])->name('bidang-urusan.bulk-delete');
 
     // Program
     Route::get('/program', [ProgramController::class, 'index'])
