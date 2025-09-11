@@ -51,8 +51,13 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     Route::post('/sub-kegiatan/bulk-delete', [SubKegiatanController::class, 'bulkDelete'])->name('sub-kegiatan.bulk-delete');
 
     // Akun
-    Route::get('/akun', [AkunController::class, 'index'])
-        ->name('referensi.akun.index');
+    Route::get('/akun', [AkunController::class, 'index'])->name('referensi.akun.index');
+    Route::post('/akun', [AkunController::class, 'store'])->name('akun.store');
+    Route::get('/akun/{id}/edit', [AkunController::class, 'edit'])->name('akun.edit');
+    Route::put('/akun/{id}', [AkunController::class, 'update'])->name('akun.update');
+    Route::delete('/akun/{id}', [AkunController::class, 'destroy'])->name('akun.destroy');
+    Route::post('/akun/bulk-delete', [AkunController::class, 'bulkDelete'])->name('akun.bulk-delete');
+
 
     // Sumber Dana
     Route::get('/sumber-dana', [SumberDanaController::class, 'index'])
