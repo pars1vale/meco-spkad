@@ -119,10 +119,10 @@
                             </td>
                             <td class="fw-bold">{{ $subKegiatan->kode_sub_kegiatan }}</td>
                             <td>{{ $subKegiatan->nama_sub_kegiatan }}</td>
-                            <td class="d-none">[URUSAN] {{ $urusan->kode_urusan }} {{ $urusan->nama_urusan }}</td>
-                            <td class="d-none">[BIDANG URUSAN] {{ $bidang->kode_bidang_urusan }} {{ $bidang->nama_bidang_urusan }}</td>
-                            <td class="d-none">[PROGRAM] {{ $program->kode_program }} {{ $program->nama_program }}</td>
-                            <td class="d-none">[KEGIATAN] {{ $kegiatan->kode_kegiatan }} {{ $kegiatan->nama_kegiatan }}</td>
+                            <td class="d-none">[URUSAN] {{ $urusan->nama_urusan }}</td>
+                            <td class="d-none">[BIDANG URUSAN] {{ $bidang->nama_bidang_urusan }}</td>
+                            <td class="d-none">[PROGRAM] {{ $program->nama_program }}</td>
+                            <td class="d-none">[KEGIATAN] {{ $kegiatan->nama_kegiatan }}</td>
                             <td>
                               <div class="d-flex justify-content-end">
                                 <a href="{{ route('sub-kegiatan.edit', $subKegiatan->id) }}"

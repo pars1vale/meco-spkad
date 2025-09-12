@@ -51,10 +51,19 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     Route::post('/sub-kegiatan/bulk-delete', [SubKegiatanController::class, 'bulkDelete'])->name('sub-kegiatan.bulk-delete');
 
     // Akun
-    Route::get('/akun', [AkunController::class, 'index'])
-        ->name('referensi.akun.index');
+    Route::get('/akun', [AkunController::class, 'index'])->name('referensi.akun.index');
+    Route::post('/akun', [AkunController::class, 'store'])->name('akun.store');
+    Route::get('/akun/{id}/edit', [AkunController::class, 'edit'])->name('akun.edit');
+    Route::put('/akun/{id}', [AkunController::class, 'update'])->name('akun.update');
+    Route::delete('/akun/{id}', [AkunController::class, 'destroy'])->name('akun.destroy');
+    Route::post('/akun/bulk-delete', [AkunController::class, 'bulkDelete'])->name('akun.bulk-delete');
+
 
     // Sumber Dana
-    Route::get('/sumber-dana', [SumberDanaController::class, 'index'])
-        ->name('referensi.sumber-dana.index');
+    Route::get('/sumber-dana', [SumberDanaController::class, 'index'])->name('referensi.sumber-dana.index');
+    Route::post('/sumber-dana', [SumberDanaController::class, 'store'])->name('sumber-dana.store');
+    Route::get('/sumber-dana/{id}/edit', [SumberDanaController::class, 'edit'])->name('sumber-dana.edit');
+    Route::put('/sumber-dana/{id}', [SumberDanaController::class, 'update'])->name('sumber-dana.update');
+    Route::delete('/sumber-dana/{id}', [SumberDanaController::class, 'destroy'])->name('sumber-dana.destroy');
+    Route::post('/sumber-dana/bulk-delete', [SumberDanaController::class, 'bulkDelete'])->name('sumber-dana.bulk-delete');
 });
