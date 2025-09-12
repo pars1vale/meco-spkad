@@ -60,6 +60,10 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
 
 
     // Sumber Dana
-    Route::get('/sumber-dana', [SumberDanaController::class, 'index'])
-        ->name('referensi.sumber-dana.index');
+    Route::get('/sumber-dana', [SumberDanaController::class, 'index'])->name('referensi.sumber-dana.index');
+    Route::post('/sumber-dana', [SumberDanaController::class, 'store'])->name('sumber-dana.store');
+    Route::get('/sumber-dana/{id}/edit', [SumberDanaController::class, 'edit'])->name('sumber-dana.edit');
+    Route::put('/sumber-dana/{id}', [SumberDanaController::class, 'update'])->name('sumber-dana.update');
+    Route::delete('/sumber-dana/{id}', [SumberDanaController::class, 'destroy'])->name('sumber-dana.destroy');
+    Route::post('/sumber-dana/bulk-delete', [SumberDanaController::class, 'bulkDelete'])->name('sumber-dana.bulk-delete');
 });
