@@ -22,8 +22,12 @@ return new class extends Migration
             $table->string('pendapatan', 50);
             $table->string('belanja', 50);
             $table->string('pembiayaan', 50);
-            $table->timestamp('time_stamp')->nullable();
-            $table->timestamp('updated_at')->nullable();
+            $table->timestamps();
+
+            $table->index(['kode_akun']);
+            $table->index(['is_belanja']);
+            $table->index(['is_pendapatan']);
+            $table->index(['is_pembiayaan']);
         });
     }
 
