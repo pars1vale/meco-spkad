@@ -17,7 +17,7 @@ class InsertSubKegiatan extends Command
             $this->warn('Truncated sub_kegiatan table.');
         }
 
-        // Menggunakan query yang Anda berikan
+        // Ambil data dari sumber eksternal
         $data = DB::connection('data_sources')
             ->table('u405304318_yahukimo2025.data_prog_keg')
             ->select(
@@ -77,6 +77,7 @@ class InsertSubKegiatan extends Command
             }
         }
 
+        // Jika ada kegiatan yang tidak ditemukan
         if (!empty($notFoundKegiatan)) {
             $this->warn('ID Kegiatan berikut tidak ditemukan:');
             foreach (array_unique($notFoundKegiatan) as $id) {
@@ -84,16 +85,32 @@ class InsertSubKegiatan extends Command
             }
         }
 
+        // Insert data dengan batch dinamis
         if (!empty($insertData)) {
-            DB::connection('mysql')->table('sub_kegiatan')->upsert(
-                $insertData,
-                ['id'],
-                ['id_kegiatan', 'kode_sub_kegiatan', 'nama_sub_kegiatan', 'time_stamp', 'updated_at']
-            );
+            // Hitung jumlah kolom yang diinsert
+            $columnCount = count($insertData[0]);
 
-            $this->info(count($insertData) . " data berhasil dimasukkan/diupdate ke tabel sub_kegiatan.");
+            // Batas maksimal placeholder MySQL (default 65535)
+            $maxPlaceholders = 65535;
+
+            // Hitung batch size aman
+            $batchSize = floor($maxPlaceholders / $columnCount);
+
+            // Pecah data jadi beberapa chunk sesuai batchSize
+            $chunks = array_chunk($insertData, $batchSize);
+
+            foreach ($chunks as $chunk) {
+                DB::connection('mysql')->table('sub_kegiatan')->upsert(
+                    $chunk,
+                    ['id'],
+                    ['id_kegiatan', 'kode_sub_kegiatan', 'nama_sub_kegiatan', 'time_stamp', 'updated_at']
+                );
+            }
+
+            $this->info(count($insertData) . " data berhasil dimasukkan/diupdate ke tabel sub_kegiatan (dalam " . count($chunks) . " batch).");
         }
 
+        // Hitung total setelah insert
         $totalSubKegiatan = DB::connection('mysql')->table('sub_kegiatan')->count();
         $this->info("Total sub kegiatan di database: {$totalSubKegiatan}");
     }

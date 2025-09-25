@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('table_data_kelompok_standar_harga', function (Blueprint $table) {
+        Schema::create('data_kelompok_standar_harga', function (Blueprint $table) {
             $table->id();
             $table->string('kode_kelompok_standar_harga', 30)->unique();
             $table->text('nama_kelompok_standar_harga');

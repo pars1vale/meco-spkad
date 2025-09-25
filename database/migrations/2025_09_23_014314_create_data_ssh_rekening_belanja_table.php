@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('table_data_ssh_rekening_belanja', function (Blueprint $table) {
+        Schema::create('data_ssh_rekening_belanja', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('id_ssh');
@@ -22,7 +22,7 @@ return new class extends Migration
 
             $table->foreign('id_ssh')
                 ->references('id')
-                ->on('table_data_ssh')
+                ->on('data_ssh')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
 
