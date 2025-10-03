@@ -456,6 +456,16 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
+              <a class="menu-link {{ Request::routeIs('satuan.index') ? 'active' : '' }}" href="{{ route('satuan.index') }}"
+                title="Daftar Satuan untuk SHS" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
+                data-bs-placement="right">
+                <span class="menu-bullet">
+                  <span class="bullet bullet-dot"></span>
+                </span>
+                <span class="menu-title">Daftar Satuan</span>
+              </a>
+            </div>
+            <div class="menu-item">
               <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
                 data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">

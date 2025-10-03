@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DataSatuan extends Model
 {
-    protected $table = 'table_data_satuan';
+    protected $table = 'data_satuan';
     protected $primaryKey = 'id';
     public $timestamps = true;
 

@@ -27,7 +27,7 @@ Route::group(['middleware' => 'auth'], function () {
         });
     });
     require __DIR__ . '/dashboard/referensi.php';
-    require __DIR__ . '/dashboard/standartsatuanharga.php';
+    require __DIR__ . '/dashboard/shs.php';
 });
 
 require __DIR__ . '/auth/auth.php';
