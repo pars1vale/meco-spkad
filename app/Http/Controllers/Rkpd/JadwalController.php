@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 class JadwalController extends Controller
 {
      public function index()
-    {
+     {
         return view('rkpd.jadwal.index');
-    }
+     }
 }

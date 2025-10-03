@@ -42,10 +42,10 @@
               <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Akun">
             </div>
           </div>
-          {{-- <div class="card-toolbar">
+          <div class="card-toolbar">
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
               <div class="w-150px me-3"></div>
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_akun">Tambah Akun</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_akun">Tambah Jadwal</button>
             </div>
             <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
               <div class="fw-bold me-5">
@@ -53,7 +53,7 @@
               </div>
               <button type="button" class="btn btn-danger" id="bulk_delete_btn">Hapus yg Terpilih</button>
             </div>
-          </div> --}}
+          </div>
         </div>
 
         <div class="card-body pt-0">
