@@ -4,7 +4,7 @@
     <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
       <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
         <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Akun</h1>
+          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Standar Harga</h1>
           <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
             <li class="breadcrumb-item text-muted">
               <a href="{{ url('/home') }}" class="text-muted text-hover-primary">Home</a>
@@ -12,11 +12,7 @@
             <li class="breadcrumb-item">
               <span class="bullet bg-gray-400 w-5px h-2px"></span>
             </li>
-            <li class="breadcrumb-item text-muted">Referensi</li>
-            <li class="breadcrumb-item">
-              <span class="bullet bg-gray-400 w-5px h-2px"></span>
-            </li>
-            <li class="breadcrumb-item text-muted">Akun</li>
+            <li class="breadcrumb-item text-muted">Standar Harga</li>
           </ul>
         </div>
       </div>
@@ -25,19 +21,20 @@
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
-
       <div class="card">
         <div class="card-header border-0 pt-6">
           <div class="card-title">
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Akun">
+              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12"
+                placeholder="Cari Standar Harga">
             </div>
           </div>
           <div class="card-toolbar">
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
-              <div class="w-150px me-3"></div>
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_akun">Tambah Akun</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_standar_harga">
+                Tambah Standar Harga
+              </button>
             </div>
             <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
               <div class="fw-bold me-5">
@@ -54,61 +51,63 @@
               <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
               <div class="d-flex flex-column">
                 <h4 class="mb-1 text-warning">Tidak ada data</h4>
-                <span>Tidak ada data Akun yang ditemukan.</span>
+                <span>Tidak ada data Standar Harga yang ditemukan.</span>
               </div>
             </div>
           @else
-            <table id="kt_akun_table" class="table table-striped align-middle table-row-dashed fs-6 gy-5">
+            <table id="kt_standar_harga_table" class="table table-striped align-middle table-row-dashed fs-6 gy-5">
               <thead>
                 <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                   <th class="w-10px pe-2">
                     <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
-                      <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_akun_table .form-check-input"
-                        value="1" />
+                      <input class="form-check-input" type="checkbox" data-kt-check="true"
+                        data-kt-check-target="#kt_standar_harga_table .form-check-input" value="1" />
                     </div>
                   </th>
                   <th class="min-w-100px">Kode</th>
-                  <th class="min-w-300px">Nama Akun</th>
-                  <th class="min-w-130px">Pendapatan</th>
-                  <th class="min-w-130px">Belanja</th>
-                  <th class="min-w-130px">Pembiayaan</th>
+                  <th class="min-w-80px">Tipe</th>
+                  <th class="min-w-200px">Nama</th>
+                  <th class="min-w-150px">Kelompok</th>
+                  <th class="min-w-80px">Satuan</th>
+                  <th class="min-w-120px">Harga</th>
                   <th class="min-w-100px">Aksi</th>
                 </tr>
               </thead>
               <tbody class="fw-semibold text-gray-600">
-                @foreach ($data as $akun)
+                @foreach ($data as $item)
                   <tr>
                     <td>
                       <div class="form-check form-check-sm form-check-custom form-check-solid">
-                        <input class="form-check-input" type="checkbox" value="{{ $akun->id }}" />
+                        <input class="form-check-input" type="checkbox" value="{{ $item->id }}" />
                       </div>
                     </td>
-                    <td class="fw-bold">{{ $akun->kode_akun }}</td>
-                    <td>{{ $akun->nama_akun }}</td>
+                    <td class="fw-bold">{{ $item->kode_standar_harga }}</td>
                     <td>
-                      <span class="badge badge-light-{{ $akun->pendapatan == 'Ya' ? 'success' : 'secondary' }}">
-                        {{ ucfirst($akun->pendapatan) }}
-                      </span>
+                      <span class="badge badge-light-info fw-bold">{{ $item->tipe_standar_harga }}</span>
                     </td>
                     <td>
-                      <span class="badge badge-light-{{ $akun->belanja == 'Ya' ? 'success' : 'secondary' }}">
-                        {{ ucfirst($akun->belanja) }}
-                      </span>
+                      <div>{{ $item->nama_standar_harga }}</div>
+                      @if ($item->spesifikasi)
+                        <div class="text-muted fs-7">{{ Str::limit($item->spesifikasi, 50) }}</div>
+                      @endif
                     </td>
+                    <td>{{ $item->kelompokStandarHarga->nama_kelompok_standar_harga }}</td>
+                    <td>{{ $item->satuan->nama_satuan }}</td>
+                    <td>Rp {{ number_format($item->harga, 2, ',', '.') }}</td>
                     <td>
-                      <span class="badge badge-light-{{ $akun->pembiayaan == 'Ya' ? 'success' : 'secondary' }}">
-                        {{ ucfirst($akun->pembiayaan) }}
-                      </span>
-                    </td>
-                    <td>
-                      <div class="d-flex justify-content-end">
-                        <a href="{{ route('akun.edit', $akun->id) }}" class="btn btn-sm btn-light-primary me-2" title="Edit Akun">
+                      <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-sm btn-light-info" data-bs-toggle="modal"
+                          data-bs-target="#modal_detail_{{ $item->id }}" title="Detail & Kelola Rekening">
+                          <i class="ki-outline ki-information-5 fs-2"></i>
+                        </button>
+                        <a href="{{ route('standar_harga.edit', $item->id) }}" class="btn btn-sm btn-light-primary" title="Edit">
                           <i class="ki-outline ki-pencil fs-2"></i>
                         </a>
-                        <form action="{{ route('akun.destroy', $akun->id) }}" method="POST" class="d-inline delete-form">
+                        <form action="{{ route('standar_harga.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
                           @csrf
                           @method('DELETE')
-                          <button type="submit" class="btn btn-sm btn-light-danger" title="Hapus Akun" data-name="{{ $akun->nama_akun }}">
+                          <button type="submit" class="btn btn-sm btn-light-danger delete-btn" title="Hapus"
+                            data-name="{{ $item->nama_standar_harga }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
@@ -124,9 +123,9 @@
     </div>
   </div>
 
-  {{-- Include Modal Create --}}
-  @include('referensi.akun.partials.modal-create')
-
-  {{-- Include Scripts --}}
-  @include('referensi.akun.partials.scripts')
+  {{-- Include All Modal Components --}}
+  @include('shs.standarharga.partials.modal-detail')
+  @include('shs.standarharga.partials.modal-add-rekening')
+  @include('shs.standarharga.partials.modal-create')
+  @include('shs.standarharga.partials.scripts')
 @endsection

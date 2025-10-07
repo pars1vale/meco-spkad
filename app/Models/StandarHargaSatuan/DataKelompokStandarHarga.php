@@ -3,17 +3,17 @@
 namespace App\Models\StandarHargaSatuan;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DataKelompokStandarHarga extends Model
 {
-    protected $table = 'table_data_kelompok_standar_harga';
+    protected $table = 'kelompok_standar_harga';
     protected $primaryKey = 'id';
     public $timestamps = true;
 
     protected $fillable = [
         'kode_kelompok_standar_harga',
-        'nama_kelompok_standar_harga'
+        'nama_kelompok_standar_harga',
+        'tipe_kelompok'
     ];
 
     protected $casts = [
@@ -21,10 +21,10 @@ class DataKelompokStandarHarga extends Model
         'updated_at' => 'datetime',
     ];
 
-    // Relasi One-to-Many ke DataSsh
-    public function dataSsh(): HasMany
+    // Relationship dengan Standar Harga
+    public function standarHarga()
     {
-        return $this->hasMany(DataSsh::class, 'id_kelompok_standar_harga', 'id');
+        return $this->hasMany(StandarHarga::class, 'id_kelompok_standar_harga');
     }
 
     // Scope untuk pencarian berdasarkan kode
@@ -37,5 +37,11 @@ class DataKelompokStandarHarga extends Model
     public function scopeByNama($query, $nama)
     {
         return $query->where('nama_kelompok_standar_harga', 'like', "%{$nama}%");
+    }
+
+    // Scope untuk filter berdasarkan tipe
+    public function scopeByTipe($query, $tipe)
+    {
+        return $query->where('tipe_kelompok', $tipe);
     }
 }

@@ -77,6 +77,7 @@
   <!--begin::Vendors Javascript(used for this page only)-->
   <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
   <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
+  <script src="{{ URL::to('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
   <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
   <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
   <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
