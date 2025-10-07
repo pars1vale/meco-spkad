@@ -207,6 +207,24 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
+              <a class="menu-link {{ Request::routeIs('rkpd.tahap-penjadwalan.index') ? 'active' : '' }}" href="{{ route('rkpd.tahap-penjadwalan.index') }}" title="Seluruh Data Tahap Penjadwalan"
+                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+                <span class="menu-bullet">
+                  <span class="bullet bullet-dot"></span>
+                </span>
+                <span class="menu-title">Tahap Penjadwalan</span>
+              </a>
+            </div>
+            <div class="menu-item">
+              <a class="menu-link {{ Request::routeIs('rkpd.sub-tahap.index') ? 'active' : '' }}" href="{{ route('rkpd.sub-tahap.index') }}" title="Seluruh Data Sub Tahap"
+                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+                <span class="menu-bullet">
+                  <span class="bullet bullet-dot"></span>
+                </span>
+                <span class="menu-title">Sub Tahap</span>
+              </a>
+            </div>
+            <div class="menu-item">
               <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
                 data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
