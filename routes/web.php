@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Shs\GetDataSipdriController;
 use Illuminate\Support\Facades\Route;
 
 /** for side bar menu active */
@@ -31,3 +32,5 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 require __DIR__ . '/auth/auth.php';
+
+// Route::get('/sipd/komponen', [GetDataSipdriController::class, 'getStandarHarga']);

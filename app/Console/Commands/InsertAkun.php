@@ -108,7 +108,7 @@ class InsertAkun extends Command // Fixed class name
 
         // Option 2: Derive from belanja field
         if (isset($row->belanja)) {
-            return $row->belanja === 'ya' ? 1 : 0;
+            return $row->belanja === 'Ya' ? 1 : 0;
         }
 
         // Option 3: Derive from account code pattern (example)
