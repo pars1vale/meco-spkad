@@ -34,14 +34,38 @@ class AkunController extends Controller
         $isBelanja = $request->has('is_belanja') ? 1 : 0;
         $isPembiayaan = $request->has('is_pembiayaan') ? 1 : 0;
 
+        // Custom validation untuk tipe akun
         if ($isPendapatan + $isBelanja + $isPembiayaan === 0) {
+            $validator->errors()->add('tipe_akun', 'Minimal satu tipe akun harus dipilih');
+
+            // Return JSON untuk AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Return redirect untuk traditional form
             return redirect()->back()
-                ->withErrors(['tipe_akun' => 'Minimal satu tipe akun harus dipilih'])
+                ->withErrors($validator)
                 ->withInput()
                 ->with('error', 'Minimal satu tipe akun harus dipilih.');
         }
 
+        // Check validator fails setelah custom validation
         if ($validator->fails()) {
+            // Return JSON untuk AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Return redirect untuk traditional form
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput()
@@ -61,16 +85,38 @@ class AkunController extends Controller
             $akun->is_pembiayaan = $isPembiayaan;
 
             // Set text values based on boolean flags
-            $akun->pendapatan = $isPendapatan ? 'ya' : 'tidak';
-            $akun->belanja = $isBelanja ? 'ya' : 'tidak';
-            $akun->pembiayaan = $isPembiayaan ? 'ya' : 'tidak';
+            $akun->pendapatan = $isPendapatan ? 'Ya' : 'Tidak';
+            $akun->belanja = $isBelanja ? 'Ya' : 'Tidak';
+            $akun->pembiayaan = $isPembiayaan ? 'Ya' : 'Tidak';
 
-            $akun->time_stamp = now();
             $akun->save();
 
+            // Return JSON untuk AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data akun berhasil ditambahkan',
+                    'data' => $akun
+                ], 201);
+            }
+
+            // Return redirect untuk traditional form
             return redirect()->route('referensi.akun.index')
                 ->with('success', 'Data akun berhasil ditambahkan');
         } catch (\Exception $e) {
+            // Log error untuk debugging
+            \Log::error('Error storing akun: ' . $e->getMessage());
+
+            // Return JSON untuk AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menyimpan data',
+                    'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+                ], 500);
+            }
+
+            // Return redirect untuk traditional form
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
@@ -131,7 +177,7 @@ class AkunController extends Controller
             $akun->belanja = $isBelanja ? 'ya' : 'tidak';
             $akun->pembiayaan = $isPembiayaan ? 'ya' : 'tidak';
 
-            $akun->updated_at = now();
+            // Laravel automatically handles updated_at timestamp
             $akun->save();
 
             return redirect()->route('referensi.akun.index')

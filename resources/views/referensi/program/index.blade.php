@@ -103,8 +103,8 @@
                         </td>
                         <td class="fw-bold">{{ $program->kode_program }}</td>
                         <td>{{ $program->nama_program }}</td>
-                        <td class="d-none">[URUSAN] {{ $urusan->kode_urusan }} {{ $urusan->nama_urusan }}</td>
-                        <td class="d-none">[BIDANG URUSAN] {{ $bidang->kode_bidang_urusan }} {{ $bidang->nama_bidang_urusan }}</td>
+                        <td class="d-none">[URUSAN] {{ $urusan->nama_urusan }}</td>
+                        <td class="d-none">[BIDANG URUSAN] {{ $bidang->nama_bidang_urusan }}</td>
                         <td>
                           <div class="d-flex justify-content-end">
                             <a href="{{ route('program.edit', $program->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
