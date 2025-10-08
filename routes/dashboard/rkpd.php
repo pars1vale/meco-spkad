@@ -1,6 +1,7 @@
 <?php
 use App\Http\Controllers\Rkpd\TahapPenjadwalanController;
 use App\Http\Controllers\Rkpd\SubTahapController;
+use App\Http\Controllers\Rkpd\JadwalController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('rkpd')->group(function () {
@@ -19,4 +20,12 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::put('/sub-tahap/{id}', [SubTahapController::class, 'update'])->name('rkpd.sub-tahap.update');
     Route::delete('/sub-tahap/{id}', [SubTahapController::class, 'destroy'])->name('rkpd.sub-tahap.destroy');
     Route::post('/sub-tahap/bulk-delete', [SubTahapController::class, 'bulkDelete'])->name('rkpd.sub-tahap.bulk-delete');
+
+    // Jadwal RKPD
+    Route::get('/jadwal-rkpd', [JadwalController::class, 'index'])->name('rkpd.jadwal-rkpd.index');
+    Route::post('/jadwal-rkpd', [JadwalController::class, 'store'])->name('rkpd.jadwal-rkpd.store');
+    Route::get('/jadwal-rkpd/{id}/edit', [JadwalController::class, 'edit'])->name('rkpd.jadwal-rkpd.edit');
+    Route::put('/jadwal-rkpd/{id}', [JadwalController::class, 'update'])->name('rkpd.jadwal-rkpd.update');
+    Route::delete('/jadwal-rkpd/{id}', [JadwalController::class, 'destroy'])->name('rkpd.jadwal-rkpd.destroy');
+    Route::post('/jadwal-rkpd/bulk-delete', [JadwalController::class, 'bulkDelete'])->name('rkpd.jadwal-rkpd.bulk-delete');
 });

@@ -225,7 +225,7 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
+              <a class="menu-link {{ Request::routeIs('rkpd.jadwal-rkpd.index') ? 'active' : '' }}" href="{{ route('rkpd.jadwal-rkpd.index') }}" title="Jadwal RKPD"
                 data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
