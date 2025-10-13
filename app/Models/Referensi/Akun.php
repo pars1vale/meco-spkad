@@ -4,14 +4,17 @@ namespace App\Models\Referensi;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\StandarHargaSatuan\StandarHarga;
+use Illuminate\Support\Facades\DB;
 
 class Akun extends Model
 {
     protected $table = 'akun';
     protected $primaryKey = 'id';
     public $timestamps = true;
+    public $incrementing = false; // Karena kita handle ID secara manual
 
     protected $fillable = [
+        'id',
         'kode_akun',
         'nama_akun',
         'keterangan_akun',
@@ -31,6 +34,60 @@ class Akun extends Model
         'updated_at' => 'datetime',
     ];
 
+    // Boot method untuk model
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-generate ID sebelum create
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = self::getNextId();
+            }
+
+            // Auto-sync text fields from boolean flags
+            $model->syncTextFields();
+        });
+
+        // Auto-sync text fields sebelum update
+        static::updating(function ($model) {
+            $model->syncTextFields();
+        });
+    }
+
+    // Mendapatkan ID berikutnya secara manual
+    public static function getNextId(): int
+    {
+        $maxId = DB::table('akun')->max('id');
+        return $maxId ? $maxId + 1 : 1;
+    }
+
+    // Sinkronisasi field teks berdasarkan flag boolean
+    protected function syncTextFields(): void
+    {
+        $this->pendapatan = $this->is_pendapatan ? 'Ya' : 'Tidak';
+        $this->belanja = $this->is_belanja ? 'Ya' : 'Tidak';
+        $this->pembiayaan = $this->is_pembiayaan ? 'Ya' : 'Tidak';
+    }
+
+    // Accessor untuk tipe akun
+    public function getTipeAkunAttribute(): string
+    {
+        if ($this->is_pendapatan) return 'Pendapatan';
+        if ($this->is_belanja) return 'Belanja';
+        if ($this->is_pembiayaan) return 'Pembiayaan';
+        return 'Tidak Ditentukan';
+    }
+
+    // Accessor untuk warna badge berdasarkan tipe akun
+    public function getBadgeColorAttribute(): string
+    {
+        if ($this->is_pendapatan) return 'success';
+        if ($this->is_belanja) return 'warning';
+        if ($this->is_pembiayaan) return 'info';
+        return 'secondary';
+    }
+
     // Relationship dengan Standar Harga
     public function standarHarga()
     {
@@ -42,7 +99,6 @@ class Akun extends Model
         )->withTimestamps();
     }
 
-    // Scopes
     public function scopeByKode($query, $kode)
     {
         return $query->where('kode_akun', 'like', "%{$kode}%");
@@ -66,5 +122,14 @@ class Akun extends Model
     public function scopePembiayaan($query)
     {
         return $query->where('is_pembiayaan', 1);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('is_pendapatan', 1)
+                ->orWhere('is_belanja', 1)
+                ->orWhere('is_pembiayaan', 1);
+        });
     }
 }
