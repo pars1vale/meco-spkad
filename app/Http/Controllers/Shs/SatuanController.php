@@ -91,7 +91,7 @@ class SatuanController extends Controller
             $satuan = DataSatuan::findOrFail($id);
             $satuan->delete();
 
-            return redirect()->route('referensi.satuan.index')
+            return redirect()->route('satuan.index')
                 ->with('success', 'Data satuan berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -118,7 +118,7 @@ class SatuanController extends Controller
 
             DB::commit();
 
-            return redirect()->route('referensi.satuan.index')
+            return redirect()->route('satuan.index')
                 ->with('success', count($request->ids) . ' data satuan berhasil dihapus');
         } catch (\Exception $e) {
             DB::rollBack();
