@@ -2,6 +2,7 @@
 use App\Http\Controllers\Rkpd\TahapPenjadwalanController;
 use App\Http\Controllers\Rkpd\SubTahapController;
 use App\Http\Controllers\Rkpd\JadwalController;
+use App\Http\Controllers\Rkpd\RenjaController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('rkpd')->group(function () {
@@ -28,4 +29,8 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::put('/jadwal-rkpd/{id}', [JadwalController::class, 'update'])->name('rkpd.jadwal-rkpd.update');
     Route::delete('/jadwal-rkpd/{id}', [JadwalController::class, 'destroy'])->name('rkpd.jadwal-rkpd.destroy');
     Route::post('/jadwal-rkpd/bulk-delete', [JadwalController::class, 'bulkDelete'])->name('rkpd.jadwal-rkpd.bulk-delete');
+
+    // Renja
+    Route::get('/renja', [RenjaController::class, 'index'])->name('rkpd.renja.index');
+
 });
