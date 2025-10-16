@@ -207,8 +207,9 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('rkpd.tahap-penjadwalan.index') ? 'active' : '' }}" href="{{ route('rkpd.tahap-penjadwalan.index') }}" title="Seluruh Data Tahap Penjadwalan"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('rkpd.tahap-penjadwalan.index') ? 'active' : '' }}"
+                href="{{ route('rkpd.tahap-penjadwalan.index') }}" title="Seluruh Data Tahap Penjadwalan" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -216,8 +217,9 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('rkpd.sub-tahap.index') ? 'active' : '' }}" href="{{ route('rkpd.sub-tahap.index') }}" title="Seluruh Data Sub Tahap"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('rkpd.sub-tahap.index') ? 'active' : '' }}" href="{{ route('rkpd.sub-tahap.index') }}"
+                title="Seluruh Data Sub Tahap" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
+                data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -225,8 +227,8 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('rkpd.jadwal-rkpd.index') ? 'active' : '' }}" href="{{ route('rkpd.jadwal-rkpd.index') }}" title="Jadwal RKPD"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('rkpd.jadwal-rkpd.index') ? 'active' : '' }}" href="{{ route('rkpd.jadwal-rkpd.index') }}"
+                title="Jadwal RKPD" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -234,8 +236,8 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('rkpd.renja.index') ? 'active' : '' }}" href="{{ route('rkpd.renja.index') }}" title="Renja"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('rkpd.renja.index') ? 'active' : '' }}" href="{{ route('rkpd.renja.index') }}"
+                title="Renja" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -474,7 +476,7 @@
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('satuan.index') ? 'active' : '' }}" href="{{ route('satuan.index') }}"
-                title="Daftar Satuan untuk SHS" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
+                title="Daftar Satuan untuk Standar Harga" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
                 data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -484,7 +486,7 @@
             </div>
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('kelompok_satuan_harga.index') ? 'active' : '' }}"
-                href="{{ route('kelompok_satuan_harga.index') }}" title="Daftar Satuan untuk SHS" data-bs-toggle="tooltip"
+                href="{{ route('kelompok_satuan_harga.index') }}" title="Kelompok dari Satuan Harga" data-bs-toggle="tooltip"
                 data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -494,8 +496,8 @@
             </div>
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('standar_harga.index') ? 'active' : '' }}" href="{{ route('standar_harga.index') }}"
-                title="Check out over 200 in-house components" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
-                data-bs-placement="right">
+                title="Pastikan Data Satuan & Kelompok Standar sudah terdaftar sebelum menambahkan SH baru" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>

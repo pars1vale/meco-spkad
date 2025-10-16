@@ -108,6 +108,8 @@ class SubKegiatanController extends Controller
                 'kode_sub_kegiatan' => $validated['kode_sub_kegiatan'],
                 'nama_sub_kegiatan' => $validated['nama_sub_kegiatan'],
                 'id_kegiatan' => $validated['id_kegiatan'],
+                // ambil id user dari session
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 
@@ -190,6 +192,8 @@ class SubKegiatanController extends Controller
                 'kode_sub_kegiatan' => $validated['kode_sub_kegiatan'],
                 'nama_sub_kegiatan' => $validated['nama_sub_kegiatan'],
                 'id_kegiatan' => $validated['id_kegiatan'],
+                // ambil id user dari session
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 
