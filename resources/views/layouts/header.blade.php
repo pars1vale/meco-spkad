@@ -77,7 +77,7 @@
                   <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
-                      <img src="{{ asset('assets/media/avatars/300-6.jpg') }}" alt="" />
+                      {{-- <img src="{{ asset('assets/media/avatars/300-6.jpg') }}" alt="" /> --}}
                     </div>
                     <!--end::Symbol-->
                     <!--begin::Title-->
@@ -92,7 +92,7 @@
                   <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
-                      <img src="{{ asset('assets/media/avatars/300-2.jpg') }}" alt="" />
+                      {{-- <img src="{{ asset('assets/media/avatars/300-2.jpg') }}" alt="" /> --}}
                     </div>
                     <!--end::Symbol-->
                     <!--begin::Title-->
@@ -107,7 +107,7 @@
                   <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
-                      <img src="{{ asset('assets/media/avatars/300-9.jpg') }}" alt="" />
+                      {{-- <img src="{{ asset('assets/media/avatars/300-9.jpg') }}" alt="" /> --}}
                     </div>
                     <!--end::Symbol-->
                     <!--begin::Title-->
@@ -122,7 +122,7 @@
                   <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
-                      <img src="{{ asset('assets/media/avatars/300-14.jpg') }}" alt="" />
+                      {{-- <img src="{{ asset('assets/media/avatars/300-14.jpg') }}" alt="" /> --}}
                     </div>
                     <!--end::Symbol-->
                     <!--begin::Title-->
@@ -137,7 +137,7 @@
                   <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
-                      <img src="{{ asset('assets/media/avatars/300-11.jpg') }}" alt="" />
+                      {{-- <img src="{{ asset('assets/media/avatars/300-11.jpg') }}" alt="" /> --}}
                     </div>
                     <!--end::Symbol-->
                     <!--begin::Title-->
@@ -669,7 +669,7 @@
         <!--begin::Menu wrapper-->
         <div class="cursor-pointer symbol symbol-circle symbol-30px symbol-lg-45px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
           data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-          <img src="{{ asset('assets/media/avatars/300-2.jpg') }}" alt="user" />
+          {{-- <img src="{{ asset('assets/media/avatars/300-2.jpg') }}" alt="user" /> --}}
         </div>
         <!--begin::User account menu-->
         <div
@@ -680,7 +680,7 @@
             <div class="menu-content d-flex align-items-center px-3">
               <!--begin::Avatar-->
               <div class="symbol symbol-50px me-5">
-                <img alt="Logo" src="{{ asset('assets/media/avatars/300-2.jpg') }}" />
+                {{-- <img alt="Logo" src="{{ asset('assets/media/avatars/300-2.jpg') }}" /> --}}
               </div>
               <!--end::Avatar-->
               <!--begin::Username-->
