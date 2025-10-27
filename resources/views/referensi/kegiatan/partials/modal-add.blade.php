@@ -16,7 +16,8 @@
             <!-- Program -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Program</label>
-              <select class="form-select form-select-solid @error('id_program') is-invalid @enderror" name="id_program" required>
+              <select class="form-select form-select-solid @error('id_program') is-invalid @enderror" data-control="select2"
+                data-dropdown-parent="#kt_modal_add_kegiatan" name="id_program" required>
                 <option value="">Pilih Program</option>
                 @php
                   $currentUrusan = null;
@@ -94,3 +95,5 @@
     </div>
   </div>
 </div>
+
+@include('referensi.kegiatan.partials.scripts-modal')

@@ -106,4 +106,35 @@
 
   @include('referensi.bidang-urusan.partials.scripts-table')
   @include('referensi.bidang-urusan.partials.scripts-modal')
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Session messages
+      const sessionMessages = document.querySelectorAll('#session-messages div');
+      sessionMessages.forEach(msg => {
+        const type = msg.dataset.type;
+        const message = msg.dataset.message;
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
+      });
+    });
+  </script>
 @endsection

@@ -3,152 +3,74 @@
 namespace App\Http\Controllers\Referensi;
 
 use App\Http\Controllers\Controller;
-use App\Models\Akun as ModelsAkun;
 use App\Models\Referensi\Akun;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AkunController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
         $data = Akun::orderBy('kode_akun')->get();
         return view('referensi.akun.index', compact('data'));
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'kode_akun' => 'required|string|max:255|unique:akun,kode_akun',
-            'nama_akun' => 'required|string',
-            'keterangan_akun' => 'nullable|string',
-        ], [
-            'kode_akun.required' => 'Kode akun wajib diisi',
-            'kode_akun.unique' => 'Kode akun sudah ada',
-            'nama_akun.required' => 'Nama akun wajib diisi',
-        ]);
+        $validator = $this->validateAkun($request);
 
-        // Validasi minimal satu tipe akun harus dipilih
-        $isPendapatan = $request->has('is_pendapatan') ? 1 : 0;
-        $isBelanja = $request->has('is_belanja') ? 1 : 0;
-        $isPembiayaan = $request->has('is_pembiayaan') ? 1 : 0;
-
-        // Custom validation untuk tipe akun
-        if ($isPendapatan + $isBelanja + $isPembiayaan === 0) {
-            $validator->errors()->add('tipe_akun', 'Minimal satu tipe akun harus dipilih');
-
-            // Return JSON untuk AJAX request
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Return redirect untuk traditional form
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('error', 'Minimal satu tipe akun harus dipilih.');
+        // Validasi tipe akun
+        $types = $this->getAkunTypes($request);
+        if (!$this->hasAnyTypeSelected($types)) {
+            return $this->handleValidationError(
+                $validator,
+                'tipe_akun',
+                'Minimal satu tipe akun harus dipilih',
+                $request
+            );
         }
 
-        // Check validator fails setelah custom validation
         if ($validator->fails()) {
-            // Return JSON untuk AJAX request
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Return redirect untuk traditional form
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('error', 'Data gagal disimpan. Periksa kembali input Anda.');
+            return $this->handleValidationError($validator, null, 'Data gagal disimpan. Periksa kembali input Anda.', $request);
         }
 
         try {
-            $akun = new Akun();
+            $akun = $this->createOrUpdateAkun(new Akun(), $request, $types);
             $akun->id = Akun::getNextId();
-            $akun->kode_akun = $request->kode_akun;
-            $akun->nama_akun = $request->nama_akun;
-            $akun->keterangan_akun = $request->keterangan_akun;
-
-            // Set boolean flags
-            $akun->is_pendapatan = $isPendapatan;
-            $akun->is_belanja = $isBelanja;
-            $akun->is_pembiayaan = $isPembiayaan;
-
-            // Set text values based on boolean flags
-            $akun->pendapatan = $isPendapatan ? 'Ya' : 'Tidak';
-            $akun->belanja = $isBelanja ? 'Ya' : 'Tidak';
-            $akun->pembiayaan = $isPembiayaan ? 'Ya' : 'Tidak';
-
             $akun->save();
 
-            // Return JSON untuk AJAX request
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Data akun berhasil ditambahkan',
-                    'data' => $akun
-                ], 201);
-            }
-
-            // Return redirect untuk traditional form
-            return redirect()->route('referensi.akun.index')
-                ->with('success', 'Data akun berhasil ditambahkan');
+            return $this->successResponse($request, 'Data akun berhasil ditambahkan', $akun);
         } catch (\Exception $e) {
-            // Log error untuk debugging
-            \Log::error('Error storing akun: ' . $e->getMessage());
-
-            // Return JSON untuk AJAX request
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan saat menyimpan data',
-                    'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
-                ], 500);
-            }
-
-            // Return redirect untuk traditional form
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+            return $this->errorResponse($request, $e);
         }
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(string $id)
     {
         $akun = Akun::findOrFail($id);
         return view('referensi.akun.edit', compact('akun'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, string $id)
     {
         $akun = Akun::findOrFail($id);
+        $validator = $this->validateAkun($request, $id);
 
-        $validator = Validator::make($request->all(), [
-            'kode_akun' => 'required|string|max:255|unique:akun,kode_akun,' . $id,
-            'nama_akun' => 'required|string',
-            'keterangan_akun' => 'nullable|string',
-        ], [
-            'kode_akun.required' => 'Kode akun wajib diisi',
-            'kode_akun.unique' => 'Kode akun sudah ada',
-            'nama_akun.required' => 'Nama akun wajib diisi',
-        ]);
-
-        // Validasi minimal satu tipe akun harus dipilih
-        $isPendapatan = $request->has('is_pendapatan') ? 1 : 0;
-        $isBelanja = $request->has('is_belanja') ? 1 : 0;
-        $isPembiayaan = $request->has('is_pembiayaan') ? 1 : 0;
-
-        if ($isPendapatan + $isBelanja + $isPembiayaan === 0) {
+        // Validasi tipe akun
+        $types = $this->getAkunTypes($request);
+        if (!$this->hasAnyTypeSelected($types)) {
             return redirect()->back()
                 ->withErrors(['tipe_akun' => 'Minimal satu tipe akun harus dipilih'])
                 ->withInput()
@@ -163,21 +85,7 @@ class AkunController extends Controller
         }
 
         try {
-            $akun->kode_akun = $request->kode_akun;
-            $akun->nama_akun = $request->nama_akun;
-            $akun->keterangan_akun = $request->keterangan_akun;
-
-            // Set boolean flags
-            $akun->is_pendapatan = $isPendapatan;
-            $akun->is_belanja = $isBelanja;
-            $akun->is_pembiayaan = $isPembiayaan;
-
-            // Set text values based on boolean flags
-            $akun->pendapatan = $isPendapatan ? 'ya' : 'tidak';
-            $akun->belanja = $isBelanja ? 'ya' : 'tidak';
-            $akun->pembiayaan = $isPembiayaan ? 'ya' : 'tidak';
-
-            // Laravel automatically handles updated_at timestamp
+            $this->createOrUpdateAkun($akun, $request, $types);
             $akun->save();
 
             return redirect()->route('referensi.akun.index')
@@ -189,12 +97,14 @@ class AkunController extends Controller
         }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(string $id)
     {
         try {
             $akun = Akun::findOrFail($id);
             $nama_akun = $akun->nama_akun;
-
             $akun->delete();
 
             return redirect()->route('referensi.akun.index')
@@ -205,6 +115,9 @@ class AkunController extends Controller
         }
     }
 
+    /**
+     * Remove multiple resources from storage.
+     */
     public function bulkDelete(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -213,8 +126,7 @@ class AkunController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->with('error', 'Data yang dipilih tidak valid');
+            return redirect()->back()->with('error', 'Data yang dipilih tidak valid');
         }
 
         try {
@@ -226,5 +138,127 @@ class AkunController extends Controller
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Validate akun data
+     */
+    private function validateAkun(Request $request, $id = null)
+    {
+        $uniqueRule = $id ? "unique:akun,kode_akun,{$id}" : 'unique:akun,kode_akun';
+
+        return Validator::make($request->all(), [
+            'kode_akun' => "required|string|max:255|{$uniqueRule}",
+            'nama_akun' => 'required|string',
+            'keterangan_akun' => 'nullable|string',
+        ], [
+            'kode_akun.required' => 'Kode akun wajib diisi',
+            'kode_akun.unique' => 'Kode akun sudah ada',
+            'nama_akun.required' => 'Nama akun wajib diisi',
+        ]);
+    }
+
+    /**
+     * Get akun types from request
+     */
+    private function getAkunTypes(Request $request)
+    {
+        return [
+            'is_pendapatan' => $request->has('is_pendapatan') ? 1 : 0,
+            'is_belanja' => $request->has('is_belanja') ? 1 : 0,
+            'is_pembiayaan' => $request->has('is_pembiayaan') ? 1 : 0,
+        ];
+    }
+
+    /**
+     * Check if any type is selected
+     */
+    private function hasAnyTypeSelected(array $types)
+    {
+        return array_sum($types) > 0;
+    }
+
+    /**
+     * Create or update akun instance
+     */
+    private function createOrUpdateAkun(Akun $akun, Request $request, array $types)
+    {
+        $akun->kode_akun = $request->kode_akun;
+        $akun->nama_akun = $request->nama_akun;
+        $akun->keterangan_akun = $request->keterangan_akun;
+
+        // Set boolean flags
+        $akun->is_pendapatan = $types['is_pendapatan'];
+        $akun->is_belanja = $types['is_belanja'];
+        $akun->is_pembiayaan = $types['is_pembiayaan'];
+
+        // Set text fields
+        $akun->pendapatan = $types['is_pendapatan'] ? 'Ya' : 'Tidak';
+        $akun->belanja = $types['is_belanja'] ? 'Ya' : 'Tidak';
+        $akun->pembiayaan = $types['is_pembiayaan'] ? 'Ya' : 'Tidak';
+
+        return $akun;
+    }
+
+    /**
+     * Handle validation error response
+     */
+    private function handleValidationError($validator, $errorKey, $errorMessage, Request $request)
+    {
+        if ($errorKey) {
+            $validator->errors()->add($errorKey, $errorMessage);
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput()
+            ->with('error', $errorMessage);
+    }
+
+    /**
+     * Success response handler
+     */
+    private function successResponse(Request $request, $message, $data = null)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $data
+            ], 201);
+        }
+
+        return redirect()->route('referensi.akun.index')->with('success', $message);
+    }
+
+    /**
+     * Error response handler
+     */
+    private function errorResponse(Request $request, \Exception $e)
+    {
+        \Log::error('Error in AkunController: ' . $e->getMessage());
+
+        $message = 'Terjadi kesalahan saat menyimpan data';
+        $error = config('app.debug') ? $e->getMessage() : 'Internal server error';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'error' => $error
+            ], 500);
+        }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', "{$message}: {$e->getMessage()}");
     }
 }

@@ -65,23 +65,6 @@
       table.search(this.value).draw();
     });
 
-    // Session messages
-    const sessionMessages = document.querySelectorAll('#session-messages div');
-    sessionMessages.forEach(msg => {
-      const type = msg.dataset.type;
-      const message = msg.dataset.message;
-      Swal.fire({
-        icon: type,
-        title: type === 'success' ? 'Berhasil' : 'Gagal',
-        text: message,
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "btn btn-primary"
-        }
-      });
-    });
-
     // Delete handler
     const deleteHandler = new DeleteHandler({
       tableId: 'kt_bidang_urusan_table',

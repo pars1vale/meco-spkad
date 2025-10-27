@@ -16,7 +16,8 @@
             <!-- Bidang Urusan -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Bidang Urusan</label>
-              <select class="form-select form-select-solid @error('id_bidang_urusan') is-invalid @enderror" name="id_bidang_urusan" required>
+              <select class="form-select form-select-solid @error('id_bidang_urusan') is-invalid @enderror" data-control="select2"
+                data-dropdown-parent="#kt_modal_add_program" name="id_bidang_urusan" required>
                 <option value="">Pilih Bidang Urusan</option>
                 @foreach ($listBidangUrusan->groupBy('nama_urusan') as $namaUrusan => $bidangUrusanGroup)
                   <optgroup label="{{ $namaUrusan }}">
@@ -71,3 +72,5 @@
     </div>
   </div>
 </div>
+
+@include('referensi.program.partials.scripts-modal')

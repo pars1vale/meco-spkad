@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Referensi\SubKegiatan;
 use App\Models\Referensi\Kegiatan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -108,8 +109,7 @@ class SubKegiatanController extends Controller
                 'kode_sub_kegiatan' => $validated['kode_sub_kegiatan'],
                 'nama_sub_kegiatan' => $validated['nama_sub_kegiatan'],
                 'id_kegiatan' => $validated['id_kegiatan'],
-                // ambil id user dari session
-                'id_user' => session('id_user'),
+                'user_id' => Auth::id(),
                 'time_stamp' => now()
             ]);
 
@@ -192,8 +192,7 @@ class SubKegiatanController extends Controller
                 'kode_sub_kegiatan' => $validated['kode_sub_kegiatan'],
                 'nama_sub_kegiatan' => $validated['nama_sub_kegiatan'],
                 'id_kegiatan' => $validated['id_kegiatan'],
-                // ambil id user dari session
-                'id_user' => session('id_user'),
+                'user_id' => Auth::id(),
                 'time_stamp' => now()
             ]);
 

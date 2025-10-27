@@ -16,7 +16,8 @@
             <!-- Urusan -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Urusan</label>
-              <select class="form-select form-select-solid @error('id_urusan') is-invalid @enderror" name="id_urusan" required>
+              <select class="form-select form-select-solid @error('id_urusan') is-invalid @enderror" data-control="select2"
+                data-dropdown-parent="#kt_modal_add_bidang_urusan" name="id_urusan" required>
                 <option value="">Pilih Urusan</option>
                 @foreach ($listUrusan as $urusan)
                   <option value="{{ $urusan->id }}" {{ old('id_urusan') == $urusan->id ? 'selected' : '' }}>
@@ -68,3 +69,5 @@
     </div>
   </div>
 </div>
+
+@include('referensi.bidang-urusan.partials.scripts-modal')

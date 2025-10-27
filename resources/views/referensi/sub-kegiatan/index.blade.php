@@ -119,10 +119,10 @@
                             </td>
                             <td class="fw-bold">{{ $subKegiatan->kode_sub_kegiatan }}</td>
                             <td>{{ $subKegiatan->nama_sub_kegiatan }}</td>
-                            <td class="d-none">[URUSAN] {{ $urusan->nama_urusan }}</td>
-                            <td class="d-none">[BIDANG URUSAN] {{ $bidang->nama_bidang_urusan }}</td>
-                            <td class="d-none">[PROGRAM] {{ $program->nama_program }}</td>
-                            <td class="d-none">[KEGIATAN] {{ $kegiatan->nama_kegiatan }}</td>
+                            <td class="d-none">[URUSAN] {{ strtoupper($urusan->nama_urusan) }}</td>
+                            <td class="d-none">[BIDANG URUSAN] {{ strtoupper($bidang->nama_bidang_urusan) }}</td>
+                            <td class="d-none">[PROGRAM] {{ strtoupper($program->kode_program) }} {{ strtoupper($program->nama_program) }}</td>
+                            <td class="d-none">[KEGIATAN] {{ strtoupper($kegiatan->kode_kegiatan) }} {{ strtoupper($kegiatan->nama_kegiatan) }}</td>
                             <td>
                               <div class="d-flex justify-content-end">
                                 <a href="{{ route('sub-kegiatan.edit', $subKegiatan->id) }}"
@@ -154,7 +154,8 @@
   </div>
 
   <!-- Modal Tambah Sub Kegiatan -->
-  <div class="modal fade" id="kt_modal_add_sub_kegiatan" tabindex="-1" aria-hidden="true">
+  @include('referensi.sub-kegiatan.partials.modal-add')
+  {{-- <div class="modal fade" id="kt_modal_add_sub_kegiatan" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
         <form class="form" action="{{ route('sub-kegiatan.store') }}" method="POST" id="kt_modal_add_sub_kegiatan_form">
@@ -265,7 +266,7 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> --}}
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -397,22 +398,31 @@
         }
       });
 
-      // === SweetAlert2 Session Messages ===
+      // === Session Messages NOTIFICATIONS ===
       const sessionMessages = document.querySelectorAll('#session-messages div');
       sessionMessages.forEach(msg => {
         const type = msg.dataset.type;
         const message = msg.dataset.message;
-
-        Swal.fire({
-          icon: type,
-          title: type === 'success' ? 'Berhasil' : 'Gagal',
-          text: message,
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
       });
 
       // === Delete confirmation pakai SweetAlert2 ===
@@ -569,6 +579,85 @@
           submitButton.disabled = true;
         });
       }
+
+      document.addEventListener("DOMContentLoaded", function() {
+
+        // ===== HANDLE SELECT2 DI MODAL =====
+        const modalElement = document.getElementById('kt_modal_add_sub_kegiatan');
+        if (modalElement) {
+          // Event saat modal ditampilkan
+          const bsModal = new bootstrap.Modal(modalElement);
+          modalElement.addEventListener('shown.bs.modal', function() {
+            console.log('Modal ditampilkan - inisialisasi Select2'); // DEBUG
+            // Pastikan Select2 belum diinisialisasi
+            const selectElements = $(this).find('select[data-control="select2"]');
+            selectElements.each(function() {
+              // Cek apakah sudah Select2
+              if (!$(this).hasClass('select2-hidden-accessible')) {
+                console.log('Inisialisasi Select2 untuk:', $(this).attr('name')); // DEBUG
+
+                $(this).select2({
+                  placeholder: $(this).data('placeholder') || 'Pilih data',
+                  dropdownParent: $('#kt_modal_add_sub_kegiatan'),
+                  allowClear: true,
+                  width: '100%'
+                });
+              } else {
+                console.log('Select2 sudah diinisialisasi untuk:', $(this).attr('name')); // DEBUG
+              }
+            });
+          });
+
+          // Reset saat modal ditutup
+          modalElement.addEventListener('hidden.bs.modal', function() {
+            console.log('Modal ditutup - reset Select2'); // DEBUG
+            $(this).find('select[data-control="select2"]').val('').trigger('change');
+          });
+        }
+
+        // ===== FORM VALIDATION =====
+        const form = document.getElementById('kt_modal_add_sub_kegiatan_form');
+        const submitButton = document.getElementById('kt_modal_add_sub_kegiatan_submit');
+
+        if (form && submitButton) {
+          form.addEventListener('submit', function(e) {
+            const idKegiatan = form.querySelector('select[name="id_kegiatan"]').value;
+            const kodeSubKegiatan = form.querySelector('input[name="kode_sub_kegiatan"]').value.trim();
+            const namaSubKegiatan = form.querySelector('textarea[name="nama_sub_kegiatan"]').value.trim();
+
+            console.log('Form submit - validasi:', {
+              idKegiatan,
+              kodeSubKegiatan,
+              namaSubKegiatan
+            }); // DEBUG
+
+            if (!idKegiatan || !kodeSubKegiatan || !namaSubKegiatan) {
+              e.preventDefault();
+              Swal.fire({
+                icon: 'error',
+                title: 'Validasi gagal',
+                text: 'Semua field wajib diisi!',
+                confirmButtonText: 'OK',
+                buttonsStyling: false,
+                customClass: {
+                  confirmButton: "btn btn-primary"
+                }
+              });
+              return;
+            }
+
+            submitButton.setAttribute('data-kt-indicator', 'on');
+            submitButton.disabled = true;
+          });
+        }
+
+        // Auto show modal jika ada error
+        @if ($errors->any() && old('_token'))
+          console.log('Ada error - tampilkan modal'); // DEBUG
+          const modal = new bootstrap.Modal(document.getElementById('kt_modal_add_sub_kegiatan'));
+          modal.show();
+        @endif
+      });
 
       // === Auto show modal if validation errors exist ===
       @if ($errors->any() && old('_token'))

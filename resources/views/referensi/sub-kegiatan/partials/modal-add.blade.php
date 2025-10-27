@@ -16,13 +16,16 @@
             <!-- Kegiatan -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Kegiatan</label>
-              <select class="form-select form-select-solid @error('id_kegiatan') is-invalid @enderror" name="id_kegiatan" required>
-                <option value="">Pilih Kegiatan</option>
+              <select name="id_kegiatan" data-control="select2" data-dropdown-parent="#kt_modal_add_sub_kegiatan"
+                class="form-select form-select-solid @error('id_kegiatan') is-invalid @enderror" data-placeholder="Pilih Kegiatan"
+                data-allow-clear="true" required>
+                <option></option> {{-- penting untuk menampilkan placeholder di Select2 --}}
                 @php
                   $currentUrusan = null;
                   $currentBidang = null;
                   $currentProgram = null;
                 @endphp
+
                 @foreach ($listKegiatan as $kegiatan)
                   @if ($currentUrusan !== $kegiatan->nama_urusan)
                     @if ($currentUrusan !== null)
@@ -35,6 +38,7 @@
                         $currentProgram = null;
                       @endphp
                   @endif
+
                   @if ($currentBidang !== $kegiatan->nama_bidang_urusan)
                     @if ($currentBidang !== null)
                       </optgroup>
@@ -45,6 +49,7 @@
                         $currentProgram = null;
                       @endphp
                   @endif
+
                   @if ($currentProgram !== $kegiatan->nama_program)
                     @if ($currentProgram !== null)
                       </optgroup>
@@ -52,10 +57,13 @@
                     <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;{{ $kegiatan->kode_program }} - {{ $kegiatan->nama_program }}">
                       @php $currentProgram = $kegiatan->nama_program; @endphp
                   @endif
-                  <option value="{{ $kegiatan->id }}" {{ old('id_kegiatan') == $kegiatan->id ? 'selected' : '' }}>
+
+                  <option value="{{ $kegiatan->id }}"
+                    {{ old('id_kegiatan', isset($subKegiatan) ? $subKegiatan->id_kegiatan : '') == $kegiatan->id ? 'selected' : '' }}>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $kegiatan->kode_kegiatan }} - {{ $kegiatan->nama_kegiatan }}
                   </option>
                 @endforeach
+
                 @if ($currentProgram !== null)
                   </optgroup>
                 @endif
@@ -66,6 +74,7 @@
                   </optgroup>
                 @endif
               </select>
+
               @error('id_kegiatan')
                 <div class="invalid-feedback">{{ $message }}</div>
               @enderror
@@ -109,3 +118,6 @@
     </div>
   </div>
 </div>
+
+
+{{-- @include('referensi.sub-kegiatan.partials.scripts-modal') --}}
