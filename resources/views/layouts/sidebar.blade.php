@@ -114,7 +114,8 @@
           </div>
         </div>
         {{-- pengaturan --}}
-        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+        <div data-kt-menu-trigger="click"
+          class="menu-item {{ Request::routeIs('pengaturan.*') ? 'show' : '' }} menu-accordion">
           <span class="menu-link">
             <span class="menu-icon">
               <i class="ki-outline ki-gear fs-2"></i>
@@ -122,8 +123,11 @@
             <span class="menu-title">Pengaturan</span>
             <span class="menu-arrow"></span>
           </span>
+
           <div class="menu-sub menu-sub-accordion">
-            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+            {{-- PROFIL --}}
+            <div data-kt-menu-trigger="click"
+              class="menu-item menu-accordion {{ Request::routeIs('pengaturan.perangkat-daerah.*') ? 'show' : '' }}">
               <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -131,20 +135,23 @@
                 <span class="menu-title">Profil</span>
                 <span class="menu-arrow"></span>
               </span>
+
               <div class="menu-sub menu-sub-accordion">
                 <div class="menu-item">
-
-                  <a class="menu-link" href="pages/user-profile/overview.html">
+                  <a class="menu-link {{ Request::routeIs('pengaturan.perangkat-daerah.index') ? 'active' : '' }}"
+                    href="{{ route('pengaturan.perangkat-daerah.index') }}">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>
                     <span class="menu-title">Perangkat Daerah</span>
                   </a>
-
                 </div>
               </div>
             </div>
-            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+
+            {{-- USER --}}
+            <div data-kt-menu-trigger="click"
+              class="menu-item menu-accordion ">
               <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -152,9 +159,11 @@
                 <span class="menu-title">User</span>
                 <span class="menu-arrow"></span>
               </span>
+
               <div class="menu-sub menu-sub-accordion">
                 <div class="menu-item">
-                  <a class="menu-link" href="account/overview.html">
+                  <a class="menu-link "
+                    href="">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>
@@ -165,6 +174,7 @@
             </div>
           </div>
         </div>
+
         {{-- analisis dan rekap datas --}}
         <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
           <span class="menu-link">

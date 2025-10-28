@@ -9,6 +9,7 @@ class RenjaController extends Controller
 {
     public function index()
     {
+        
         return view('rkpd.renja.index');
     }
 }

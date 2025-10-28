@@ -48,7 +48,7 @@
               </div>
               {{-- <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#kt_customers_export_modal">
                 <i class="ki-outline ki-exit-up fs-2"></i>Export</button> --}}
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_kegiatan">Tambah Kegiatan</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_skpd">Tambah</button>
             </div>
             <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
               <div class="fw-bold me-5">
@@ -59,7 +59,7 @@
           </div>
         </div>
 
-        <div class="card-body pt-0">
+        {{-- <div class="card-body pt-0">
           @if ($data->isEmpty())
             <div class="alert alert-warning d-flex align-items-center p-5 rounded">
               <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
@@ -78,54 +78,37 @@
                         data-kt-check-target="#kt_datatable_column_rendering .form-check-input" value="1" />
                     </div>
                   </th>
-                  <th class="min-w-100px">Kode Urusan</th>
-                  <th class="min-w-300px">Nama Urusan</th>
+                  <th class="min-w-100px">Perangkat Daerah</th>
+                  <th class="min-w-300px">Total Sub Kegiatan</th>
+                  <th class="min-w-300px">Sub Kegiatan Terbuka</th>
+                  <th class="min-w-300px">Riancian Belanja Terbuka</th>
+                  <th class="min-w-300px">Sebelum Perubahan</th>
+                  <th class="min-w-300px">Pagu Validasi</th>
+                  <th class="min-w-300px">Batasan Pagu SKPD</th>
+                  <th class="min-w-300px">Rincian Belanja</th>
+                  <th class="min-w-300px">Realisasi</th>
+                  <th class="min-w-300px">Persentase</th>
                   <th class="min-w-100px">Aksi</th>
                 </tr>
               </thead>
               <tbody class="fw-semibold text-gray-600">
-                @foreach ($data as $item)
-                  <tr>
-                    <td>
-                      <div class="form-check form-check-sm form-check-custom form-check-solid">
-                        <input class="form-check-input" type="checkbox" value="{{ $item->id }}" />
-                      </div>
-                    </td>
-                    <td class="fw-bold">{{ $item->kode_urusan }}</td>
-                    <td>{{ $item->nama_urusan }}</td>
-                    <td>
-                      <div class="d-flex justify-content-end">
-                        <a href="{{ route('urusan.edit', $item->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                          title="Edit Urusan">
-                          <i class="ki-outline ki-pencil fs-2"></i>
-                        </a>
-                        <form action="{{ route('urusan.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus Urusan"
-                            data-name="{{ $item->nama_urusan }}">
-                            <i class="ki-outline ki-trash fs-2"></i>
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                @endforeach
+               
+                
               </tbody>
             </table>
           @endif
-        </div>
+        </div> --}}
       </div>
     </div>
   </div>
 
   <!-- Modal Tambah Urusan -->
-  <div class="modal fade" id="kt_modal_add_kegiatan" tabindex="-1" aria-hidden="true">
+  {{-- <div class="modal fade" id="kt_modal_add_skpd" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
-        <form class="form" action="{{ route('urusan.store') }}" method="POST" id="kt_modal_add_kegiatan_form">
+        <form class="form" action="{{ route('urusan.store') }}" method="POST" id="kt_modal_add_skpd_form">
           @csrf
-          <div class="modal-header" id="kt_modal_add_kegiatan_header">
+          <div class="modal-header" id="kt_modal_add_skpd_header">
             <h2 class="fw-bold">Tambah Urusan</h2>
             <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
               <i class="ki-outline ki-cross fs-1"></i>
@@ -133,7 +116,7 @@
           </div>
 
           <div class="modal-body py-10 px-lg-17">
-            <div class="scroll-y me-n7 pe-7" id="kt_modal_add_kegiatan_scroll">
+            <div class="scroll-y me-n7 pe-7" id="kt_modal_add_skpd_scroll">
 
               <!-- Kode Urusan -->
               <div class="fv-row mb-7">
@@ -162,7 +145,7 @@
 
           <div class="modal-footer flex-center">
             <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" id="kt_modal_add_kegiatan_submit" class="btn btn-primary">
+            <button type="submit" id="kt_modal_add_skpd_submit" class="btn btn-primary">
               <span class="indicator-label">Simpan</span>
               <span class="indicator-progress">Menyimpan...
                 <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
@@ -172,7 +155,7 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> --}}
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -362,8 +345,8 @@
       });
 
       // === Form validation ===
-      const form = document.getElementById('kt_modal_add_kegiatan_form');
-      const submitButton = document.getElementById('kt_modal_add_kegiatan_submit');
+      const form = document.getElementById('kt_modal_add_skpd_form');
+      const submitButton = document.getElementById('kt_modal_add_skpd_submit');
 
       if (form && submitButton) {
         form.addEventListener('submit', function(e) {
@@ -392,7 +375,7 @@
 
       // === Auto show modal if validation errors exist ===
       @if ($errors->any() && old('_token'))
-        $('#kt_modal_add_kegiatan').modal('show');
+        $('#kt_modal_add_skpd').modal('show');
       @endif
     });
   </script>
