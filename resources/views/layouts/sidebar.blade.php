@@ -114,7 +114,8 @@
           </div>
         </div>
         {{-- pengaturan --}}
-        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+        <div data-kt-menu-trigger="click"
+          class="menu-item {{ Request::routeIs('pengaturan.*') ? 'show' : '' }} menu-accordion">
           <span class="menu-link">
             <span class="menu-icon">
               <i class="ki-outline ki-gear fs-2"></i>
@@ -122,8 +123,11 @@
             <span class="menu-title">Pengaturan</span>
             <span class="menu-arrow"></span>
           </span>
+
           <div class="menu-sub menu-sub-accordion">
-            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+            {{-- PROFIL --}}
+            <div data-kt-menu-trigger="click"
+              class="menu-item menu-accordion {{ Request::routeIs('pengaturan.perangkat-daerah.*') ? 'show' : '' }}">
               <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -131,20 +135,23 @@
                 <span class="menu-title">Profil</span>
                 <span class="menu-arrow"></span>
               </span>
+
               <div class="menu-sub menu-sub-accordion">
                 <div class="menu-item">
-
-                  <a class="menu-link" href="pages/user-profile/overview.html">
+                  <a class="menu-link {{ Request::routeIs('pengaturan.perangkat-daerah.index') ? 'active' : '' }}"
+                    href="{{ route('pengaturan.perangkat-daerah.index') }}">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>
                     <span class="menu-title">Perangkat Daerah</span>
                   </a>
-
                 </div>
               </div>
             </div>
-            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+
+            {{-- USER --}}
+            <div data-kt-menu-trigger="click"
+              class="menu-item menu-accordion ">
               <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -152,9 +159,11 @@
                 <span class="menu-title">User</span>
                 <span class="menu-arrow"></span>
               </span>
+
               <div class="menu-sub menu-sub-accordion">
                 <div class="menu-item">
-                  <a class="menu-link" href="account/overview.html">
+                  <a class="menu-link "
+                    href="">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>
@@ -165,6 +174,7 @@
             </div>
           </div>
         </div>
+
         {{-- analisis dan rekap datas --}}
         <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
           <span class="menu-link">
@@ -207,7 +217,25 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-              <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
+              <a class="menu-link {{ Request::routeIs('rkpd.tahap-penjadwalan.index') ? 'active' : '' }}" href="{{ route('rkpd.tahap-penjadwalan.index') }}" title="Seluruh Data Tahap Penjadwalan"
+                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+                <span class="menu-bullet">
+                  <span class="bullet bullet-dot"></span>
+                </span>
+                <span class="menu-title">Tahap Penjadwalan</span>
+              </a>
+            </div>
+            <div class="menu-item">
+              <a class="menu-link {{ Request::routeIs('rkpd.sub-tahap.index') ? 'active' : '' }}" href="{{ route('rkpd.sub-tahap.index') }}" title="Seluruh Data Sub Tahap"
+                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+                <span class="menu-bullet">
+                  <span class="bullet bullet-dot"></span>
+                </span>
+                <span class="menu-title">Sub Tahap</span>
+              </a>
+            </div>
+            <div class="menu-item">
+              <a class="menu-link {{ Request::routeIs('rkpd.jadwal-rkpd.index') ? 'active' : '' }}" href="{{ route('rkpd.jadwal-rkpd.index') }}" title="Jadwal RKPD"
                 data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -216,8 +244,7 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
+              <a class="menu-link {{ Request::routeIs('rkpd.renja.index') ? 'active' : '' }}" href="{{ route('rkpd.renja.index') }}" title="Renja"
                 data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -456,42 +483,33 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-              <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('satuan.index') ? 'active' : '' }}" href="{{ route('satuan.index') }}"
+                title="Daftar Satuan untuk SHS" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
+                data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
-                <span class="menu-title">SSH</span>
+                <span class="menu-title">Daftar Satuan</span>
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('kelompok_satuan_harga.index') ? 'active' : '' }}"
+                href="{{ route('kelompok_satuan_harga.index') }}" title="Daftar Satuan untuk SHS" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
-                <span class="menu-title">HSPK</span>
+                <span class="menu-title">Kelompok Satuan Harga</span>
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('standar_harga.index') ? 'active' : '' }}" href="{{ route('standar_harga.index') }}"
+                title="Check out over 200 in-house components" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
+                data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
-                <span class="menu-title">ASB</span>
-              </a>
-            </div>
-            <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
-                <span class="menu-bullet">
-                  <span class="bullet bullet-dot"></span>
-                </span>
-                <span class="menu-title">SBU</span>
+                <span class="menu-title">Standar Harga</span>
               </a>
             </div>
           </div>

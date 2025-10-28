@@ -3,89 +3,133 @@
 namespace App\Models\Referensi;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\StandarHargaSatuan\StandarHarga;
+use Illuminate\Support\Facades\DB;
 
 class Akun extends Model
 {
-
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
     protected $table = 'akun';
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
     protected $primaryKey = 'id';
+    public $timestamps = true;
+    public $incrementing = false; // Karena kita handle ID secara manual
 
-    /**
-     * Indicates if the model's ID is auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
-
-    /**
-     * The data type of the auto-incrementing ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'int';
-
-    /**
-     * Indicates if the model should be timestamped.
-     *
-     * @var bool
-     */
-    public $timestamps = false;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'id',
         'kode_akun',
         'nama_akun',
         'keterangan_akun',
+        'is_pendapatan',
+        'is_belanja',
+        'is_pembiayaan',
         'pendapatan',
         'belanja',
-        'pembiayaan',
-        'time_stamp',
+        'pembiayaan'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'id' => 'integer',
-        'time_stamp' => 'timestamp',
-        'updated_at' => 'timestamp',
+        'is_pendapatan' => 'boolean',
+        'is_belanja' => 'boolean',
+        'is_pembiayaan' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    /**
-     * Get next available ID
-     */
-    public static function getNextId()
+    // Boot method untuk model
+    protected static function boot()
     {
-        $maxId = self::max('id') ?? 0;
-        return $maxId + 1;
+        parent::boot();
+
+        // Auto-generate ID sebelum create
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = self::getNextId();
+            }
+
+            // Auto-sync text fields from boolean flags
+            $model->syncTextFields();
+        });
+
+        // Auto-sync text fields sebelum update
+        static::updating(function ($model) {
+            $model->syncTextFields();
+        });
     }
 
-    /**
-     * Get the route key for the model.
-     *
-     * @return string
-     */
-    public function getRouteKeyName()
+    // Mendapatkan ID berikutnya secara manual
+    public static function getNextId(): int
     {
-        return 'kode_akun';
+        $maxId = DB::table('akun')->max('id');
+        return $maxId ? $maxId + 1 : 1;
+    }
+
+    // Sinkronisasi field teks berdasarkan flag boolean
+    protected function syncTextFields(): void
+    {
+        $this->pendapatan = $this->is_pendapatan ? 'Ya' : 'Tidak';
+        $this->belanja = $this->is_belanja ? 'Ya' : 'Tidak';
+        $this->pembiayaan = $this->is_pembiayaan ? 'Ya' : 'Tidak';
+    }
+
+    // Accessor untuk tipe akun
+    public function getTipeAkunAttribute(): string
+    {
+        if ($this->is_pendapatan) return 'Pendapatan';
+        if ($this->is_belanja) return 'Belanja';
+        if ($this->is_pembiayaan) return 'Pembiayaan';
+        return 'Tidak Ditentukan';
+    }
+
+    // Accessor untuk warna badge berdasarkan tipe akun
+    public function getBadgeColorAttribute(): string
+    {
+        if ($this->is_pendapatan) return 'success';
+        if ($this->is_belanja) return 'warning';
+        if ($this->is_pembiayaan) return 'info';
+        return 'secondary';
+    }
+
+    // Relationship dengan Standar Harga
+    public function standarHarga()
+    {
+        return $this->belongsToMany(
+            StandarHarga::class,
+            'standar_harga_rekening_belanja',
+            'id_akun',
+            'id_standar_harga'
+        )->withTimestamps();
+    }
+
+    public function scopeByKode($query, $kode)
+    {
+        return $query->where('kode_akun', 'like', "%{$kode}%");
+    }
+
+    public function scopeByNama($query, $nama)
+    {
+        return $query->where('nama_akun', 'like', "%{$nama}%");
+    }
+
+    public function scopeBelanja($query)
+    {
+        return $query->where('is_belanja', 1);
+    }
+
+    public function scopePendapatan($query)
+    {
+        return $query->where('is_pendapatan', 1);
+    }
+
+    public function scopePembiayaan($query)
+    {
+        return $query->where('is_pembiayaan', 1);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('is_pendapatan', 1)
+                ->orWhere('is_belanja', 1)
+                ->orWhere('is_pembiayaan', 1);
+        });
     }
 }
