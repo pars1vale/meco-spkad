@@ -12,18 +12,24 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('program', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary(); // Manual ID dari data source
-            $table->unsignedBigInteger('id_bidang_urusan'); // Foreign key ke bidang_urusan
+            $table->unsignedBigInteger('id')->primary();
+            $table->unsignedBigInteger('id_bidang_urusan');
             $table->string('kode_program');
             $table->string('nama_program');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->timestamp('time_stamp')->nullable();
             $table->timestamps();
 
-            // Foreign key constraint
+            // Foreign key constraints
             $table->foreign('id_bidang_urusan')
                 ->references('id')
                 ->on('bidang_urusan')
                 ->cascadeOnDelete();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->nullOnDelete();
         });
     }
 

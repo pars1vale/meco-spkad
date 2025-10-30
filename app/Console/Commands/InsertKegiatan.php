@@ -4,24 +4,147 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class InsertKegiatan extends Command
 {
-    protected $signature = 'insert:kegiatan {--truncate : Kosongkan tabel kegiatan terlebih dulu}';
+    protected $signature = 'insert:kegiatan 
+                            {--truncate : Kosongkan tabel kegiatan terlebih dulu}
+                            {--dry-run : Preview data tanpa melakukan insert}
+                            {--debug : Tampilkan informasi debug detail}';
+
     protected $description = 'Insert kegiatan data from SIPD-RI into the kegiatan (SPKAD) table';
+
+    private $notFoundPrograms = [];
+    private $duplicateWarnings = [];
+    private $startTime;
 
     public function handle()
     {
-        if ($this->option('truncate')) {
-            DB::connection('mysql')->table('kegiatan')->truncate();
-            $this->warn('Truncated kegiatan table.');
-        }
+        $this->startTime = microtime(true);
 
-        // Ambil data dan kelompokkan berdasarkan kombinasi kode + nama
-        // untuk mendeteksi kasus ID sama tapi nama berbeda
-        $rawData = DB::connection('data_sources')
+        try {
+            $this->info("=== INSERT KEGIATAN COMMAND STARTED ===\n");
+
+            // 1. Check source connection
+            if (!$this->checkSourceConnection()) {
+                return Command::FAILURE;
+            }
+
+            // 2. Handle truncate option
+            $this->handleTruncate();
+
+            // 3. Fetch source data
+            $rawData = $this->fetchSourceData();
+            if ($rawData->isEmpty()) {
+                $this->info('No data found in source table.');
+                return Command::SUCCESS;
+            }
+
+            $this->info("Total raw records fetched: " . $rawData->count());
+
+            // 4. Process and deduplicate data
+            $processedData = $this->processData($rawData);
+            $this->info("Records after deduplication: " . $processedData->count());
+
+            // 5. Analyze data quality (if debug mode)
+            if ($this->option('debug')) {
+                $this->analyzeDataQuality($rawData, $processedData);
+            }
+
+            // 6. Prepare insert data
+            $insertData = $this->prepareInsertData($processedData);
+
+            if (empty($insertData)) {
+                $this->warn('No valid data to insert after processing.');
+                return Command::SUCCESS;
+            }
+
+            $this->info("Valid records ready for insert: " . count($insertData));
+
+            // 7. Dry run mode
+            if ($this->option('dry-run')) {
+                $this->handleDryRun($insertData);
+                return Command::SUCCESS;
+            }
+
+            // 8. Insert data in batches
+            $beforeCount = $this->getRecordCount();
+            $this->insertDataInBatches($insertData);
+            $afterCount = $this->getRecordCount();
+
+            // 9. Show summary report
+            $this->showSummaryReport($beforeCount, $afterCount, count($insertData));
+
+            // 10. Show warnings if any
+            $this->showWarnings();
+
+            $this->info("\n=== INSERT KEGIATAN COMMAND COMPLETED ===");
+
+            return Command::SUCCESS;
+        } catch (Exception $e) {
+            $this->error("\n=== ERROR OCCURRED ===");
+            $this->error('Message: ' . $e->getMessage());
+            $this->error('File: ' . $e->getFile() . ':' . $e->getLine());
+
+            if ($this->option('debug')) {
+                $this->error("\nStack Trace:");
+                $this->error($e->getTraceAsString());
+            }
+
+            return Command::FAILURE;
+        }
+    }
+
+    /**
+     * Check if source database connection is available
+     */
+    private function checkSourceConnection(): bool
+    {
+        try {
+            DB::connection('data_sources')->getPdo();
+            $this->info("✓ Source database connection OK");
+            return true;
+        } catch (Exception $e) {
+            $this->error("✗ Cannot connect to data_sources database");
+            $this->error("Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Handle truncate option
+     */
+    private function handleTruncate(): void
+    {
+        if ($this->option('truncate')) {
+            if ($this->confirm('Are you sure you want to truncate the kegiatan table?', false)) {
+                DB::connection('mysql')->table('kegiatan')->truncate();
+                $this->warn('✓ Kegiatan table truncated');
+            } else {
+                $this->info('Truncate cancelled by user');
+            }
+        }
+    }
+
+    /**
+     * Fetch data from source database
+     */
+    private function fetchSourceData()
+    {
+        $this->info("Fetching data from source...");
+
+        return DB::connection('data_sources')
             ->table('u405304318_yahukimo2025.data_prog_keg')
-            ->select('nama_urusan', 'nama_bidang_urusan', 'id_program', 'nama_program', 'id_giat', 'kode_giat', 'nama_giat')
+            ->select(
+                'nama_urusan',
+                'nama_bidang_urusan',
+                'id_program',
+                'nama_program',
+                'id_giat',
+                'kode_giat',
+                'nama_giat'
+            )
             ->whereNotNull('id_giat')
             ->whereNotNull('kode_giat')
             ->whereNotNull('nama_giat')
@@ -32,292 +155,269 @@ class InsertKegiatan extends Command
             ->orderBy('kode_giat')
             ->orderBy('nama_giat')
             ->get();
+    }
 
-        $this->info("Total raw data: " . $rawData->count());
+    /**
+     * Process and deduplicate data
+     */
+    private function processData($rawData)
+    {
+        $this->info("Processing and deduplicating data...");
 
-        // Debug: Analisis kode yang memiliki nama berbeda
-        $this->analyzeDuplicateCodes($rawData);
-
-        // Kelompokkan berdasarkan id_giat saja
-        // Karena ternyata data source sudah memberikan ID berbeda untuk nama berbeda
+        // Remove duplicates based on id_giat
         $processedData = $rawData->unique(function ($item) {
-            // Unique berdasarkan id_giat saja
             return $item->id_giat;
+        })->values();
+
+        // Check for duplicate codes with different names
+        $this->checkDuplicateCodes($processedData);
+
+        return $processedData;
+    }
+
+    /**
+     * Check for duplicate codes with different names
+     */
+    private function checkDuplicateCodes($data): void
+    {
+        $grouped = $data->groupBy('kode_giat');
+
+        $duplicates = $grouped->filter(function ($group) {
+            return $group->pluck('nama_giat')->unique()->count() > 1;
         });
 
-        $this->info("Data setelah unique by ID: " . $processedData->count());
+        if ($duplicates->count() > 0) {
+            $this->duplicateWarnings[] = "Found {$duplicates->count()} codes with different names";
 
-        // Debug: Analisis data setelah unique
-        $this->analyzeProcessedData($processedData);
-
-        $data = $processedData->groupBy('nama_program');
-
-        $totalData = $data->flatten(1)->count();
-        $this->info($totalData . " Data Kegiatan ditemukan.");
-
-        // Tampilkan contoh data untuk verifikasi
-        $this->info("Contoh data yang ditemukan:");
-        $sampel = $data->flatten(1)->take(10);
-        foreach ($sampel as $item) {
-            $this->line("ID: {$item->id_giat}, Kode: {$item->kode_giat}, Nama: {$item->nama_giat}");
+            if ($this->option('debug')) {
+                $this->warn("\nCodes with different names:");
+                foreach ($duplicates->take(5) as $code => $group) {
+                    $names = $group->pluck('nama_giat')->unique();
+                    $this->line("  Code {$code}: " . $names->implode(' | '));
+                }
+                if ($duplicates->count() > 5) {
+                    $this->line("  ... and " . ($duplicates->count() - 5) . " more");
+                }
+            }
         }
+    }
+
+    /**
+     * Analyze data quality for debugging
+     */
+    private function analyzeDataQuality($rawData, $processedData): void
+    {
+        $this->info("\n=== DATA QUALITY ANALYSIS ===");
+
+        $totalRaw = $rawData->count();
+        $totalProcessed = $processedData->count();
+        $removed = $totalRaw - $totalProcessed;
+
+        $this->line("Raw records: {$totalRaw}");
+        $this->line("Processed records: {$totalProcessed}");
+        $this->line("Duplicates removed: {$removed}");
+
+        // Unique codes count
+        $uniqueCodes = $processedData->pluck('kode_giat')->unique()->count();
+        $this->line("Unique codes: {$uniqueCodes}");
+
+        // Unique programs
+        $uniquePrograms = $processedData->pluck('id_program')->unique()->count();
+        $this->line("Unique programs referenced: {$uniquePrograms}");
+
+        $this->line("===========================\n");
+    }
+
+    /**
+     * Prepare data for insertion
+     */
+    private function prepareInsertData($data): array
+    {
+        $this->info("Preparing insert data...");
 
         $insertData = [];
-        $notFoundProgram = [];
 
-        foreach ($data as $namaProgram => $kegiatanList) {
-            foreach ($kegiatanList as $row) {
-                // Cek apakah id_program ada di tabel program
-                $programExists = DB::connection('mysql')
-                    ->table('program')
-                    ->where('id', $row->id_program)
-                    ->exists();
+        $bar = $this->output->createProgressBar($data->count());
+        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% - Preparing data');
 
-                if (!$programExists) {
-                    $notFoundProgram[] = $row->id_program;
-                    continue;
-                }
-
-                $insertData[] = [
-                    'id' => $row->id_giat,
-                    'id_program' => $row->id_program,
-                    'kode_kegiatan' => $row->kode_giat,
-                    'nama_kegiatan' => $row->nama_giat,
-                    'time_stamp' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+        foreach ($data as $row) {
+            // Validate program exists
+            if (!$this->validateProgramExists($row->id_program)) {
+                $this->notFoundPrograms[] = $row->id_program;
+                $bar->advance();
+                continue;
             }
+
+            $insertData[] = [
+                'id' => $row->id_giat,
+                'id_program' => $row->id_program,
+                'kode_kegiatan' => $row->kode_giat,
+                'nama_kegiatan' => $row->nama_giat,
+                'time_stamp' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            $bar->advance();
         }
 
-        if (!empty($notFoundProgram)) {
-            $this->warn('ID Program berikut tidak ditemukan:');
-            foreach (array_unique($notFoundProgram) as $id) {
-                $this->warn("- ID: {$id}");
-            }
+        $bar->finish();
+        $this->line("\n");
+
+        return $insertData;
+    }
+
+    /**
+     * Validate if program exists in database
+     */
+    private function validateProgramExists($programId): bool
+    {
+        static $cache = [];
+
+        if (!isset($cache[$programId])) {
+            $cache[$programId] = DB::connection('mysql')
+                ->table('program')
+                ->where('id', $programId)
+                ->exists();
         }
 
-        if (!empty($insertData)) {
-            // Debug sebelum upsert
-            $this->debugBeforeUpsert($insertData);
+        return $cache[$programId];
+    }
 
-            $beforeCount = DB::connection('mysql')->table('kegiatan')->count();
-            $this->info("Jumlah data sebelum upsert: {$beforeCount}");
+    /**
+     * Insert data in optimized batches
+     */
+    private function insertDataInBatches(array $insertData): void
+    {
+        if (empty($insertData)) {
+            $this->warn("No data to insert.");
+            return;
+        }
 
-            try {
+        $this->info("Inserting data in batches...");
+
+        // Calculate optimal batch size based on column count
+        $columnCount = count($insertData[0]);
+        $maxPlaceholders = 65535;
+        $batchSize = (int) floor(($maxPlaceholders / $columnCount) * 0.9);
+
+        $chunks = array_chunk($insertData, $batchSize);
+
+        $bar = $this->output->createProgressBar(count($chunks));
+        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% - %message%');
+        $bar->setMessage('Starting batch insert...');
+
+        try {
+            foreach ($chunks as $index => $chunk) {
+                $bar->setMessage("Batch " . ($index + 1) . " of " . count($chunks));
+
                 DB::connection('mysql')->table('kegiatan')->upsert(
-                    $insertData,
-                    ['id'],
-                    ['id_program', 'kode_kegiatan', 'nama_kegiatan', 'time_stamp', 'updated_at']
+                    $chunk,
+                    ['id'], // Unique key for upsert
+                    [
+                        'id_program',
+                        'kode_kegiatan',
+                        'nama_kegiatan',
+                        'time_stamp',
+                        'updated_at'
+                    ]
                 );
 
-                $afterCount = DB::connection('mysql')->table('kegiatan')->count();
-                $this->info("Jumlah data setelah upsert: {$afterCount}");
-                $this->info("Data baru yang ditambahkan: " . ($afterCount - $beforeCount));
-
-                // Debug data setelah upsert
-                $this->debugAfterUpsert($insertData);
-
-                $this->info(count($insertData) . " data berhasil diproses untuk upsert ke tabel kegiatan.");
-            } catch (\Exception $e) {
-                $this->error("Error saat upsert: " . $e->getMessage());
+                $bar->advance();
             }
-        }
 
-        $totalKegiatan = DB::connection('mysql')->table('kegiatan')->count();
-        $this->info("Total kegiatan di database: {$totalKegiatan}");
+            $bar->setMessage('Batch insert completed');
+            $bar->finish();
+            $this->line("\n");
 
-        // Tampilkan statistik kode yang sama
-        $this->showDuplicateCodesStats();
-    }
-
-    /**
-     * Analisis kode kegiatan yang memiliki nama berbeda di raw data
-     */
-    private function analyzeDuplicateCodes($rawData)
-    {
-        $this->info("\n=== ANALISIS KODE DUPLIKAT DI RAW DATA ===");
-
-        // Group berdasarkan kode untuk melihat nama yang berbeda
-        $groupedByCodes = $rawData->groupBy('kode_giat');
-
-        $duplicateCodes = $groupedByCodes->filter(function ($group) {
-            // Cari kode yang memiliki lebih dari 1 nama unik
-            return $group->pluck('nama_giat')->unique()->count() > 1;
-        });
-
-        $this->info("Kode dengan nama berbeda: " . $duplicateCodes->count());
-
-        foreach ($duplicateCodes as $kode => $group) {
-            $uniqueNames = $group->pluck('nama_giat')->unique();
-            $uniqueIds = $group->pluck('id_giat')->unique();
-
-            $this->warn("Kode {$kode} ({$uniqueNames->count()} nama, {$uniqueIds->count()} ID unik):");
-            foreach ($uniqueNames as $nama) {
-                $items = $group->where('nama_giat', $nama);
-                $ids = $items->pluck('id_giat')->unique();
-                $this->line("  - {$nama} (ID: " . $ids->implode(', ') . ", Records: {$items->count()})");
-            }
-            $this->line("");
-        }
-
-        // Statistik keseluruhan
-        $this->info("STATISTIK RAW DATA:");
-        $this->line("- Total kode unik: " . $groupedByCodes->count());
-        $this->line("- Kode dengan nama ganda: " . $duplicateCodes->count());
-        $this->line("- Total kombinasi unik (kode+nama): " . $rawData->unique(function ($item) {
-            return $item->kode_giat . '|' . $item->nama_giat;
-        })->count());
-    }
-
-    /**
-     * Analisis data setelah unique processing
-     */
-    private function analyzeProcessedData($processedData)
-    {
-        $this->info("\n=== ANALISIS DATA SETELAH UNIQUE ===");
-
-        // Group berdasarkan kode untuk melihat nama yang berbeda
-        $groupedByCodes = $processedData->groupBy('kode_giat');
-
-        $duplicateCodes = $groupedByCodes->filter(function ($group) {
-            return $group->pluck('nama_giat')->unique()->count() > 1;
-        });
-
-        $this->info("Kode dengan nama berbeda setelah unique: " . $duplicateCodes->count());
-
-        foreach ($duplicateCodes as $kode => $group) {
-            $uniqueNames = $group->pluck('nama_giat')->unique();
-            $this->line("Kode {$kode} ({$uniqueNames->count()} nama):");
-            foreach ($group as $item) {
-                $this->line("  - ID: {$item->id_giat}, Nama: {$item->nama_giat}");
-            }
-            $this->line("");
+            $this->info("✓ Successfully processed " . count($insertData) . " records in " . count($chunks) . " batches");
+        } catch (Exception $e) {
+            $bar->finish();
+            $this->line("\n");
+            throw new Exception("Batch insert failed: " . $e->getMessage());
         }
     }
 
     /**
-     * Debug data sebelum upsert
+     * Get current record count from kegiatan table
      */
-    private function debugBeforeUpsert($insertData)
+    private function getRecordCount(): int
     {
-        $this->info("\n=== DEBUG SEBELUM UPSERT ===");
-        $this->info("Jumlah data yang akan di-insert: " . count($insertData));
-
-        // Cek apakah ada duplikat ID dalam insertData
-        $ids = collect($insertData)->pluck('id');
-        $duplicateIds = $ids->duplicates();
-
-        if ($duplicateIds->count() > 0) {
-            $this->warn("DUPLIKAT ID DITEMUKAN DALAM INSERT DATA:");
-            foreach ($duplicateIds as $duplicateId) {
-                $duplicateItems = collect($insertData)->where('id', $duplicateId);
-                $this->warn("ID {$duplicateId}:");
-                foreach ($duplicateItems as $item) {
-                    $this->warn("  - {$item['kode_kegiatan']}: {$item['nama_kegiatan']}");
-                }
-            }
-        }
-
-        // Debug semua kode yang memiliki nama berbeda dalam insertData
-        $groupedByCode = collect($insertData)->groupBy('kode_kegiatan');
-        $duplicateCodeData = $groupedByCode->filter(function ($group) {
-            return collect($group)->pluck('nama_kegiatan')->unique()->count() > 1;
-        });
-
-        if ($duplicateCodeData->count() > 0) {
-            $this->info("\nKODE DENGAN NAMA BERBEDA YANG AKAN DI-INSERT:");
-            foreach ($duplicateCodeData as $kode => $group) {
-                $this->line("Kode {$kode}:");
-                foreach ($group as $item) {
-                    $this->line("  - ID: {$item['id']}, Nama: {$item['nama_kegiatan']}");
-                }
-                $this->line("");
-            }
-        } else {
-            $this->info("Tidak ada kode dengan nama berbeda dalam data yang akan di-insert.");
-        }
+        return DB::connection('mysql')->table('kegiatan')->count();
     }
 
     /**
-     * Debug data setelah upsert
+     * Handle dry run mode
      */
-    private function debugAfterUpsert($insertData)
+    private function handleDryRun(array $insertData): void
     {
-        $this->info("\n=== DEBUG SETELAH UPSERT ===");
+        $this->warn("\n=== DRY RUN MODE - NO DATA WILL BE INSERTED ===\n");
 
-        // Ambil semua kode yang memiliki nama berbeda dari insertData
-        $groupedByCode = collect($insertData)->groupBy('kode_kegiatan');
-        $duplicateCodeData = $groupedByCode->filter(function ($group) {
-            return collect($group)->pluck('nama_kegiatan')->unique()->count() > 1;
-        });
+        $this->info("Records that would be inserted: " . count($insertData));
 
-        if ($duplicateCodeData->count() > 0) {
-            foreach ($duplicateCodeData as $kode => $group) {
-                $this->line("Mengecek kode {$kode} di database:");
+        // Show sample data
+        $sample = array_slice($insertData, 0, 10);
+        $tableData = array_map(function ($item) {
+            return [
+                $item['id'],
+                $item['id_program'],
+                $item['kode_kegiatan'],
+                substr($item['nama_kegiatan'], 0, 50) . '...'
+            ];
+        }, $sample);
 
-                $dbData = DB::connection('mysql')
-                    ->table('kegiatan')
-                    ->where('kode_kegiatan', $kode)
-                    ->get();
+        $this->table(
+            ['ID', 'ID Program', 'Kode', 'Nama Kegiatan'],
+            $tableData
+        );
 
-                $this->line("Jumlah di database: " . $dbData->count());
-                foreach ($dbData as $item) {
-                    $this->line("  - ID: {$item->id}, Nama: {$item->nama_kegiatan}");
-                }
+        if (count($insertData) > 10) {
+            $this->line("... and " . (count($insertData) - 10) . " more records");
+        }
 
-                $expectedCount = collect($group)->count();
-                $actualCount = $dbData->count();
+        $this->info("\nRun without --dry-run flag to insert data");
+    }
 
-                if ($expectedCount !== $actualCount) {
-                    $this->warn("MISMATCH! Expected: {$expectedCount}, Actual: {$actualCount}");
-                }
+    private function showSummaryReport(int $beforeCount, int $afterCount, int $processedCount): void
+    {
+        $executionTime = round(microtime(true) - $this->startTime, 2);
 
-                $this->line("");
-            }
+        $this->info("\n╔════════════════════════════════════════╗");
+        $this->info("║         SUMMARY REPORT                 ║");
+        $this->info("╚════════════════════════════════════════╝");
+
+        $this->line("Records before insert: " . number_format($beforeCount));
+        $this->line("Records after insert:  " . number_format($afterCount));
+        $this->line("New records added:     " . number_format($afterCount - $beforeCount));
+        $this->line("Records updated:       " . number_format($processedCount - ($afterCount - $beforeCount)));
+        $this->line("Total processed:       " . number_format($processedCount));
+        $this->line("Execution time:        {$executionTime} seconds");
+
+        if (!empty($this->notFoundPrograms)) {
+            $this->line("Skipped (no program):  " . count(array_unique($this->notFoundPrograms)));
         }
     }
 
-    /**
-     * Tampilkan statistik akhir
-     */
-    private function showDuplicateCodesStats()
+    private function showWarnings(): void
     {
-        $this->info("\n=== ANALISIS DATA FINAL DI DATABASE ===");
+        if (!empty($this->notFoundPrograms)) {
+            $uniquePrograms = array_unique($this->notFoundPrograms);
+            $this->warn("\n⚠ Warning: " . count($uniquePrograms) . " program IDs not found:");
 
-        // 1. Cek kode yang memiliki nama berbeda di database
-        $groupedByCodes = DB::connection('mysql')
-            ->table('kegiatan')
-            ->select('kode_kegiatan', DB::raw('COUNT(*) as total'), DB::raw('GROUP_CONCAT(nama_kegiatan SEPARATOR " | ") as nama_list'))
-            ->groupBy('kode_kegiatan')
-            ->having('total', '>', 1)
-            ->orderBy('kode_kegiatan')
-            ->get();
-
-        if ($groupedByCodes->count() > 0) {
-            $this->warn("Kode kegiatan yang memiliki nama berbeda di database:");
-            foreach ($groupedByCodes as $item) {
-                $this->warn("Kode {$item->kode_kegiatan} ({$item->total} variasi): {$item->nama_list}");
+            foreach (array_slice($uniquePrograms, 0, 5) as $id) {
+                $this->warn("  - Program ID: {$id}");
             }
-        } else {
-            $this->info("Tidak ada kode kegiatan yang memiliki nama berbeda di database.");
+
+            if (count($uniquePrograms) > 5) {
+                $this->warn("  ... and " . (count($uniquePrograms) - 5) . " more");
+            }
         }
 
-        // 2. Statistik keseluruhan database
-        $totalCodes = DB::connection('mysql')
-            ->table('kegiatan')
-            ->distinct('kode_kegiatan')
-            ->count();
-
-        $totalRecords = DB::connection('mysql')->table('kegiatan')->count();
-
-        $this->info("\n=== STATISTIK DATABASE ===");
-        $this->line("- Total kode unik di database: {$totalCodes}");
-        $this->line("- Total records di database: {$totalRecords}");
-        $this->line("- Kode dengan nama ganda: " . $groupedByCodes->count());
-
-        if ($totalRecords > $totalCodes) {
-            $this->line("- Ada " . ($totalRecords - $totalCodes) . " kode dengan nama berbeda");
+        if (!empty($this->duplicateWarnings)) {
+            $this->warn("\n⚠ Data Quality Warnings:");
+            foreach ($this->duplicateWarnings as $warning) {
+                $this->warn("  - {$warning}");
+            }
         }
     }
 }

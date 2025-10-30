@@ -34,7 +34,9 @@ class Akun extends Model
         'updated_at' => 'datetime',
     ];
 
-    // Boot method untuk model
+    /**
+     * Boot method untuk model
+     */
     protected static function boot()
     {
         parent::boot();
@@ -55,14 +57,19 @@ class Akun extends Model
         });
     }
 
-    // Mendapatkan ID berikutnya secara manual
+    /**
+     * Mendapatkan ID berikutnya secara manual
+     */
     public static function getNextId(): int
     {
         $maxId = DB::table('akun')->max('id');
         return $maxId ? $maxId + 1 : 1;
     }
 
-    // Sinkronisasi field teks berdasarkan flag boolean
+    /**
+     * Sinkronisasi field teks berdasarkan flag boolean
+     * FIXED: Menggunakan 'Ya'/'Tidak' secara konsisten
+     */
     protected function syncTextFields(): void
     {
         $this->pendapatan = $this->is_pendapatan ? 'Ya' : 'Tidak';
@@ -70,7 +77,9 @@ class Akun extends Model
         $this->pembiayaan = $this->is_pembiayaan ? 'Ya' : 'Tidak';
     }
 
-    // Accessor untuk tipe akun
+    /**
+     * Accessor untuk tipe akun
+     */
     public function getTipeAkunAttribute(): string
     {
         if ($this->is_pendapatan) return 'Pendapatan';
@@ -79,7 +88,9 @@ class Akun extends Model
         return 'Tidak Ditentukan';
     }
 
-    // Accessor untuk warna badge berdasarkan tipe akun
+    /**
+     * Accessor untuk warna badge berdasarkan tipe akun
+     */
     public function getBadgeColorAttribute(): string
     {
         if ($this->is_pendapatan) return 'success';
@@ -88,7 +99,9 @@ class Akun extends Model
         return 'secondary';
     }
 
-    // Relationship dengan Standar Harga
+    /**
+     * Relationship dengan Standar Harga
+     */
     public function standarHarga()
     {
         return $this->belongsToMany(
@@ -99,31 +112,49 @@ class Akun extends Model
         )->withTimestamps();
     }
 
+    /**
+     * Scope: Filter by kode akun
+     */
     public function scopeByKode($query, $kode)
     {
         return $query->where('kode_akun', 'like', "%{$kode}%");
     }
 
+    /**
+     * Scope: Filter by nama akun
+     */
     public function scopeByNama($query, $nama)
     {
         return $query->where('nama_akun', 'like', "%{$nama}%");
     }
 
+    /**
+     * Scope: Filter akun belanja
+     */
     public function scopeBelanja($query)
     {
         return $query->where('is_belanja', 1);
     }
 
+    /**
+     * Scope: Filter akun pendapatan
+     */
     public function scopePendapatan($query)
     {
         return $query->where('is_pendapatan', 1);
     }
 
+    /**
+     * Scope: Filter akun pembiayaan
+     */
     public function scopePembiayaan($query)
     {
         return $query->where('is_pembiayaan', 1);
     }
 
+    /**
+     * Scope: Filter akun aktif (memiliki minimal satu tipe)
+     */
     public function scopeActive($query)
     {
         return $query->where(function ($q) {
@@ -131,5 +162,38 @@ class Akun extends Model
                 ->orWhere('is_belanja', 1)
                 ->orWhere('is_pembiayaan', 1);
         });
+    }
+
+    /**
+     * Check apakah akun memiliki tipe tertentu
+     */
+    public function isTipe(string $tipe): bool
+    {
+        $tipe = strtolower($tipe);
+
+        switch ($tipe) {
+            case 'pendapatan':
+                return (bool) $this->is_pendapatan;
+            case 'belanja':
+                return (bool) $this->is_belanja;
+            case 'pembiayaan':
+                return (bool) $this->is_pembiayaan;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Get all tipe akun yang aktif
+     */
+    public function getActiveTipes(): array
+    {
+        $tipes = [];
+
+        if ($this->is_pendapatan) $tipes[] = 'Pendapatan';
+        if ($this->is_belanja) $tipes[] = 'Belanja';
+        if ($this->is_pembiayaan) $tipes[] = 'Pembiayaan';
+
+        return $tipes;
     }
 }

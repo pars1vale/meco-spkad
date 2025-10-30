@@ -133,8 +133,9 @@
     </div>
   </div>
 
+  @include('referensi.program.partials.modal-add')
   <!-- Modal Tambah Program -->
-  <div class="modal fade" id="kt_modal_add_program" tabindex="-1" aria-hidden="true">
+  {{-- <div class="modal fade" id="kt_modal_add_program" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
         <form class="form" action="{{ route('program.store') }}" method="POST" id="kt_modal_add_program_form">
@@ -206,7 +207,7 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> --}}
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -307,17 +308,26 @@
       sessionMessages.forEach(msg => {
         const type = msg.dataset.type;
         const message = msg.dataset.message;
-
-        Swal.fire({
-          icon: type,
-          title: type === 'success' ? 'Berhasil' : 'Gagal',
-          text: message,
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
       });
 
       // === Delete confirmation pakai SweetAlert2 ===

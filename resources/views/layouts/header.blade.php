@@ -208,7 +208,7 @@
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
                       <span class="symbol-label bg-light">
-                        <img class="w-20px h-20px" src="assets/media/svg/brand-logos/leaf.svg" alt="" />
+                        <img class="w-20px h-20px" src="{{ asset('assets/media/svg/brand-logos/leaf.svg') }}" alt="" />
                       </span>
                     </div>
                     <!--end::Symbol-->
@@ -225,7 +225,7 @@
                     <!--begin::Symbol-->
                     <div class="symbol symbol-40px me-4">
                       <span class="symbol-label bg-light">
-                        <img class="w-20px h-20px" src="assets/media/svg/brand-logos/tower.svg" alt="" />
+                        <img class="w-20px h-20px" src="{{ asset('assets/media/svg/brand-logos/tower.svg') }}" alt="" />
                       </span>
                     </div>
                     <!--end::Symbol-->
@@ -766,9 +766,9 @@
       <!--begin::Action-->
       <div class="app-navbar-item ms-2 ms-lg-6 me-lg-6">
         <!--begin::Link-->
-        {{-- <a href="authentication/layouts/corporate/sign-in.html" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px">
+        <a href="{{ route('logout') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px">
 									<i class="ki-outline ki-exit-right fs-1"></i>
-								</a> --}}
+								</a>
         <!--end::Link-->
       </div>
       <!--end::Action-->

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id_urusan'); // Foreign key ke urusan
             $table->string('kode_bidang_urusan');
             $table->string('nama_bidang_urusan');
+            //ambil id user dari session
+            $table->unsignedBigInteger('id_user')->nullable();
             $table->timestamp('time_stamp')->nullable();
             $table->timestamps();
 

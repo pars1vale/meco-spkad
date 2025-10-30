@@ -152,6 +152,15 @@
     </div>
   </div>
 
+  <!-- Session Messages (Hidden) -->
+  <div id="session-messages" style="display: none;">
+    @if (session('success'))
+      <div data-type="success" data-message="{{ session('success') }}"></div>
+    @endif
+    @if (session('error'))
+      <div data-type="error" data-message="{{ session('error') }}"></div>
+    @endif
+  </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -308,21 +317,31 @@
       });
 
       // Show session messages
-      @if (session('success'))
-        Swal.fire({
-          title: 'Berhasil!',
-          text: "{{ session('success') }}",
-          icon: 'success'
-        });
-      @endif
-
-      @if (session('error'))
-        Swal.fire({
-          title: 'Error!',
-          text: "{{ session('error') }}",
-          icon: 'error'
-        });
-      @endif
+      const sessionMessages = document.querySelectorAll('#session-messages div');
+      sessionMessages.forEach(msg => {
+        const type = msg.dataset.type;
+        const message = msg.dataset.message;
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
+      });
     });
 
     // Delete single item function

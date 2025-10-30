@@ -31,7 +31,67 @@
     DOM.tipeRadios = document.querySelectorAll('.tipe-standar-harga-radio');
     DOM.kelompokSelect = document.getElementById('kelompok_select');
 
-    // Initialize Repeater
+    // ============================================
+    // INITIALIZE SELECT2 IN MODAL
+    // ============================================
+    $('#kt_modal_add_standar_harga').on('shown.bs.modal', function() {
+      console.log('Modal ditampilkan - inisialisasi Select2');
+
+      // Init semua select2 yang belum diinisialisasi
+      $(this).find('select[data-control="select2"]').each(function() {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          console.log('Init Select2 untuk:', $(this).attr('name'));
+
+          $(this).select2({
+            placeholder: $(this).data('placeholder') || 'Pilih data',
+            dropdownParent: $('#kt_modal_add_standar_harga'),
+            allowClear: true,
+            width: '100%'
+          });
+        }
+      });
+    });
+
+    // Reset Select2 saat modal ditutup
+    $('#kt_modal_add_standar_harga').on('hidden.bs.modal', function() {
+      console.log('Modal ditutup - reset form');
+
+      // Reset form
+      if (DOM.addForm) {
+        DOM.addForm.reset();
+      }
+
+      // Reset kelompok select
+      if (DOM.kelompokSelect) {
+        $(DOM.kelompokSelect).val('').trigger('change');
+        DOM.kelompokSelect.disabled = true;
+        DOM.kelompokSelect.innerHTML = '<option></option>';
+      }
+
+      // Reset tipe radio
+      DOM.tipeRadios.forEach(radio => {
+        radio.checked = false;
+      });
+
+      // Reset repeater ke 1 row
+      $('#kt_rekening_repeater').repeater('setList', [{
+        id_akun: ''
+      }]);
+
+      // Destroy dan reinit select2 di repeater
+      $('.rekening-select').each(function() {
+        if ($(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2('destroy');
+        }
+      });
+
+      // Clear error messages
+      clearFormErrors();
+    });
+
+    // ============================================
+    // INITIALIZE REPEATER WITH SELECT2 FIX
+    // ============================================
     $('#kt_rekening_repeater').repeater({
       initEmpty: false,
 
@@ -42,15 +102,26 @@
       show: function() {
         $(this).slideDown();
 
-        // Re-init select2 untuk row baru
-        $(this).find('[data-kt-repeater="select2"]').select2({
+        // CRITICAL FIX: Init Select2 untuk row baru
+        const newSelect = $(this).find('.rekening-select');
+
+        // Destroy dulu jika sudah ada
+        if (newSelect.hasClass('select2-hidden-accessible')) {
+          newSelect.select2('destroy');
+        }
+
+        // Init dengan konfigurasi yang benar
+        newSelect.select2({
           placeholder: "Pilih rekening belanja",
-          allowClear: true
+          allowClear: true,
+          dropdownParent: $('#kt_modal_add_standar_harga'),
+          width: '100%'
         });
+
+        console.log('New row added - Select2 initialized');
       },
 
       hide: function(deleteElement) {
-        // Cek jika hanya ada 1 row tersisa
         const rowCount = $('#kt_rekening_repeater [data-repeater-item]').length;
 
         if (rowCount <= 1) {
@@ -67,15 +138,25 @@
           return;
         }
 
+        // Destroy Select2 sebelum remove
+        $(this).find('.rekening-select').select2('destroy');
         $(this).slideUp(deleteElement);
+        console.log('Row removed');
       },
 
       ready: function() {
-        // Init select2 untuk row pertama
-        $('[data-kt-repeater="select2"]').select2({
-          placeholder: "Pilih rekening belanja",
-          allowClear: true
+        // Init Select2 untuk row pertama
+        $('.rekening-select').each(function() {
+          if (!$(this).hasClass('select2-hidden-accessible')) {
+            $(this).select2({
+              placeholder: "Pilih rekening belanja",
+              allowClear: true,
+              dropdownParent: $('#kt_modal_add_standar_harga'),
+              width: '100%'
+            });
+          }
         });
+        console.log('Repeater ready - Select2 initialized for initial rows');
       }
     });
 
@@ -112,7 +193,7 @@
 
         if (tipe) {
           DOM.kelompokSelect.disabled = true;
-          DOM.kelompokSelect.innerHTML = '<option value="">Loading...</option>';
+          $(DOM.kelompokSelect).html('<option>Loading...</option>').trigger('change');
 
           $.ajax({
             url: "{{ route('kelompok_satuan_harga.get-by-tipe') }}",
@@ -122,19 +203,19 @@
             },
             success: function(response) {
               if (response.success && response.data) {
-                DOM.kelompokSelect.innerHTML = '<option value="">Pilih Kelompok</option>';
+                let options = '<option></option>';
 
                 response.data.forEach(function(kelompok) {
-                  const option = document.createElement('option');
-                  option.value = kelompok.id;
-                  option.textContent = kelompok.kode_kelompok_standar_harga + ' - ' + kelompok.nama_kelompok_standar_harga;
-                  DOM.kelompokSelect.appendChild(option);
+                  options +=
+                    `<option value="${kelompok.id}">${kelompok.kode_kelompok_standar_harga} - ${kelompok.nama_kelompok_standar_harga}</option>`;
                 });
 
+                $(DOM.kelompokSelect).html(options).trigger('change');
                 DOM.kelompokSelect.disabled = false;
 
                 if (response.data.length === 0) {
-                  DOM.kelompokSelect.innerHTML = '<option value="">Tidak ada kelompok untuk tipe ' + tipe + '</option>';
+                  $(DOM.kelompokSelect).html('<option>Tidak ada kelompok untuk tipe ' + tipe + '</option>').trigger(
+                    'change');
 
                   Swal.fire({
                     icon: 'info',
@@ -151,7 +232,7 @@
               }
             },
             error: function() {
-              DOM.kelompokSelect.innerHTML = '<option value="">Gagal memuat data</option>';
+              $(DOM.kelompokSelect).html('<option>Gagal memuat data</option>').trigger('change');
 
               Swal.fire({
                 icon: 'error',
@@ -343,6 +424,29 @@
       });
     });
 
+    // Clear form errors function
+    function clearFormErrors() {
+      if (!DOM.addForm) return;
+
+      DOM.addForm.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+      });
+
+      DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.textContent = '';
+        el.classList.add('d-none');
+      });
+
+      if (DOM.rekeningError) {
+        DOM.rekeningError.classList.add('d-none');
+      }
+
+      const tipeError = document.getElementById('tipe-standar-harga-error');
+      if (tipeError) {
+        tipeError.classList.add('d-none');
+      }
+    }
+
     // AJAX Form Submission
     if (DOM.addForm && DOM.addSubmitButton) {
       DOM.addForm.addEventListener('submit', function(e) {
@@ -367,12 +471,13 @@
           return;
         }
 
-        // Check if at least one rekening is selected from repeater
-        const rekeningSelects = document.querySelectorAll('[data-kt-repeater="select2"]');
+        // Check rekening dari Select2
+        const rekeningSelects = document.querySelectorAll('.rekening-select');
         let hasValidRekening = false;
 
         rekeningSelects.forEach(select => {
-          if (select.value && select.value !== '') {
+          const value = $(select).val(); // Gunakan jQuery untuk get value Select2
+          if (value && value !== '') {
             hasValidRekening = true;
           }
         });
@@ -397,8 +502,7 @@
         DOM.addSubmitButton.disabled = true;
 
         // Clear previous errors
-        DOM.addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        clearFormErrors();
 
         // Submit via AJAX
         $.ajax({
@@ -409,14 +513,6 @@
           contentType: false,
           success: function(response) {
             $('#kt_modal_add_standar_harga').modal('hide');
-            DOM.addForm.reset();
-            DOM.kelompokSelect.disabled = true;
-            DOM.kelompokSelect.innerHTML = '<option value="">Pilih tipe terlebih dahulu</option>';
-
-            // Reset repeater ke 1 row
-            $('#kt_rekening_repeater').repeater('setList', [{
-              id_akun: ''
-            }]);
 
             Swal.fire({
               icon: 'success',
@@ -441,6 +537,7 @@
                   const feedback = input.nextElementSibling;
                   if (feedback && feedback.classList.contains('invalid-feedback')) {
                     feedback.textContent = errors[field][0];
+                    feedback.classList.remove('d-none');
                   }
                 }
               });

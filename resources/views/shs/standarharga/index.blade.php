@@ -83,7 +83,22 @@
                     </td>
                     <td class="fw-bold">{{ $item->kode_standar_harga }}</td>
                     <td>
-                      <span class="badge badge-light-info fw-bold">{{ $item->tipe_standar_harga }}</span>
+                      @switch($item->tipe_standar_harga)
+                        @case('SSH')
+                          <span class="badge badge-light-success">{{ $item->tipe_standar_harga }}</span>
+                        @break
+
+                        @case('SBU')
+                          <span class="badge badge-light-primary">{{ $item->tipe_standar_harga }}</span>
+                        @break
+
+                        @case('HSPK')
+                          <span class="badge badge-light-info">{{ $item->tipe_standar_harga }}</span>
+                        @break
+
+                        @default
+                          <span class="badge badge-light-secondary">{{ $item->tipe_standar_harga }}</span>
+                      @endswitch
                     </td>
                     <td>
                       <div>{{ $item->nama_standar_harga }}</div>
@@ -125,7 +140,6 @@
 
   {{-- Include All Modal Components --}}
   @include('shs.standarharga.partials.modal-detail')
-  @include('shs.standarharga.partials.modal-add-rekening')
   @include('shs.standarharga.partials.modal-create')
   @include('shs.standarharga.partials.scripts')
 @endsection

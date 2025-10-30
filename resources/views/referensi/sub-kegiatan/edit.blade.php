@@ -271,15 +271,25 @@
 
       // SweetAlert for flash messages
       @if (session('success'))
-        Swal.fire({
-          text: "{{ session('success') }}",
-          icon: "success",
-          buttonsStyling: false,
-          confirmButtonText: "OK",
-          customClass: {
-            confirmButton: "btn fw-bold btn-primary",
-          }
-        });
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+
+        toastr.success("{{ session('success') }}", "PROSES BERHASIL!");
       @endif
 
       @if (session('error'))

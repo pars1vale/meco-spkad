@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Referensi\Program;
 use App\Models\Referensi\BidangUrusan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ProgramController extends Controller
@@ -62,7 +63,8 @@ class ProgramController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode_program' => 'required|string|max:20|unique:program,kode_program',
+            // 'kode_program' => 'required|string|max:20|unique:program,kode_program',
+            'kode_program' => 'required|string|max:20',
             'nama_program' => 'required|string|max:255',
             'id_bidang_urusan' => 'required|exists:bidang_urusan,id'
         ], [
@@ -74,13 +76,15 @@ class ProgramController extends Controller
         ]);
 
         try {
-            // ID akan otomatis di-generate oleh model
             Program::create([
                 'kode_program' => $request->kode_program,
                 'nama_program' => $request->nama_program,
                 'id_bidang_urusan' => $request->id_bidang_urusan,
+                'user_id' => Auth::id(),
                 'time_stamp' => now()
             ]);
+
+            // buat logika
 
             return redirect()->route('referensi.program.index')
                 ->with('success', 'Program berhasil ditambahkan.');
@@ -136,6 +140,8 @@ class ProgramController extends Controller
                 'kode_program' => $request->kode_program,
                 'nama_program' => $request->nama_program,
                 'id_bidang_urusan' => $request->id_bidang_urusan,
+                // ambil id user dari table user 
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 

@@ -25,6 +25,14 @@
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
+      <div id="session-messages" style="display: none;">
+        @if (session('success'))
+          <div data-type="success" data-message="{{ session('success') }}"></div>
+        @endif
+        @if (session('error'))
+          <div data-type="error" data-message="{{ session('error') }}"></div>
+        @endif
+      </div>
 
       <div class="card">
         <div class="card-header border-0 pt-6">
@@ -108,7 +116,7 @@
                         <form action="{{ route('akun.destroy', $akun->id) }}" method="POST" class="d-inline delete-form">
                           @csrf
                           @method('DELETE')
-                          <button type="submit" class="btn btn-sm btn-light-danger" title="Hapus Akun" data-name="{{ $akun->nama_akun }}">
+                          <button type="submit" class="btn btn-sm btn-light-danger delete-btn" title="Hapus Akun" data-name="{{ $akun->nama_akun }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
@@ -128,5 +136,36 @@
   @include('referensi.akun.partials.modal-create')
 
   {{-- Include Scripts --}}
-  @include('referensi.akun.partials.scripts')
+  @include('referensi.akun.partials.scripts-table')
+
+  {{-- Session Messages Script --}}
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const sessionMessages = document.querySelectorAll('#session-messages div');
+      sessionMessages.forEach(msg => {
+        const type = msg.dataset.type;
+        const message = msg.dataset.message;
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
+      });
+    });
+  </script>
 @endsection

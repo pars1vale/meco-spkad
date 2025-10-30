@@ -95,3 +95,5 @@
     </div>
   </div>
 </div>
+
+@include('referensi.akun.partials.scripts-modal')
