@@ -65,11 +65,10 @@
           <div class="mb-5">
             <div class="d-flex justify-content-between align-items-center mb-5">
               <h4 class="mb-0">Rekening Belanja ({{ $item->rekeningBelanja->count() }})</h4>
-              <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_rekening_{{ $item->id }}"
-                data-bs-dismiss="modal">
+              <a href="{{ route('standar_harga.edit', $item->id) }}" class="btn btn-sm btn-primary">
                 <i class="ki-outline ki-plus fs-2"></i>
                 Tambah Rekening
-              </button>
+              </a>
             </div>
 
             @if ($item->rekeningBelanja->isEmpty())

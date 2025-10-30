@@ -12,7 +12,7 @@ class KelompokStandarHargaController extends Controller
     public function index()
     {
         $data = DataKelompokStandarHarga::orderBy('kode_kelompok_standar_harga', 'asc')->get();
-        return view('shs.kelompokstandarharga.index', compact('data'));
+        return view('shs.kelompokbarang.index', compact('data'));
     }
 
     public function store(Request $request)
@@ -58,7 +58,7 @@ class KelompokStandarHargaController extends Controller
     public function edit($id)
     {
         $kelompok = DataKelompokStandarHarga::findOrFail($id);
-        return view('shs.kelompokstandarharga.edit', compact('kelompok'));
+        return view('shs.kelompokbarang.edit', compact('kelompok'));
     }
 
     public function update(Request $request, $id)

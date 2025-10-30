@@ -486,17 +486,17 @@
             </div>
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('kelompok_satuan_harga.index') ? 'active' : '' }}"
-                href="{{ route('kelompok_satuan_harga.index') }}" title="Kelompok dari Satuan Harga" data-bs-toggle="tooltip"
+                href="{{ route('kelompok_satuan_harga.index') }}" title="Kelompok Barang untuk mapping standar harga" data-bs-toggle="tooltip"
                 data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
-                <span class="menu-title">Kelompok Satuan Harga</span>
+                <span class="menu-title">Kelompok Barang</span>
               </a>
             </div>
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('standar_harga.index') ? 'active' : '' }}" href="{{ route('standar_harga.index') }}"
-                title="Pastikan Data Satuan & Kelompok Standar sudah terdaftar sebelum menambahkan SH baru" data-bs-toggle="tooltip"
+                title="Pastikan Data Satuan & Kelompok Barnag sudah terdaftar sebelum menambahkan Standar Harga baru" data-bs-toggle="tooltip"
                 data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>

@@ -58,7 +58,7 @@
               </div>
             </div>
           @else
-            <table id="kt_kelompok_table" class="table table-striped align-middle table-row-dashed fs-6 gy-5">
+            <table id="kt_kelompok_table" class="table align-middle table-row-dashed fs-6 gy-5">
               <thead>
                 <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                   <th class="w-10px pe-2">
@@ -68,8 +68,9 @@
                     </div>
                   </th>
                   <th class="min-w-150px">Kode Kelompok</th>
-                  <th class="min-w-300px">Nama Kelompok</th>
-                  <th class="min-w-100px">Aksi</th>
+                  <th class="min-w-150px">Nama Kelompok</th>
+                  <th class="min-w-150px text-start">Tipe Kelompok</th>
+                  <th class="text-end min-w-100px">Aksi</th>
                 </tr>
               </thead>
               <tbody class="fw-semibold text-gray-600">
@@ -82,21 +83,42 @@
                     </td>
                     <td class="fw-bold">{{ $item->kode_kelompok_standar_harga }}</td>
                     <td>{{ $item->nama_kelompok_standar_harga }}</td>
-                    <td>
-                      <div class="d-flex justify-content-end">
-                        <a href="{{ route('kelompok_satuan_harga.edit', $item->id) }}" class="btn btn-sm btn-light-primary me-2" title="Edit">
+                    <td class="text-start">
+                      @switch($item->tipe_kelompok)
+                        @case('SSH')
+                          <span class="badge badge-light-success">{{ $item->tipe_kelompok }}</span>
+                        @break
+
+                        @case('SBU')
+                          <span class="badge badge-light-primary">{{ $item->tipe_kelompok }}</span>
+                        @break
+
+                        @case('HSPK')
+                          <span class="badge badge-light-info">{{ $item->tipe_kelompok }}</span>
+                        @break
+
+                        @default
+                          <span class="badge badge-light-secondary">{{ $item->tipe_kelompok }}</span>
+                      @endswitch
+                    </td>
+
+                    <td class="text-end">
+                      <div class="d-inline-flex">
+                        <a href="{{ route('kelompok_satuan_harga.edit', $item->id) }}"
+                          class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit">
                           <i class="ki-outline ki-pencil fs-2"></i>
                         </a>
                         <form action="{{ route('kelompok_satuan_harga.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
                           @csrf
                           @method('DELETE')
-                          <button type="submit" class="btn btn-sm btn-light-danger delete-btn" title="Hapus"
+                          <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus"
                             data-name="{{ $item->nama_kelompok_standar_harga }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
                       </div>
                     </td>
+
                   </tr>
                 @endforeach
               </tbody>
@@ -108,8 +130,8 @@
   </div>
 
   {{-- Include Modal Create --}}
-  @include('shs.kelompokstandarharga.partials.modal-create')
+  @include('shs.kelompokbarang.partials.modal-create')
 
   {{-- Include Scripts --}}
-  @include('shs.kelompokstandarharga.partials.scripts')
+  @include('shs.kelompokbarang.partials.scripts')
 @endsection

@@ -62,8 +62,9 @@
                 <!-- Kelompok Standar Harga -->
                 <div class="fv-row mb-7">
                   <label class="required fs-6 fw-semibold mb-2">Kelompok Standar Harga</label>
-                  <select class="form-select form-select-solid" name="id_kelompok_standar_harga" id="kelompok_select" required disabled>
-                    <option value="">Pilih tipe terlebih dahulu</option>
+                  <select class="form-select form-select-solid" name="id_kelompok_standar_harga" id="kelompok_select" data-control="select2"
+                    data-dropdown-parent="#kt_modal_add_standar_harga" data-placeholder="Pilih tipe terlebih dahulu" required disabled>
+                    <option></option>
                   </select>
                   <div class="invalid-feedback"></div>
                   <div class="form-text">Kelompok akan ditampilkan sesuai tipe yang dipilih</div>
@@ -72,8 +73,9 @@
                 <!-- Satuan -->
                 <div class="fv-row mb-7">
                   <label class="required fs-6 fw-semibold mb-2">Satuan</label>
-                  <select class="form-select form-select-solid" name="id_satuan" required>
-                    <option value="">Pilih Satuan</option>
+                  <select class="form-select form-select-solid" name="id_satuan" data-control="select2"
+                    data-dropdown-parent="#kt_modal_add_standar_harga" data-placeholder="Pilih Satuan" required>
+                    <option></option>
                     @foreach ($satuan as $sat)
                       <option value="{{ $sat->id }}">{{ $sat->nama_satuan }}</option>
                     @endforeach
@@ -127,7 +129,7 @@
 
             <div class="separator my-7"></div>
 
-            <!-- Rekening Belanja dengan Repeater -->
+            <!-- Rekening Belanja dengan Repeater - FIXED WITH SELECT2 -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Rekening Belanja (Akun)</label>
               <div class="form-text mb-3">Tambahkan minimal satu rekening belanja</div>
@@ -140,9 +142,9 @@
                     <div data-repeater-item>
                       <div class="form-group row align-items-center mb-5">
                         <div class="col-md-10">
-                          <select class="form-select form-select-solid" data-kt-repeater="select2" data-placeholder="Pilih rekening belanja"
-                            name="id_akun" required>
-                            <option value="">Pilih Rekening</option>
+                          <select class="form-select form-select-solid rekening-select" data-control="select2"
+                            data-dropdown-parent="#kt_modal_add_standar_harga" data-placeholder="Pilih rekening belanja" name="id_akun" required>
+                            <option></option>
                             @foreach ($akun as $ak)
                               <option value="{{ $ak->id }}">{{ $ak->kode_akun }} - {{ $ak->nama_akun }}</option>
                             @endforeach
