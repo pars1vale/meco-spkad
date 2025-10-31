@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Shs;
 
 use App\Http\Controllers\Controller;
-use App\Models\StandarHargaSatuan\DataKelompokStandarHarga;
+use App\Models\StandarHargaSatuan\KelompokBarang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class KelompokStandarHargaController extends Controller
+class KelompokBarangController extends Controller
 {
     public function index()
     {
-        $data = DataKelompokStandarHarga::orderBy('kode_kelompok_standar_harga', 'asc')->get();
+        $data = KelompokBarang::orderBy('kode_kelompok_standar_harga', 'asc')->get();
         return view('shs.kelompokbarang.index', compact('data'));
     }
 
@@ -37,7 +37,7 @@ class KelompokStandarHargaController extends Controller
         }
 
         try {
-            DataKelompokStandarHarga::create([
+            KelompokBarang::create([
                 'kode_kelompok_standar_harga' => $request->kode_kelompok_standar_harga,
                 'nama_kelompok_standar_harga' => $request->nama_kelompok_standar_harga,
                 'tipe_kelompok' => $request->tipe_kelompok,
@@ -45,7 +45,7 @@ class KelompokStandarHargaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data kelompok standar harga berhasil disimpan'
+                'message' => 'Data kelompok barang berhasil disimpan'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -57,13 +57,13 @@ class KelompokStandarHargaController extends Controller
 
     public function edit($id)
     {
-        $kelompok = DataKelompokStandarHarga::findOrFail($id);
+        $kelompok = KelompokBarang::findOrFail($id);
         return view('shs.kelompokbarang.edit', compact('kelompok'));
     }
 
     public function update(Request $request, $id)
     {
-        $kelompok = DataKelompokStandarHarga::findOrFail($id);
+        $kelompok = KelompokBarang::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
             'kode_kelompok_standar_harga' => 'required|string|max:30|unique:kelompok_standar_harga,kode_kelompok_standar_harga,' . $id,
@@ -91,7 +91,7 @@ class KelompokStandarHargaController extends Controller
             ]);
 
             return redirect()->route('kelompok_satuan_harga.index')
-                ->with('success', 'Data kelompok standar harga berhasil diupdate');
+                ->with('success', 'Data kelompok barang berhasil diupdate');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Gagal mengupdate data: ' . $e->getMessage())
@@ -102,7 +102,7 @@ class KelompokStandarHargaController extends Controller
     public function destroy($id)
     {
         try {
-            $kelompok = DataKelompokStandarHarga::findOrFail($id);
+            $kelompok = KelompokBarang::findOrFail($id);
 
             if ($kelompok->standarHarga()->count() > 0) {
                 return redirect()->route('kelompok_satuan_harga.index')
@@ -112,7 +112,7 @@ class KelompokStandarHargaController extends Controller
             $kelompok->delete();
 
             return redirect()->route('kelompok_satuan_harga.index')
-                ->with('success', 'Data kelompok standar harga berhasil dihapus');
+                ->with('success', 'Data kelompok barang berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->route('kelompok_satuan_harga.index')
                 ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
@@ -131,7 +131,7 @@ class KelompokStandarHargaController extends Controller
         }
 
         try {
-            $kelompokWithRelations = DataKelompokStandarHarga::whereIn('id', $request->ids)
+            $kelompokWithRelations = KelompokBarang::whereIn('id', $request->ids)
                 ->withCount('standarHarga')
                 ->having('standar_harga_count', '>', 0)
                 ->count();
@@ -141,10 +141,10 @@ class KelompokStandarHargaController extends Controller
                     ->with('error', 'Beberapa kelompok masih memiliki standar harga terkait dan tidak dapat dihapus');
             }
 
-            DataKelompokStandarHarga::whereIn('id', $request->ids)->delete();
+            KelompokBarang::whereIn('id', $request->ids)->delete();
 
             return redirect()->route('kelompok_satuan_harga.index')
-                ->with('success', count($request->ids) . ' data kelompok standar harga berhasil dihapus');
+                ->with('success', count($request->ids) . ' data kelompok barang berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->route('kelompok_satuan_harga.index')
                 ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
@@ -163,7 +163,7 @@ class KelompokStandarHargaController extends Controller
             ], 400);
         }
 
-        $kelompok = DataKelompokStandarHarga::where('tipe_kelompok', $tipe)
+        $kelompok = KelompokBarang::where('tipe_kelompok', $tipe)
             ->orderBy('nama_kelompok_standar_harga', 'asc')
             ->get();
 

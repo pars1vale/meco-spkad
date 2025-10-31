@@ -34,7 +34,7 @@ class StandarHarga extends Model
     // Relationships
     public function kelompokStandarHarga()
     {
-        return $this->belongsTo(DataKelompokStandarHarga::class, 'id_kelompok_standar_harga');
+        return $this->belongsTo(KelompokBarang::class, 'id_kelompok_standar_harga');
     }
 
     public function satuan()

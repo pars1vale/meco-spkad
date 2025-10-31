@@ -125,16 +125,7 @@
         const rowCount = $('#kt_rekening_repeater [data-repeater-item]').length;
 
         if (rowCount <= 1) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Tidak dapat menghapus',
-            text: 'Minimal harus ada satu rekening belanja',
-            confirmButtonText: 'OK',
-            buttonsStyling: false,
-            customClass: {
-              confirmButton: "btn btn-primary"
-            }
-          });
+          toastr.warning('Minimal harus ada satu rekening belanja', 'TIDAK DAPAT MENGHAPUS');
           return;
         }
 
@@ -186,6 +177,40 @@
       });
     }
 
+    // Configure Toastr options
+    toastr.options = {
+      "closeButton": true,
+      "debug": false,
+      "newestOnTop": false,
+      "progressBar": true,
+      "positionClass": "toastr-top-right",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "5000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    };
+
+    // Session Messages dengan Toaster
+    const sessionMessages = document.querySelectorAll('#session-messages div');
+    sessionMessages.forEach(msg => {
+      const type = msg.dataset.type;
+      const message = msg.dataset.message;
+
+      if (type === 'error') {
+        toastr.error(message, "GAGAL");
+      } else if (type === 'success') {
+        toastr.success(message, "BERHASIL");
+      } else {
+        toastr.info(message);
+      }
+    });
+
     // AJAX load kelompok berdasarkan tipe
     DOM.tipeRadios.forEach(radio => {
       radio.addEventListener('change', function() {
@@ -214,68 +239,21 @@
                 DOM.kelompokSelect.disabled = false;
 
                 if (response.data.length === 0) {
-                  $(DOM.kelompokSelect).html('<option>Tidak ada kelompok untuk tipe ' + tipe + '</option>').trigger(
-                    'change');
+                  $(DOM.kelompokSelect).html('<option>Tidak ada kelompok untuk tipe ' + tipe + '</option>').trigger('change');
 
-                  Swal.fire({
-                    icon: 'info',
-                    title: 'Tidak ada kelompok',
-                    text: 'Belum ada kelompok standar harga untuk tipe ' + tipe +
-                      '. Silakan tambahkan kelompok terlebih dahulu.',
-                    confirmButtonText: 'OK',
-                    buttonsStyling: false,
-                    customClass: {
-                      confirmButton: "btn btn-primary"
-                    }
-                  });
+                  toastr.info('Belum ada kelompok standar harga untuk tipe ' + tipe +
+                    '. Silakan tambahkan kelompok terlebih dahulu.', 'TIDAK ADA KELOMPOK');
                 }
               }
             },
             error: function() {
               $(DOM.kelompokSelect).html('<option>Gagal memuat data</option>').trigger('change');
-
-              Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Gagal memuat data kelompok',
-                confirmButtonText: 'OK',
-                buttonsStyling: false,
-                customClass: {
-                  confirmButton: "btn btn-primary"
-                }
-              });
+              toastr.error('Gagal memuat data kelompok', 'GAGAL');
             }
           });
         }
       });
     });
-
-    // Session Messages
-    @if (session('success'))
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: "{{ session('success') }}",
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "btn btn-primary"
-        }
-      });
-    @endif
-
-    @if (session('error'))
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: "{{ session('error') }}",
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "btn btn-primary"
-        }
-      });
-    @endif
 
     // Event delegation untuk delete buttons
     DOM.table.on('click', '.delete-btn', function(e) {
@@ -355,32 +333,20 @@
     DOM.checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         updateToolbar();
-        const checkedBoxes = document.querySelectorAll(
-          '#kt_standar_harga_table tbody input[type="checkbox"]:checked');
+        const checkedBoxes = document.querySelectorAll('#kt_standar_harga_table tbody input[type="checkbox"]:checked');
         if (DOM.masterCheckbox) {
           DOM.masterCheckbox.checked = checkedBoxes.length === DOM.checkboxes.length;
-          DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < DOM.checkboxes
-            .length;
+          DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < DOM.checkboxes.length;
         }
       });
     });
 
     // Bulk delete
     DOM.bulkDeleteBtn?.addEventListener('click', function() {
-      const checkedBoxes = document.querySelectorAll(
-        '#kt_standar_harga_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_standar_harga_table tbody input[type="checkbox"]:checked');
 
       if (checkedBoxes.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Tidak ada data dipilih',
-          text: 'Pilih minimal satu standar harga untuk dihapus.',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
+        toastr.info('Pilih minimal satu standar harga untuk dihapus.', 'INFORMASI');
         return;
       }
 
@@ -458,16 +424,7 @@
         const tipeChecked = document.querySelector('.tipe-standar-harga-radio:checked');
         if (!tipeChecked) {
           document.getElementById('tipe-standar-harga-error')?.classList.remove('d-none');
-          Swal.fire({
-            icon: 'error',
-            title: 'Validasi gagal',
-            text: 'Pilih tipe standar harga terlebih dahulu!',
-            confirmButtonText: 'OK',
-            buttonsStyling: false,
-            customClass: {
-              confirmButton: "btn btn-primary"
-            }
-          });
+          toastr.error('Pilih tipe standar harga terlebih dahulu!', 'VALIDASI GAGAL');
           return;
         }
 
@@ -484,16 +441,7 @@
 
         if (!hasValidRekening) {
           DOM.rekeningError?.classList.remove('d-none');
-          Swal.fire({
-            icon: 'error',
-            title: 'Validasi gagal',
-            text: 'Minimal satu rekening belanja harus dipilih!',
-            confirmButtonText: 'OK',
-            buttonsStyling: false,
-            customClass: {
-              confirmButton: "btn btn-primary"
-            }
-          });
+          toastr.error('Minimal satu rekening belanja harus dipilih!', 'VALIDASI GAGAL');
           return;
         }
 
@@ -514,17 +462,11 @@
           success: function(response) {
             $('#kt_modal_add_standar_harga').modal('hide');
 
-            Swal.fire({
-              icon: 'success',
-              title: 'Berhasil',
-              text: response.message || 'Data berhasil disimpan!',
-              confirmButtonText: 'OK',
-              buttonsStyling: false,
-              customClass: {
-                confirmButton: "btn btn-primary"
+            toastr.success(response.message || 'Data berhasil disimpan!', 'BERHASIL', {
+              timeOut: 2000,
+              onHidden: function() {
+                location.reload();
               }
-            }).then(() => {
-              location.reload();
             });
           },
           error: function(xhr) {
@@ -542,27 +484,9 @@
                 }
               });
 
-              Swal.fire({
-                icon: 'error',
-                title: 'Validasi gagal',
-                text: 'Periksa kembali form Anda',
-                confirmButtonText: 'OK',
-                buttonsStyling: false,
-                customClass: {
-                  confirmButton: "btn btn-primary"
-                }
-              });
+              toastr.error('Periksa kembali form Anda', 'VALIDASI GAGAL');
             } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan data',
-                confirmButtonText: 'OK',
-                buttonsStyling: false,
-                customClass: {
-                  confirmButton: "btn btn-primary"
-                }
-              });
+              toastr.error(xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan data', 'GAGAL');
             }
           },
           complete: function() {

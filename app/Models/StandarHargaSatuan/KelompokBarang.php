@@ -4,7 +4,7 @@ namespace App\Models\StandarHargaSatuan;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DataKelompokStandarHarga extends Model
+class KelompokBarang extends Model
 {
     protected $table = 'kelompok_standar_harga';
     protected $primaryKey = 'id';
