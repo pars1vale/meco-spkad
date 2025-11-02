@@ -32,5 +32,6 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
 
     // Renja
     Route::get('/renja', [RenjaController::class, 'index'])->name('rkpd.renja.index');
+    Route::get('/renja/sub-kegiatan', [RenjaController::class, 'getSubKegiatanBySkpd'])->name('sub-kegiatan');
 
 });

@@ -13,7 +13,7 @@
             <li class="breadcrumb-item">
               <span class="bullet bg-gray-400 w-5px h-2px"></span>
             </li>
-            <li class="breadcrumb-item text-muted">RKPD</li>
+            <li class="breadcrumb-item text-muted">Rkpd</li>
             <li class="breadcrumb-item">
               <span class="bullet bg-gray-400 w-5px h-2px"></span>
             </li>
@@ -26,6 +26,248 @@
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
+    <div class="row gx-5 gx-xl-10 mb-xl-10">
+      <!--begin::Col-->
+      <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
+        <!--begin::Card widget 16-->
+        <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
+          style="background-color: #080655; min-height: 200px;">
+          <!--begin::Header-->
+          <div class="card-header pt-5">
+            <!--begin::Title-->
+            <div class="card-title d-flex flex-column">
+              <!--begin::Amount-->
+              <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Batasan Pagu</span>
+              <!--end::Amount-->
+              <!--begin::Subtitle-->
+              <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Active Projects</span>
+              <!--end::Subtitle-->
+            </div>
+            <!--end::Title-->
+          </div>
+          <!--end::Header-->
+          <!--begin::Card body-->
+          <div class="card-body d-flex align-items-end pt-0 pb-5">
+            <!--begin::Progress-->
+            <div class="d-flex align-items-center flex-column mt-3 w-100">
+              <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
+                <span>43 Pending</span>
+                <span>72%</span>
+              </div>
+              <div class="h-8px w-100 bg-light-danger rounded">
+                <div class="bg-danger rounded h-8px" role="progressbar" style="width: 72%;" aria-valuenow="72"
+                  aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!--end::Progress-->
+          </div>
+          <!--end::Card body-->
+        </div>
+        <!--end::Card widget 16-->
+      </div>
+      <!--end::Col-->
+
+      <!--begin::Col-->
+      <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
+        <!--begin::Card widget 16-->
+        <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
+          style="background-color: #1C325E; min-height: 200px;">
+          <!--begin::Header-->
+          <div class="card-header pt-5">
+            <!--begin::Title-->
+            <div class="card-title d-flex flex-column">
+              <!--begin::Amount-->
+              <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Inputan Pagu</span>
+              <!--end::Amount-->
+              <!--begin::Subtitle-->
+              <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Completed Tasks</span>
+              <!--end::Subtitle-->
+            </div>
+            <!--end::Title-->
+          </div>
+          <!--end::Header-->
+          <!--begin::Card body-->
+          <div class="card-body d-flex align-items-end pt-0 pb-5">
+            <!--begin::Progress-->
+            <div class="d-flex align-items-center flex-column mt-3 w-100">
+              <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
+                <span>38 Done</span>
+                <span>85%</span>
+              </div>
+              <div class="h-8px w-100 bg-light-success rounded">
+                <div class="bg-success rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85"
+                  aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!--end::Progress-->
+          </div>
+          <!--end::Card body-->
+        </div>
+        <!--end::Card widget 16-->
+      </div>
+      <!--end::Col-->
+
+      <!--begin::Col-->
+      <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
+        <!--begin::Card widget 16-->
+        <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
+          style="background-color: #7239EA; min-height: 200px;">
+          <!--begin::Header-->
+          <div class="card-header pt-5">
+            <!--begin::Title-->
+            <div class="card-title d-flex flex-column">
+              <!--begin::Amount-->
+              <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Pagu Validasi</span>
+              <!--end::Amount-->
+              <!--begin::Subtitle-->
+              <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Total Clients</span>
+              <!--end::Subtitle-->
+            </div>
+            <!--end::Title-->
+          </div>
+          <!--end::Header-->
+          <!--begin::Card body-->
+          <div class="card-body d-flex align-items-end pt-0 pb-5">
+            <!--begin::Progress-->
+            <div class="d-flex align-items-center flex-column mt-3 w-100">
+              <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
+                <span>89 Active</span>
+                <span>63%</span>
+              </div>
+              <div class="h-8px w-100 bg-light-primary rounded">
+                <div class="bg-primary rounded h-8px" role="progressbar" style="width: 63%;" aria-valuenow="63"
+                  aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!--end::Progress-->
+          </div>
+          <!--end::Card body-->
+        </div>
+        <!--end::Card widget 16-->
+      </div>
+      <!--end::Col-->
+
+      <!--begin::Col-->
+      <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
+        <!--begin::Card widget 16-->
+        <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
+          style="background-color: #F1416C; min-height: 200px;">
+          <!--begin::Header-->
+          <div class="card-header pt-5">
+            <!--begin::Title-->
+            <div class="card-title d-flex flex-column">
+              <!--begin::Amount-->
+              <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Rincian</span>
+              <!--end::Amount-->
+              <!--begin::Subtitle-->
+              <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Overdue Items</span>
+              <!--end::Subtitle-->
+            </div>
+            <!--end::Title-->
+          </div>
+          <!--end::Header-->
+          <!--begin::Card body-->
+          <div class="card-body d-flex align-items-end pt-0 pb-5">
+            <!--begin::Progress-->
+            <div class="d-flex align-items-center flex-column mt-3 w-100">
+              <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
+                <span>15 Critical</span>
+                <span>54%</span>
+              </div>
+              <div class="h-8px w-100 bg-light-warning rounded">
+                <div class="bg-warning rounded h-8px" role="progressbar" style="width: 54%;" aria-valuenow="54"
+                  aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!--end::Progress-->
+          </div>
+          <!--end::Card body-->
+        </div>
+        <!--end::Card widget 16-->
+      </div>
+      <!--end::Col-->
+
+      <!--begin::Col-->
+      <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
+        <!--begin::Card widget 16-->
+        <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
+          style="background-color: #00A3FF; min-height: 200px;">
+          <!--begin::Header-->
+          <div class="card-header pt-5">
+            <!--begin::Title-->
+            <div class="card-title d-flex flex-column">
+              <!--begin::Amount-->
+              <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Realisasi</span>
+              <!--end::Amount-->
+              <!--begin::Subtitle-->
+              <span class="text-white opacity-50 pt-1 fw-semibold fs-6">New Messages</span>
+              <!--end::Subtitle-->
+            </div>
+            <!--end::Title-->
+          </div>
+          <!--end::Header-->
+          <!--begin::Card body-->
+          <div class="card-body d-flex align-items-end pt-0 pb-5">
+            <!--begin::Progress-->
+            <div class="d-flex align-items-center flex-column mt-3 w-100">
+              <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
+                <span>198 Unread</span>
+                <span>61%</span>
+              </div>
+              <div class="h-8px w-100 bg-light-info rounded">
+                <div class="bg-info rounded h-8px" role="progressbar" style="width: 61%;" aria-valuenow="61"
+                  aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!--end::Progress-->
+          </div>
+          <!--end::Card body-->
+        </div>
+        <!--end::Card widget 16-->
+      </div>
+      <!--end::Col-->
+
+      <!--begin::Col-->
+      <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
+        <!--begin::Card widget 16-->
+        <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
+          style="background-color: #50CD89; min-height: 200px;">
+          <!--begin::Header-->
+          <div class="card-header pt-5">
+            <!--begin::Title-->
+            <div class="card-title d-flex flex-column">
+              <!--begin::Amount-->
+              <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Persentase</span>
+              <!--end::Amount-->
+              <!--begin::Subtitle-->
+              <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Team Members</span>
+              <!--end::Subtitle-->
+            </div>
+            <!--end::Title-->
+          </div>
+          <!--end::Header-->
+          <!--begin::Card body-->
+          <div class="card-body d-flex align-items-end pt-0 pb-5">
+            <!--begin::Progress-->
+            <div class="d-flex align-items-center flex-column mt-3 w-100">
+              <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
+                <span>76 Online</span>
+                <span>85%</span>
+              </div>
+              <div class="h-8px w-100 bg-white bg-opacity-25 rounded">
+                <div class="bg-white rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85"
+                  aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!--end::Progress-->
+          </div>
+          <!--end::Card body-->
+        </div>
+        <!--end::Card widget 16-->
+      </div>
+      <!--end::Col-->
+    </div>
+
       <div id="session-messages" style="display: none;">
         @if (session('success'))
           <div data-type="success" data-message="{{ session('success') }}"></div>
@@ -48,7 +290,7 @@
               </div>
               {{-- <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#kt_customers_export_modal">
                 <i class="ki-outline ki-exit-up fs-2"></i>Export</button> --}}
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_skpd">Tambah</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_kegiatan">Tambah</button>
             </div>
             <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
               <div class="fw-bold me-5">
@@ -59,7 +301,7 @@
           </div>
         </div>
 
-        {{-- <div class="card-body pt-0">
+        <div class="card-body pt-0">
           @if ($data->isEmpty())
             <div class="alert alert-warning d-flex align-items-center p-5 rounded">
               <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
@@ -78,223 +320,321 @@
                         data-kt-check-target="#kt_datatable_column_rendering .form-check-input" value="1" />
                     </div>
                   </th>
-                  <th class="min-w-100px">Perangkat Daerah</th>
-                  <th class="min-w-300px">Total Sub Kegiatan</th>
-                  <th class="min-w-300px">Sub Kegiatan Terbuka</th>
-                  <th class="min-w-300px">Riancian Belanja Terbuka</th>
-                  <th class="min-w-300px">Sebelum Perubahan</th>
-                  <th class="min-w-300px">Pagu Validasi</th>
-                  <th class="min-w-300px">Batasan Pagu SKPD</th>
-                  <th class="min-w-300px">Rincian Belanja</th>
-                  <th class="min-w-300px">Realisasi</th>
-                  <th class="min-w-300px">Persentase</th>
+                  <th class="min-w-300px">Sub Kegiatan</th>
+                  <th class="min-w-100px">Status Sub Kegiatan</th>
+                  <th class="min-w-100px">Status Rincian</th>
+                  <th class="min-w-100px">Sebelum Perubahan</th>
+                  <th class="min-w-100px">Pagu Validasi Setelah Perubahan</th>
+                  <th class="min-w-100px">Total Rincian Setelah Perubahan</th>
+                  <th class="min-w-100px">Total Realisasi</th>
+                  <th class="min-w-100px">Persentase</th>
                   <th class="min-w-100px">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="fw-semibold text-gray-600">
-               
-                
-              </tbody>
+             {{--  <tbody class="fw-semibold text-gray-600">
+                @foreach ($data as $item)
+                  <tr>
+                    <td>
+                      <div class="form-check form-check-sm form-check-custom form-check-solid">
+                        <input class="form-check-input" type="checkbox" value="{{ $item->id }}" />
+                      </div>
+                    </td>
+                    <td class="fw-bold">{{ $item->kode_urusan }}</td>
+                    <td>{{ $item->nama_urusan }}</td>
+                    <td>
+                      <div class="d-flex justify-content-end">
+                        <a href="{{ route('urusan.edit', $item->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                          title="Edit Urusan">
+                          <i class="ki-outline ki-pencil fs-2"></i>
+                        </a>
+                        <form action="{{ route('urusan.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
+                          @csrf
+                          @method('DELETE')
+                          <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus Urusan"
+                            data-name="{{ $item->nama_urusan }}">
+                            <i class="ki-outline ki-trash fs-2"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody> --}}
             </table>
           @endif
-        </div> --}}
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Tambah Urusan -->
-  {{-- <div class="modal fade" id="kt_modal_add_skpd" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mw-650px">
-      <div class="modal-content">
-        <form class="form" action="{{ route('urusan.store') }}" method="POST" id="kt_modal_add_skpd_form">
-          @csrf
-          <div class="modal-header" id="kt_modal_add_skpd_header">
-            <h2 class="fw-bold">Tambah Urusan</h2>
-            <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-              <i class="ki-outline ki-cross fs-1"></i>
+  <!-- Modal Tambah kegiatan -->
+  <!-- Modal Tambah kegiatan -->
+<div class="modal fade" id="kt_modal_add_kegiatan" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered mw-900px">
+    <div class="modal-content">
+      <form class="form" action="{{-- {{ route('renja.store') }} --}}" method="POST" id="kt_modal_add_kegiatan_form">
+        @csrf
+        <div class="modal-header" id="kt_modal_add_kegiatan_header">
+          <h2 class="fw-bold">Tambah Sub Kegiatan Belanja</h2>
+          <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+            <i class="ki-outline ki-cross fs-1"></i>
+          </div>
+        </div>
+
+        <div class="modal-body py-10 px-lg-17">
+          <div class="scroll-y me-n7 pe-7" id="kt_modal_add_kegiatan_scroll" style="max-height: 500px;">
+
+            <div class="fv-row mb-7">
+              <label class="required fs-6 fw-semibold mb-2">Pilih SKPD/Sub Unit</label>
+              <select class="form-select form-select-solid @error('id_skpd') is-invalid @enderror" 
+                      name="id_skpd" 
+                      id="select_skpd" 
+                      required>
+                <option value="">Pilih SKPD</option>
+                @foreach ($data_unit as $skpd)
+                  <option value="{{ $skpd->id_skpd }}" {{ old('id_skpd') == $skpd->id_skpd ? 'selected' : '' }}>
+                    {{ $skpd->kode_skpd }} - {{ $skpd->nama_skpd }}
+                  </option>
+                @endforeach
+              </select>
+              @error('id_skpd')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
             </div>
-          </div>
 
-          <div class="modal-body py-10 px-lg-17">
-            <div class="scroll-y me-n7 pe-7" id="kt_modal_add_skpd_scroll">
-
-              <!-- Kode Urusan -->
-              <div class="fv-row mb-7">
-                <label class="required fs-6 fw-semibold mb-2">Kode Urusan</label>
-                <input type="text" class="form-control form-control-solid @error('kode_urusan') is-invalid @enderror"
-                  placeholder="Masukkan kode urusan" name="kode_urusan" value="{{ old('kode_urusan') }}" maxlength="10" required />
-                @error('kode_urusan')
-                  <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-                <div class="form-text">Maksimal 10 karakter</div>
+            <!-- Loading indicator -->
+            <div id="loading_sub_kegiatan" class="d-none">
+              <div class="d-flex align-items-center">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                <span>Memuat sub kegiatan...</span>
               </div>
-
-              <!-- Nama Urusan -->
-              <div class="fv-row mb-7">
-                <label class="required fs-6 fw-semibold mb-2">Nama Urusan</label>
-                <input type="text" class="form-control form-control-solid @error('nama_urusan') is-invalid @enderror"
-                  placeholder="Masukkan nama urusan" name="nama_urusan" value="{{ old('nama_urusan') }}" maxlength="255" required />
-                @error('nama_urusan')
-                  <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-                <div class="form-text">Maksimal 255 karakter</div>
-              </div>
-
             </div>
-          </div>
 
-          <div class="modal-footer flex-center">
-            <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" id="kt_modal_add_skpd_submit" class="btn btn-primary">
-              <span class="indicator-label">Simpan</span>
-              <span class="indicator-progress">Menyimpan...
-                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-              </span>
-            </button>
+            <!-- Sub Kegiatan List -->
+            <div class="fv-row mb-7" id="sub_kegiatan_container" style="display: none;">
+              <label class="required fs-6 fw-semibold mb-2">Sub Kegiatan</label>
+              <select class="form-select form-select-solid @error('id_sub_kegiatan') is-invalid @enderror" 
+                      name="id_sub_kegiatan" 
+                      id="select_sub_kegiatan" 
+                      required>
+                <option value="">Pilih Sub Kegiatan</option>
+              </select>
+              @error('id_sub_kegiatan')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+              <div class="form-text">
+                Total: <span id="total_sub_kegiatan">0</span> sub kegiatan
+              </div>
+            </div>
+
+            <!-- Detail Sub Kegiatan yang dipilih -->
+            <div id="detail_sub_kegiatan" class="alert alert-info d-none mt-5">
+              <h5 class="mb-3">Detail Sub Kegiatan</h5>
+              <table class="table table-sm table-borderless">
+                <tr>
+                  <td width="150px"><strong>Bidang Urusan:</strong></td>
+                  <td id="detail_bidang_urusan">-</td>
+                </tr>
+                <tr>
+                  <td><strong>Program:</strong></td>
+                  <td id="detail_program">-</td>
+                </tr>
+                <tr>
+                  <td><strong>Kegiatan:</strong></td>
+                  <td id="detail_kegiatan">-</td>
+                </tr>
+                <tr>
+                  <td><strong>Sub Kegiatan:</strong></td>
+                  <td id="detail_sub_keg">-</td>
+                </tr>
+              </table>
+            </div>
+
           </div>
-        </form>
-      </div>
+        </div>
+
+        <div class="modal-footer flex-center">
+          <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" id="kt_modal_add_kegiatan_submit" class="btn btn-primary">
+            <span class="indicator-label">Simpan</span>
+            <span class="indicator-progress">Menyimpan...
+              <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+            </span>
+          </button>
+        </div>
+      </form>
     </div>
-  </div> --}}
+  </div>
+</div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Initialize DataTable
-      var table = $('#kt_datatable_column_rendering').DataTable({
-        responsive: true,
-        searchDelay: 500,
-        processing: true,
-        serverSide: false,
-        order: [
-          [1, 'asc']
-        ],
-        columnDefs: [{
-            targets: [0],
-            orderable: false,
-            className: 'text-center'
-          },
-          {
-            targets: [1, 2],
-            className: 'fs-6'
-          },
-          {
-            targets: [3],
-            orderable: false,
-            className: 'text-end'
-          }
-        ],
-        dom: "<'row'<'col-sm-12'tr>>" +
-          "<'row mt-4'" +
-          "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
-          "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
-          ">",
-        language: {
-          paginate: {
-            previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
-            next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
-          }
-        }
-      });
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Store sub kegiatan data globally
+    let subKegiatanData = [];
 
-      // Search functionality
-      $('#kt_datatable_search_input').keyup(function() {
-        table.search(this.value).draw();
-      });
-
-      // === SweetAlert2 Session Messages ===
-      const sessionMessages = document.querySelectorAll('#session-messages div');
-      sessionMessages.forEach(msg => {
-        const type = msg.dataset.type;
-        const message = msg.dataset.message;
-
-        Swal.fire({
-          icon: type,
-          title: type === 'success' ? 'Berhasil' : 'Gagal',
-          text: message,
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
-      });
-
-      // === Delete confirmation pakai SweetAlert2 ===
-      $(document).on('click', '.delete-btn', function(e) {
-        e.preventDefault();
-        const form = $(this).closest('form');
-        const name = $(this).data('name');
-
-        Swal.fire({
-          title: 'Apakah Anda yakin?',
-          html: `Data urusan <strong>"${name}"</strong> akan dihapus!`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, hapus!',
-          cancelButtonText: 'Batal',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-danger",
-            cancelButton: "btn btn-secondary"
-          }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            form.submit();
-          }
-        });
-      });
-
-      // === Bulk selection ===
-      const checkboxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]');
-      const masterCheckbox = document.querySelector('#kt_datatable_column_rendering thead input[type="checkbox"]');
-      const selectedToolbar = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
-      const baseToolbar = document.querySelector('[data-kt-customer-table-toolbar="base"]');
-      const selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
-
-      function updateToolbar() {
-        const checkedBoxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]:checked');
-
-        if (checkedBoxes.length > 0) {
-          selectedCount.textContent = checkedBoxes.length;
-          baseToolbar.classList.add('d-none');
-          selectedToolbar.classList.remove('d-none');
-        } else {
-          baseToolbar.classList.remove('d-none');
-          selectedToolbar.classList.add('d-none');
-        }
+    // === AJAX Load Sub Kegiatan ketika SKPD dipilih ===
+    $('#select_skpd').on('change', function() {
+      const idSkpd = $(this).val();
+      
+      if (!idSkpd) {
+        $('#sub_kegiatan_container').hide();
+        $('#select_sub_kegiatan').html('<option value="">Pilih Sub Kegiatan</option>');
+        $('#detail_sub_kegiatan').addClass('d-none');
+        return;
       }
 
-      // Master checkbox functionality
-      if (masterCheckbox) {
-        masterCheckbox.addEventListener('change', function() {
-          checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-          updateToolbar();
-        });
-      }
+      // Show loading
+      $('#loading_sub_kegiatan').removeClass('d-none');
+      $('#sub_kegiatan_container').hide();
+      $('#detail_sub_kegiatan').addClass('d-none');
 
-      // Individual checkbox functionality
-      checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-          updateToolbar();
-          const checkedBoxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]:checked');
-          if (masterCheckbox) {
-            masterCheckbox.checked = checkedBoxes.length === checkboxes.length;
-            masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < checkboxes.length;
+      // AJAX request
+      $.ajax({
+        url: '{{ route('sub-kegiatan') }}',
+        method: 'GET',
+        data: {
+          id_skpd: idSkpd,
+          tahun_anggaran: 2025
+        },
+        success: function(response) {
+          $('#loading_sub_kegiatan').addClass('d-none');
+
+          if (response.success && response.data.length > 0) {
+            subKegiatanData = response.data;
+            
+            // Populate select options
+            let options = '<option value="">Pilih Sub Kegiatan</option>';
+            response.data.forEach(item => {
+              options += `<option value="${item.id_sub_kegiatan}" 
+                                  data-bidang="${item.kode_bidang_urusan} - ${item.nama_bidang_urusan}"
+                                  data-program="${item.kode_program} - ${item.nama_program}"
+                                  data-kegiatan="${item.kode_kegiatan} - ${item.nama_kegiatan}"
+                                  data-subkeg="${item.kode_sub_kegiatan} - ${item.nama_sub_kegiatan}">
+                            ${item.kode_sub_kegiatan} - ${item.nama_sub_kegiatan}
+                          </option>`;
+            });
+
+            $('#select_sub_kegiatan').html(options);
+            $('#total_sub_kegiatan').text(response.count);
+            $('#sub_kegiatan_container').show();
+
+          } else {
+            Swal.fire({
+              icon: 'info',
+              title: 'Tidak ada data',
+              text: 'Tidak ada sub kegiatan untuk SKPD yang dipilih',
+              confirmButtonText: 'OK',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-primary"
+              }
+            });
           }
-        });
-      });
-
-      // === Bulk delete confirmation pakai SweetAlert2 ===
-      document.getElementById('bulk_delete_btn')?.addEventListener('click', function() {
-        const checkedBoxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]:checked');
-
-        if (checkedBoxes.length === 0) {
+        },
+        error: function(xhr, status, error) {
+          $('#loading_sub_kegiatan').addClass('d-none');
+          
           Swal.fire({
-            icon: 'info',
-            title: 'Tidak ada data dipilih',
-            text: 'Pilih minimal satu urusan untuk dihapus.',
+            icon: 'error',
+            title: 'Gagal',
+            text: 'Terjadi kesalahan saat mengambil data sub kegiatan',
+            confirmButtonText: 'OK',
+            buttonsStyling: false,
+            customClass: {
+              confirmButton: "btn btn-primary"
+            }
+          });
+          
+          console.error('Error:', error);
+        }
+      });
+    });
+
+    // === Show detail when sub kegiatan selected ===
+    $('#select_sub_kegiatan').on('change', function() {
+      const selectedOption = $(this).find('option:selected');
+      
+      if (selectedOption.val()) {
+        $('#detail_bidang_urusan').text(selectedOption.data('bidang'));
+        $('#detail_program').text(selectedOption.data('program'));
+        $('#detail_kegiatan').text(selectedOption.data('kegiatan'));
+        $('#detail_sub_keg').text(selectedOption.data('subkeg'));
+        $('#detail_sub_kegiatan').removeClass('d-none');
+      } else {
+        $('#detail_sub_kegiatan').addClass('d-none');
+      }
+    });
+
+    // === Initialize DataTable ===
+    var table = $('#kt_datatable_column_rendering').DataTable({
+      responsive: true,
+      searchDelay: 500,
+      processing: true,
+      serverSide: false,
+      order: [[1, 'asc']],
+      columnDefs: [
+        {
+          targets: [0],
+          orderable: false,
+          className: 'text-center'
+        },
+        {
+          targets: [9],
+          orderable: false,
+          className: 'text-end'
+        }
+      ],
+      dom: "<'row'<'col-sm-12'tr>>" +
+        "<'row mt-4'" +
+        "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
+        "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
+        ">",
+      language: {
+        paginate: {
+          previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
+          next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
+        }
+      }
+    });
+
+    // Search functionality
+    $('#kt_datatable_search_input').keyup(function() {
+      table.search(this.value).draw();
+    });
+
+    // === SweetAlert2 Session Messages ===
+    const sessionMessages = document.querySelectorAll('#session-messages div');
+    sessionMessages.forEach(msg => {
+      const type = msg.dataset.type;
+      const message = msg.dataset.message;
+
+      Swal.fire({
+        icon: type,
+        title: type === 'success' ? 'Berhasil' : 'Gagal',
+        text: message,
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: "btn btn-primary"
+        }
+      });
+    });
+
+    // === Form validation ===
+    const form = document.getElementById('kt_modal_add_kegiatan_form');
+    const submitButton = document.getElementById('kt_modal_add_kegiatan_submit');
+
+    if (form && submitButton) {
+      form.addEventListener('submit', function(e) {
+        const idSkpd = form.querySelector('select[name="id_skpd"]').value;
+        const idSubKegiatan = form.querySelector('select[name="id_sub_kegiatan"]').value;
+
+        if (!idSkpd || !idSubKegiatan) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'error',
+            title: 'Validasi gagal',
+            text: 'Semua field wajib diisi!',
             confirmButtonText: 'OK',
             buttonsStyling: false,
             customClass: {
@@ -304,80 +644,16 @@
           return;
         }
 
-        Swal.fire({
-          title: 'Apakah Anda yakin?',
-          html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data urusan terpilih!`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, hapus!',
-          cancelButtonText: 'Batal',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-danger",
-            cancelButton: "btn btn-secondary"
-          }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            const ids = Array.from(checkedBoxes).map(cb => cb.value);
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route('urusan.bulk-delete') }}';
-
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-
-            ids.forEach(id => {
-              const input = document.createElement('input');
-              input.type = 'hidden';
-              input.name = 'ids[]';
-              input.value = id;
-              form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-          }
-        });
+        submitButton.setAttribute('data-kt-indicator', 'on');
+        submitButton.disabled = true;
       });
+    }
 
-      // === Form validation ===
-      const form = document.getElementById('kt_modal_add_skpd_form');
-      const submitButton = document.getElementById('kt_modal_add_skpd_submit');
-
-      if (form && submitButton) {
-        form.addEventListener('submit', function(e) {
-          const kodeUrusan = form.querySelector('input[name="kode_urusan"]').value.trim();
-          const namaUrusan = form.querySelector('input[name="nama_urusan"]').value.trim();
-
-          if (!kodeUrusan || !namaUrusan) {
-            e.preventDefault();
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi gagal',
-              text: 'Semua field wajib diisi!',
-              confirmButtonText: 'OK',
-              buttonsStyling: false,
-              customClass: {
-                confirmButton: "btn btn-primary"
-              }
-            });
-            return;
-          }
-
-          submitButton.setAttribute('data-kt-indicator', 'on');
-          submitButton.disabled = true;
-        });
-      }
-
-      // === Auto show modal if validation errors exist ===
-      @if ($errors->any() && old('_token'))
-        $('#kt_modal_add_skpd').modal('show');
-      @endif
-    });
-  </script>
+    // === Auto show modal if validation errors exist ===
+    @if ($errors->any() && old('_token'))
+      $('#kt_modal_add_kegiatan').modal('show');
+    @endif
+  });
+</script>
 
 @endsection

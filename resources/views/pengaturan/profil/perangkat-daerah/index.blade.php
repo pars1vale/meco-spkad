@@ -45,7 +45,6 @@
 
           <div class="card-toolbar">
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
-              <!-- Dropdown Tambah -->
               <div class="btn-group">
                 <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
                   aria-expanded="false">
@@ -53,13 +52,11 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <!-- Tambah SKPD -->
                     <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_add_pd">
                       Tambah SKPD
                     </a>
                   </li>
                   <li>
-                    <!-- Tambah Unit SKPD -->
                     <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_add_unit_skpd">
                       Tambah Unit SKPD
                     </a>
@@ -118,15 +115,23 @@
                     <td>{{ $item->posisi }}</td>
                     <td>
                       <div class="d-flex justify-content-end">
-                        <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                          title="Edit"><i class="ki-outline ki-pencil fs-2"></i></a>
+                        {{-- Tombol Edit --}}
+                        <a href="{{ route('perangkat-daerah.edit', $item->id) }}" 
+                           class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                           title="Edit">
+                          <i class="ki-outline ki-pencil fs-2"></i>
+                        </a>
+                        
+                        {{-- Form Delete --}}
                         <form method="POST" class="d-inline delete-form"
-                          action="{{-- {{ route('perangkat-daerah.destroy', $item->id ?? '#') }} --}}">
+                              action="{{ route('perangkat-daerah.destroy', $item->id) }}">
                           @csrf
                           @method('DELETE')
-                          <button type="submit"
-                            class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn"
-                            title="Hapus" data-name="{{ $item->nama_skpd }}">
+                          <button type="button"
+                                  class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn"
+                                  title="Hapus" 
+                                  data-name="{{ $item->nama_skpd }}"
+                                  data-id="{{ $item->id }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
@@ -398,6 +403,8 @@
 
   {{-- jQuery --}}
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  {{-- SweetAlert2 --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
   $(function() {
@@ -416,11 +423,11 @@
       table.search(this.value).draw();
     });
   });
-</script>
-
+  </script>
 
   <script>
     $(document).ready(function() {
+      // ============ MODAL TAMBAH SKPD ============
       const $modal = $('#kt_modal_add_pd');
       const $form = $('#kt_modal_add_pd_form');
       const $submitBtn = $('#kt_modal_add_pd_submit');
@@ -441,6 +448,106 @@
         $submitBtn.find('.indicator-label').hide();
         $submitBtn.find('.indicator-progress').show();
       });
+
+      // ============ DELETE SINGLE ============
+      $('.delete-btn').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        const name = $(this).data('name');
+        
+        Swal.fire({
+          title: 'Hapus Data?',
+          html: `Apakah Anda yakin ingin menghapus:<br><strong>${name}</strong>?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Ya, Hapus!',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+      
+      // ============ BULK DELETE ============
+      $('#bulk_delete_btn').on('click', function(e) {
+        e.preventDefault();
+        
+        const selectedIds = [];
+        $('.form-check-input:checked').each(function() {
+          const val = $(this).val();
+          if (val && val !== '1') {
+            selectedIds.push(val);
+          }
+        });
+        
+        if (selectedIds.length === 0) {
+          Swal.fire('Perhatian', 'Tidak ada data yang dipilih', 'warning');
+          return;
+        }
+        
+        Swal.fire({
+          title: 'Hapus Data Terpilih?',
+          text: `${selectedIds.length} data akan dihapus`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Ya, Hapus Semua!',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: '{{ route("perangkat-daerah.bulk-delete") }}',
+              type: 'POST',
+              data: {
+                _token: '{{ csrf_token() }}',
+                ids: selectedIds
+              },
+              success: function(response) {
+                Swal.fire('Berhasil!', 'Data berhasil dihapus', 'success')
+                  .then(() => location.reload());
+              },
+              error: function(xhr) {
+                Swal.fire('Gagal!', 'Terjadi kesalahan saat menghapus data', 'error');
+              }
+            });
+          }
+        });
+      });
+      
+      // ============ TOGGLE BULK DELETE BUTTON ============
+      $(document).on('change', '.form-check-input', function() {
+        const checkedCount = $('.form-check-input:checked').not('[data-kt-check="true"]').length;
+        
+        if (checkedCount > 0) {
+          $('[data-kt-customer-table-toolbar="selected"]').removeClass('d-none');
+          $('[data-kt-customer-table-toolbar="base"]').addClass('d-none');
+          $('[data-kt-customer-table-select="selected_count"]').text(checkedCount);
+        } else {
+          $('[data-kt-customer-table-toolbar="selected"]').addClass('d-none');
+          $('[data-kt-customer-table-toolbar="base"]').removeClass('d-none');
+        }
+      });
+      
+      // ============ DISPLAY SESSION MESSAGES ============
+      const sessionMessages = $('#session-messages');
+      if (sessionMessages.length) {
+        sessionMessages.find('[data-type]').each(function() {
+          const type = $(this).data('type');
+          const message = $(this).data('message');
+          
+          Swal.fire({
+            icon: type,
+            title: type === 'success' ? 'Berhasil!' : 'Gagal!',
+            text: message,
+            timer: 3000,
+            showConfirmButton: false
+          });
+        });
+      }
     });
   </script>
 @endsection
