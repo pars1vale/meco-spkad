@@ -2,6 +2,7 @@
 
 namespace App\Models\Referensi;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -17,8 +18,15 @@ class SubKegiatan extends Model
         'kode_sub_kegiatan',
         'id_kegiatan',
         'nama_sub_kegiatan',
+        'user_id',
         'time_stamp'
     ];
+
+    // Relasi Many-to-One ke User
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     // Method untuk mendapatkan ID berikutnya
     public static function getNextId()

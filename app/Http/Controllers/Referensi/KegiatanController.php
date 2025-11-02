@@ -88,6 +88,8 @@ class KegiatanController extends Controller
                 'kode_kegiatan' => $request->kode_kegiatan,
                 'nama_kegiatan' => $request->nama_kegiatan,
                 'id_program' => $request->id_program,
+                // ambil id user dari session
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 
@@ -149,6 +151,8 @@ class KegiatanController extends Controller
                 'kode_kegiatan' => $request->kode_kegiatan,
                 'nama_kegiatan' => $request->nama_kegiatan,
                 'id_program' => $request->id_program,
+                // ambil id user dari session
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 

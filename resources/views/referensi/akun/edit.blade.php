@@ -49,14 +49,6 @@
           @method('PUT')
 
           <div class="card-body">
-            @if (session('success'))
-              <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-
-            @if (session('error'))
-              <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
-
             <div class="row">
               <div class="col-md-6">
                 <!-- Kode Akun -->
@@ -141,13 +133,13 @@
                 <div class="alert alert-info">
                   <h6 class="mb-2"><strong>Status Akun Saat Ini:</strong></h6>
                   <div class="d-flex flex-wrap gap-2">
-                    <span class="badge badge-light-{{ $akun->pendapatan == 'ya' ? 'success' : 'secondary' }}">
+                    <span class="badge badge-light-{{ $akun->pendapatan == 'Ya' ? 'success' : 'secondary' }}">
                       Pendapatan: {{ ucfirst($akun->pendapatan) }}
                     </span>
-                    <span class="badge badge-light-{{ $akun->belanja == 'ya' ? 'success' : 'secondary' }}">
+                    <span class="badge badge-light-{{ $akun->belanja == 'Ya' ? 'success' : 'secondary' }}">
                       Belanja: {{ ucfirst($akun->belanja) }}
                     </span>
-                    <span class="badge badge-light-{{ $akun->pembiayaan == 'ya' ? 'success' : 'secondary' }}">
+                    <span class="badge badge-light-{{ $akun->pembiayaan == 'Ya' ? 'success' : 'secondary' }}">
                       Pembiayaan: {{ ucfirst($akun->pembiayaan) }}
                     </span>
                   </div>
@@ -176,92 +168,5 @@
     </div>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // === Switch logic untuk form edit ===
-      const akunTypeSwitches = document.querySelectorAll('.akun-type-switch');
-      akunTypeSwitches.forEach(switchEl => {
-        switchEl.addEventListener('change', function() {
-          if (this.checked) {
-            // Matikan switch lainnya
-            akunTypeSwitches.forEach(otherSwitch => {
-              if (otherSwitch !== this) {
-                otherSwitch.checked = false;
-              }
-            });
-          }
-          // Reset error message
-          document.getElementById('tipe-akun-error-edit').classList.add('d-none');
-        });
-      });
-
-      // === Form validation ===
-      const editForm = document.getElementById('edit_akun_form');
-      const updateButton = document.getElementById('update_akun_btn');
-
-      if (editForm && updateButton) {
-        editForm.addEventListener('submit', function(e) {
-          const kodeAkun = editForm.querySelector('input[name="kode_akun"]').value.trim();
-          const namaAkun = editForm.querySelector('textarea[name="nama_akun"]').value.trim();
-
-          // Check if at least one switch is selected
-          const pendapatanChecked = editForm.querySelector('#pendapatanSwitchEdit').checked;
-          const belanjaChecked = editForm.querySelector('#belanjaSwitchEdit').checked;
-          const pembiayaanChecked = editForm.querySelector('#pembiayaanSwitchEdit').checked;
-
-          const hasTypeSelected = pendapatanChecked || belanjaChecked || pembiayaanChecked;
-
-          if (!kodeAkun || !namaAkun || !hasTypeSelected) {
-            e.preventDefault();
-
-            if (!hasTypeSelected) {
-              document.getElementById('tipe-akun-error-edit').classList.remove('d-none');
-            }
-
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi gagal',
-              text: !hasTypeSelected ? 'Anda harus memilih salah satu tipe akun!' : 'Semua field wajib diisi!',
-              confirmButtonText: 'OK',
-              buttonsStyling: false,
-              customClass: {
-                confirmButton: "btn btn-primary"
-              }
-            });
-            return;
-          }
-
-          updateButton.setAttribute('data-kt-indicator', 'on');
-          updateButton.disabled = true;
-        });
-      }
-
-      // === SweetAlert2 Session Messages ===
-      @if (session('success'))
-        Swal.fire({
-          icon: 'success',
-          title: 'Berhasil',
-          text: '{{ session('success') }}',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
-      @endif
-
-      @if (session('error'))
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal',
-          text: '{{ session('error') }}',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
-      @endif
-    });
-  </script>
+  @include('referensi.akun.partials.scripts-edit')
 @endsection

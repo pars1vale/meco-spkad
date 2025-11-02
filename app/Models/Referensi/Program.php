@@ -2,6 +2,7 @@
 
 namespace App\Models\Referensi;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -17,8 +18,14 @@ class Program extends Model
         'kode_program',
         'id_bidang_urusan',
         'nama_program',
+        'user_id',
         'time_stamp'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     // Method untuk mendapatkan ID berikutnya
     public static function getNextId()

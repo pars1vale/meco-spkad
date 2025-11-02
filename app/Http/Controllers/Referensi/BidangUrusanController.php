@@ -10,24 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class BidangUrusanController extends Controller
 {
-    // public function index()
-    // {
-
-    //     $data = DB::table('data_prog_keg')
-    //         ->select('nama_urusan', 'kode_bidang_urusan', 'nama_bidang_urusan')
-    //         ->distinct()
-    //         ->orderBy('nama_urusan')
-    //         ->get()
-    //         ->groupBy('nama_urusan');
-
-    //     // Pastikan $data adalah Collection kosong jika tidak ada hasil
-    //     if ($data->isEmpty()) {
-    //         $data = collect();
-    //     }
-
-    //     return view('referensi.bidang-urusan.index', compact('data'));
-    // }
-
     public function index()
     {
         $data = collect();
@@ -77,11 +59,12 @@ class BidangUrusanController extends Controller
         ]);
 
         try {
-            // ID akan otomatis di-generate oleh model
             BidangUrusan::create([
                 'kode_bidang_urusan' => $request->kode_bidang_urusan,
                 'nama_bidang_urusan' => $request->nama_bidang_urusan,
                 'id_urusan' => $request->id_urusan,
+                // ambil id user dari session
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 
@@ -129,6 +112,8 @@ class BidangUrusanController extends Controller
                 'kode_bidang_urusan' => $request->kode_bidang_urusan,
                 'nama_bidang_urusan' => $request->nama_bidang_urusan,
                 'id_urusan' => $request->id_urusan,
+                // ambil id user dari session
+                'id_user' => session('id_user'),
                 'time_stamp' => now()
             ]);
 
