@@ -368,7 +368,6 @@
   </div>
 
   <!-- Modal Tambah kegiatan -->
-  <!-- Modal Tambah kegiatan -->
 <div class="modal fade" id="kt_modal_add_kegiatan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered mw-900px">
     <div class="modal-content">
@@ -450,6 +449,47 @@
               </table>
             </div>
 
+            <!-- Separator -->
+            <div class="separator separator-dashed my-7"></div>
+
+            <!-- Sumber Dana Section -->
+            <div class="fv-row mb-7">
+              <div class="d-flex justify-content-between align-items-center mb-5">
+                <label class="fs-6 fw-semibold">Sumber Dana</label>
+                <button type="button" class="btn btn-sm btn-light-primary" id="btn_add_sumber_dana">
+                  <i class="ki-outline ki-plus fs-3"></i>
+                  Sumber Dana
+                </button>
+              </div>
+
+              <!-- Container untuk dynamic forms -->
+              <div id="sumber_dana_container">
+                <!-- Dynamic forms akan ditambahkan di sini -->
+              </div>
+
+              <!-- Info jika belum ada sumber dana -->
+              <div id="no_sumber_dana_info" class="alert alert-light-warning d-flex align-items-center p-5">
+                <i class="ki-outline ki-information-5 fs-2hx text-warning me-4"></i>
+                <div class="d-flex flex-column">
+                  <h4 class="mb-1 text-warning">Belum ada sumber dana</h4>
+                  <span>Klik tombol "+ Sumber Dana" untuk menambahkan sumber dana dan pagu</span>
+                </div>
+              </div>
+
+              <!-- Total Pagu Summary -->
+              <div id="total_pagu_summary" class="card bg-light-primary d-none mt-5">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 class="mb-1">Total Pagu Keseluruhan</h5>
+                      <span class="text-gray-600 fs-7">Jumlah dari semua sumber dana</span>
+                    </div>
+                    <h2 class="mb-0 text-primary" id="grand_total_pagu">Rp 0</h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -469,8 +509,12 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    // Store sub kegiatan data globally
+    // Store data globally
     let subKegiatanData = [];
+    let sumberDanaCounter = 0;
+    
+    // Sumber Dana dari database
+    const sumberDanaList = @json($sumberdana);
 
     // === AJAX Load Sub Kegiatan ketika SKPD dipilih ===
     $('#select_skpd').on('change', function() {
@@ -480,6 +524,7 @@
         $('#sub_kegiatan_container').hide();
         $('#select_sub_kegiatan').html('<option value="">Pilih Sub Kegiatan</option>');
         $('#detail_sub_kegiatan').addClass('d-none');
+        $('#total_sub_kegiatan').text('0');
         return;
       }
 
@@ -487,10 +532,11 @@
       $('#loading_sub_kegiatan').removeClass('d-none');
       $('#sub_kegiatan_container').hide();
       $('#detail_sub_kegiatan').addClass('d-none');
+      $('#select_sub_kegiatan').html('<option value="">Memuat...</option>');
 
       // AJAX request
       $.ajax({
-        url: '{{ route('sub-kegiatan') }}',
+        url: '{{ route("sub-kegiatan") }}',
         method: 'GET',
         data: {
           id_skpd: idSkpd,
@@ -502,16 +548,36 @@
           if (response.success && response.data.length > 0) {
             subKegiatanData = response.data;
             
-            // Populate select options
-            let options = '<option value="">Pilih Sub Kegiatan</option>';
+            // Group by bidang urusan
+            let groupedData = {};
             response.data.forEach(item => {
-              options += `<option value="${item.id_sub_kegiatan}" 
-                                  data-bidang="${item.kode_bidang_urusan} - ${item.nama_bidang_urusan}"
-                                  data-program="${item.kode_program} - ${item.nama_program}"
-                                  data-kegiatan="${item.kode_kegiatan} - ${item.nama_kegiatan}"
-                                  data-subkeg="${item.kode_sub_kegiatan} - ${item.nama_sub_kegiatan}">
-                            ${item.kode_sub_kegiatan} - ${item.nama_sub_kegiatan}
-                          </option>`;
+              const bidangKey = item.kode_bidang_urusan;
+              if (!groupedData[bidangKey]) {
+                groupedData[bidangKey] = {
+                  nama: item.nama_bidang_urusan,
+                  items: []
+                };
+              }
+              groupedData[bidangKey].items.push(item);
+            });
+
+            // Build options dengan optgroup
+            let options = '<option value="">Pilih Sub Kegiatan</option>';
+            Object.keys(groupedData).sort().forEach(key => {
+              const group = groupedData[key];
+              options += `<optgroup label="${key} - ${group.nama}">`;
+              
+              group.items.forEach(item => {
+                options += `<option value="${item.id_sub_kegiatan}" 
+                                    data-bidang="${item.kode_bidang_urusan} - ${item.nama_bidang_urusan}"
+                                    data-program="${item.kode_program} - ${item.nama_program}"
+                                    data-kegiatan="${item.kode_kegiatan} - ${item.nama_kegiatan}"
+                                    data-subkeg="${item.kode_sub_kegiatan} - ${item.nama_sub_kegiatan}">
+                              ${item.kode_sub_kegiatan} - ${item.nama_sub_kegiatan}
+                            </option>`;
+              });
+              
+              options += '</optgroup>';
             });
 
             $('#select_sub_kegiatan').html(options);
@@ -519,6 +585,9 @@
             $('#sub_kegiatan_container').show();
 
           } else {
+            $('#select_sub_kegiatan').html('<option value="">Tidak ada data</option>');
+            $('#total_sub_kegiatan').text('0');
+            
             Swal.fire({
               icon: 'info',
               title: 'Tidak ada data',
@@ -533,11 +602,12 @@
         },
         error: function(xhr, status, error) {
           $('#loading_sub_kegiatan').addClass('d-none');
+          $('#select_sub_kegiatan').html('<option value="">Error memuat data</option>');
           
           Swal.fire({
             icon: 'error',
             title: 'Gagal',
-            text: 'Terjadi kesalahan saat mengambil data sub kegiatan',
+            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengambil data sub kegiatan',
             confirmButtonText: 'OK',
             buttonsStyling: false,
             customClass: {
@@ -545,7 +615,7 @@
             }
           });
           
-          console.error('Error:', error);
+          console.error('Error:', xhr.responseJSON || error);
         }
       });
     });
@@ -555,15 +625,173 @@
       const selectedOption = $(this).find('option:selected');
       
       if (selectedOption.val()) {
-        $('#detail_bidang_urusan').text(selectedOption.data('bidang'));
-        $('#detail_program').text(selectedOption.data('program'));
-        $('#detail_kegiatan').text(selectedOption.data('kegiatan'));
-        $('#detail_sub_keg').text(selectedOption.data('subkeg'));
+        $('#detail_bidang_urusan').text(selectedOption.data('bidang') || '-');
+        $('#detail_program').text(selectedOption.data('program') || '-');
+        $('#detail_kegiatan').text(selectedOption.data('kegiatan') || '-');
+        $('#detail_sub_keg').text(selectedOption.data('subkeg') || '-');
         $('#detail_sub_kegiatan').removeClass('d-none');
       } else {
         $('#detail_sub_kegiatan').addClass('d-none');
       }
     });
+
+    // === Add Sumber Dana ===
+    $('#btn_add_sumber_dana').on('click', function() {
+      sumberDanaCounter++;
+      addSumberDanaForm(sumberDanaCounter);
+      updateSumberDanaInfo();
+    });
+
+    // === Function: Add Sumber Dana Form ===
+    function addSumberDanaForm(id) {
+      // Build sumber dana options dari database
+      let sumberDanaOptions = '<option value="">Pilih Sumber Dana</option>';
+      sumberDanaList.forEach(item => {
+        sumberDanaOptions += `<option value="${item.id}">${item.kode_dana} - ${item.nama_dana}</option>`;
+      });
+
+      const formHtml = `
+        <div class="card card-bordered mb-5 sumber-dana-item" data-id="${id}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+              <h5 class="card-title m-0">
+                <i class="ki-outline ki-wallet fs-2 text-primary me-2"></i>
+                Sumber Dana #${id}
+              </h5>
+              <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-sumber-dana" data-id="${id}">
+                <i class="ki-outline ki-trash fs-2"></i>
+              </button>
+            </div>
+
+            <div class="row g-5">
+              <!-- Sumber Dana Select -->
+              <div class="col-md-6">
+                <label class="required fs-6 fw-semibold mb-2">Pilih Sumber Dana</label>
+                <select class="form-select form-select-solid" name="sumber_dana[${id}][id_sumber_dana]" required>
+                  ${sumberDanaOptions}
+                </select>
+              </div>
+
+              <!-- Pagu Input -->
+              <div class="col-md-6">
+                <label class="required fs-6 fw-semibold mb-2">Pagu</label>
+                <div class="input-group">
+                  <span class="input-group-text">Rp</span>
+                  <input type="text" class="form-control form-control-solid input-pagu" 
+                         name="sumber_dana[${id}][pagu]" 
+                         placeholder="0" 
+                         required>
+                </div>
+                <div class="form-text">Format: 1.000.000 (otomatis terformat)</div>
+              </div>
+            </div>
+
+            <!-- Pagu Display -->
+            <div class="mt-5 p-4 bg-light-primary rounded">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-gray-800">Pagu Sumber Dana #${id}:</span>
+                <span class="fs-4 fw-bold text-primary pagu-display-${id}">Rp 0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      $('#sumber_dana_container').append(formHtml);
+      
+      // Initialize currency format for new input
+      initializeCurrencyFormat();
+    }
+
+    // === Remove Sumber Dana ===
+    $(document).on('click', '.btn-remove-sumber-dana', function() {
+      const id = $(this).data('id');
+      
+      Swal.fire({
+        title: 'Hapus Sumber Dana?',
+        text: "Data sumber dana ini akan dihapus!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: "btn btn-danger",
+          cancelButton: "btn btn-light"
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $(`.sumber-dana-item[data-id="${id}"]`).remove();
+          updateSumberDanaInfo();
+          updateTotalPagu();
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Sumber dana telah dihapus',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
+      });
+    });
+
+    // === Update Sumber Dana Info ===
+    function updateSumberDanaInfo() {
+      const count = $('.sumber-dana-item').length;
+      if (count > 0) {
+        $('#no_sumber_dana_info').hide();
+        $('#total_pagu_summary').removeClass('d-none');
+      } else {
+        $('#no_sumber_dana_info').show();
+        $('#total_pagu_summary').addClass('d-none');
+      }
+    }
+
+    // === Initialize Currency Format ===
+    function initializeCurrencyFormat() {
+      $('.input-pagu').off('input').on('input', function() {
+        let value = $(this).val().replace(/[^\d]/g, '');
+        
+        if (value) {
+          // Format dengan separator ribuan
+          const formatted = new Intl.NumberFormat('id-ID').format(value);
+          $(this).val(formatted);
+          
+          // Update display
+          const id = $(this).closest('.sumber-dana-item').data('id');
+          $(`.pagu-display-${id}`).text('Rp ' + formatted);
+        } else {
+          $(this).val('');
+          const id = $(this).closest('.sumber-dana-item').data('id');
+          $(`.pagu-display-${id}`).text('Rp 0');
+        }
+        
+        updateTotalPagu();
+      });
+
+      // Format saat blur untuk memastikan format tetap bagus
+      $('.input-pagu').off('blur').on('blur', function() {
+        let value = $(this).val().replace(/[^\d]/g, '');
+        if (value) {
+          const formatted = new Intl.NumberFormat('id-ID').format(value);
+          $(this).val(formatted);
+        }
+      });
+    }
+
+    // === Update Total Pagu ===
+    function updateTotalPagu() {
+      let total = 0;
+      $('.input-pagu').each(function() {
+        const value = $(this).val().replace(/[^\d]/g, '');
+        total += parseInt(value) || 0;
+      });
+      
+      // Display grand total
+      const formattedTotal = new Intl.NumberFormat('id-ID').format(total);
+      $('#grand_total_pagu').text('Rp ' + formattedTotal);
+    }
 
     // === Initialize DataTable ===
     var table = $('#kt_datatable_column_rendering').DataTable({
@@ -628,13 +856,14 @@
       form.addEventListener('submit', function(e) {
         const idSkpd = form.querySelector('select[name="id_skpd"]').value;
         const idSubKegiatan = form.querySelector('select[name="id_sub_kegiatan"]').value;
+        const sumberDanaCount = $('.sumber-dana-item').length;
 
         if (!idSkpd || !idSubKegiatan) {
           e.preventDefault();
           Swal.fire({
             icon: 'error',
             title: 'Validasi gagal',
-            text: 'Semua field wajib diisi!',
+            text: 'Pilih SKPD dan Sub Kegiatan terlebih dahulu!',
             confirmButtonText: 'OK',
             buttonsStyling: false,
             customClass: {
@@ -644,10 +873,47 @@
           return;
         }
 
+        if (sumberDanaCount === 0) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'error',
+            title: 'Validasi gagal',
+            text: 'Tambahkan minimal 1 sumber dana!',
+            confirmButtonText: 'OK',
+            buttonsStyling: false,
+            customClass: {
+              confirmButton: "btn btn-primary"
+            }
+          });
+          return;
+        }
+
+        // Sebelum submit, convert formatted numbers back to plain numbers
+        $('.input-pagu').each(function() {
+          const plainValue = $(this).val().replace(/[^\d]/g, '');
+          $(this).val(plainValue);
+        });
+
         submitButton.setAttribute('data-kt-indicator', 'on');
         submitButton.disabled = true;
       });
     }
+
+    // === Reset modal when closed ===
+    $('#kt_modal_add_kegiatan').on('hidden.bs.modal', function() {
+      form.reset();
+      $('#sub_kegiatan_container').hide();
+      $('#detail_sub_kegiatan').addClass('d-none');
+      $('#select_sub_kegiatan').html('<option value="">Pilih Sub Kegiatan</option>');
+      $('#total_sub_kegiatan').text('0');
+      $('#sumber_dana_container').html('');
+      $('#no_sumber_dana_info').show();
+      $('#total_pagu_summary').addClass('d-none');
+      $('#grand_total_pagu').text('Rp 0');
+      sumberDanaCounter = 0;
+      submitButton.removeAttribute('data-kt-indicator');
+      submitButton.disabled = false;
+    });
 
     // === Auto show modal if validation errors exist ===
     @if ($errors->any() && old('_token'))
