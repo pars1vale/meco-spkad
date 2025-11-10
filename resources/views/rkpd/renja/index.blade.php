@@ -26,6 +26,15 @@
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
+      <div id="session-messages" style="display: none;">
+        @if (session('success'))
+          <div data-type="success" data-message="{{ session('success') }}"></div>
+        @endif
+        @if (session('error'))
+          <div data-type="error" data-message="{{ session('error') }}"></div>
+        @endif
+      </div>
+
       <div class="row gx-5 gx-xl-10 mb-xl-10">
         <!--begin::Col-->
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
@@ -647,61 +656,82 @@
         });
 
         const formHtml = `
-        <div class="card card-bordered mb-5 sumber-dana-item" data-id="${id}">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-              <h5 class="card-title m-0">
-                <i class="ki-outline ki-wallet fs-2 text-primary me-2"></i>
-                Sumber Dana #${id}
-              </h5>
-              <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-sumber-dana" data-id="${id}">
-                <i class="ki-outline ki-trash fs-2"></i>
-              </button>
-            </div>
-
-            <div class="row g-5">
-              <!-- Sumber Dana Select -->
-              <div class="col-md-6">
-                <label class="required fs-6 fw-semibold mb-2">Pilih Sumber Dana</label>
-                <select class="form-select form-select-solid" name="sumber_dana[${id}][id_sumber_dana]" data-control="select2" data-dropdown-parent="#kt_modal_add_kegiatan" required>
-                  ${sumberDanaOptions}
-                </select>
+          <div class="card card-bordered mb-5 sumber-dana-item" data-id="${id}">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-5">
+                <h5 class="card-title m-0">
+                  <i class="ki-outline ki-wallet fs-2 text-primary me-2"></i>
+                  <span class="sumber-dana-number">Sumber Dana #1</span>
+                </h5>
+                <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-sumber-dana" data-id="${id}">
+                  <i class="ki-outline ki-trash fs-2"></i>
+                </button>
               </div>
 
-              <!-- Pagu Input -->
-              <div class="col-md-6">
-                <label class="required fs-6 fw-semibold mb-2">Pagu</label>
-                <div class="input-group">
-                  <span class="input-group-text">Rp</span>
-                  <input type="text" class="form-control form-control-solid input-pagu" 
-                         name="sumber_dana[${id}][pagu]" 
-                         placeholder="0" 
-                         required>
+              <div class="row g-5">
+                <!-- Sumber Dana Select -->
+                <div class="col-md-6">
+                  <label class="required fs-6 fw-semibold mb-2">Pilih Sumber Dana</label>
+                  <select class="form-select form-select-solid select-sumber-dana-${id}" 
+                          name="sumber_dana[${id}][id_sumber_dana]" 
+                          data-control="select2" 
+                          data-dropdown-parent="#kt_modal_add_kegiatan"
+                          data-placeholder="Pilih Sumber Dana"
+                          data-allow-clear="true"
+                          required>
+                    ${sumberDanaOptions}
+                  </select>
                 </div>
-                <div class="form-text">Format: 1.000.000 (otomatis terformat)</div>
-              </div>
-            </div>
 
-            <!-- Pagu Display -->
-            <div class="mt-5 p-4 bg-light-primary rounded">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-gray-800">Pagu Sumber Dana #${id}:</span>
-                <span class="fs-4 fw-bold text-primary pagu-display-${id}">Rp 0</span>
+                <!-- Pagu Input -->
+                <div class="col-md-6">
+                  <label class="required fs-6 fw-semibold mb-2">Pagu</label>
+                  <div class="input-group">
+                    <span class="input-group-text">Rp</span>
+                    <input type="text" class="form-control form-control-solid input-pagu" 
+                          name="sumber_dana[${id}][pagu]" 
+                          placeholder="0" 
+                          required>
+                  </div>
+                  <div class="form-text">Format: 1.000.000 (otomatis terformat)</div>
+                </div>
+              </div>
+
+              <!-- Pagu Display -->
+              <div class="mt-5 p-4 bg-light-primary rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-gray-800">
+                    Pagu <span class="sumber-dana-number-text">Sumber Dana #1</span>:
+                  </span>
+                  <span class="fs-4 fw-bold text-primary pagu-display-${id}">Rp 0</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
 
         $('#sumber_dana_container').append(formHtml);
 
+        // PENTING: Inisialisasi Select2 untuk elemen yang baru ditambahkan
+        $(`.select-sumber-dana-${id}`).select2({
+          dropdownParent: $('#kt_modal_add_kegiatan'),
+          placeholder: "Pilih Sumber Dana",
+          allowClear: true
+        });
+
         // Initialize currency format for new input
         initializeCurrencyFormat();
+
+        // Reorder numbering setelah menambah
+        reorderSumberDana();
       }
 
       // === Remove Sumber Dana ===
-      $(document).on('click', '.btn-remove-sumber-dana', function() {
-        const id = $(this).data('id');
+      $(document).on('click', '.btn-remove-sumber-dana', function(e) {
+        e.preventDefault();
+
+        const button = $(this);
+        const id = button.data('id');
 
         Swal.fire({
           title: 'Hapus Sumber Dana?',
@@ -717,9 +747,27 @@
           }
         }).then((result) => {
           if (result.isConfirmed) {
-            $(`.sumber-dana-item[data-id="${id}"]`).remove();
-            updateSumberDanaInfo();
-            updateTotalPagu();
+            // Find the parent card
+            const cardElement = button.closest('.sumber-dana-item');
+
+            // Destroy Select2 if exists
+            cardElement.find('select[data-control="select2"]').each(function() {
+              if ($(this).data('select2')) {
+                $(this).select2('destroy');
+              }
+            });
+
+            // Remove the card with animation
+            cardElement.fadeOut(300, function() {
+              $(this).remove();
+
+              // Reorder setelah remove
+              reorderSumberDana();
+
+              // Update UI
+              updateSumberDanaInfo();
+              updateTotalPagu();
+            });
 
             Swal.fire({
               icon: 'success',
@@ -731,6 +779,39 @@
           }
         });
       });
+
+      // === Function: Reorder Sumber Dana Numbering ===
+      function reorderSumberDana() {
+        $('.sumber-dana-item').each(function(index) {
+          const newNumber = index + 1;
+
+          // Update title number
+          $(this).find('.sumber-dana-number').text(`Sumber Dana #${newNumber}`);
+
+          // Update pagu display text
+          $(this).find('.sumber-dana-number-text').text(`Sumber Dana #${newNumber}`);
+        });
+
+        // Update info badge (opsional - menampilkan total sumber dana)
+        updateSumberDanaCount();
+      }
+
+      // === Function: Update Sumber Dana Count ===
+      function updateSumberDanaCount() {
+        const count = $('.sumber-dana-item').length;
+
+        // Update atau buat badge counter jika belum ada
+        let counterBadge = $('#sumber_dana_counter');
+        if (counterBadge.length === 0) {
+          // Tambahkan badge di header sumber dana
+          $('label.fs-6.fw-semibold:contains("Sumber Dana")').html(`
+            Sumber Dana 
+            <span id="sumber_dana_counter" class="badge badge-light-primary ms-2">${count} Item</span>
+          `);
+        } else {
+          counterBadge.text(`${count} Item`);
+        }
+      }
 
       // === Update Sumber Dana Info ===
       function updateSumberDanaInfo() {
@@ -827,22 +908,31 @@
         table.search(this.value).draw();
       });
 
-      // === SweetAlert2 Session Messages ===
+      // === Session Messages ===
       const sessionMessages = document.querySelectorAll('#session-messages div');
       sessionMessages.forEach(msg => {
         const type = msg.dataset.type;
         const message = msg.dataset.message;
-
-        Swal.fire({
-          icon: type,
-          title: type === 'success' ? 'Berhasil' : 'Gagal',
-          text: message,
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
       });
 
       // === Form validation ===
@@ -898,6 +988,13 @@
 
       // === Reset modal when closed ===
       $('#kt_modal_add_kegiatan').on('hidden.bs.modal', function() {
+        // Destroy all Select2 instances in sumber dana container
+        $('#sumber_dana_container select[data-control="select2"]').each(function() {
+          if ($(this).hasClass("select2-hidden-accessible")) {
+            $(this).select2('destroy');
+          }
+        });
+
         form.reset();
         $('#sub_kegiatan_container').hide();
         $('#detail_sub_kegiatan').addClass('d-none');
