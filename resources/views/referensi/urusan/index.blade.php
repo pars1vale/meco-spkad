@@ -34,86 +34,61 @@
           <div data-type="error" data-message="{{ session('error') }}"></div>
         @endif
       </div>
+
       <div class="card">
         <div class="card-header border-0 pt-6">
+          <!--begin::Wrapper-->
           <div class="card-title">
+            <!--begin::Search-->
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Urusan">
+              <input type="text" data-kt-docs-table-filter="search" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Urusan">
             </div>
+            <!--end::Search-->
           </div>
+
+          <!--begin::Toolbar-->
           <div class="card-toolbar">
-            <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
-              <div class="w-150px me-3">
-              </div>
-              {{-- <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#kt_customers_export_modal">
-                <i class="ki-outline ki-exit-up fs-2"></i>Export</button> --}}
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_urusan">Tambah Urusan</button>
+            <div class="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_urusan">
+                <i class="ki-outline ki-plus fs-2"></i>
+                Tambah Urusan
+              </button>
             </div>
-            <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
+            <!--end::Toolbar-->
+
+            <!--begin::Group actions-->
+            <div class="d-flex justify-content-end align-items-center d-none" data-kt-docs-table-toolbar="selected">
               <div class="fw-bold me-5">
-                <span class="me-2" data-kt-customer-table-select="selected_count"></span>Terpilih
+                <span class="me-2" data-kt-docs-table-select="selected_count"></span>Terpilih
               </div>
               <button type="button" class="btn btn-danger" id="bulk_delete_btn">Hapus yg Terpilih</button>
             </div>
+            <!--end::Group actions-->
           </div>
+          <!--end::Wrapper-->
         </div>
 
         <div class="card-body pt-0">
-          @if ($data->isEmpty())
-            <div class="alert alert-warning d-flex align-items-center p-5 rounded">
-              <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
-              <div class="d-flex flex-column">
-                <h4 class="mb-1 text-warning">Tidak ada data</h4>
-                <span>Tidak ada data Urusan yang ditemukan.</span>
-              </div>
-            </div>
-          @else
-            <table id="kt_datatable_column_rendering" class="table table-striped table-row-bordered gy-5 gs-7">
-              <thead>
-                <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
-                  <th class="w-10px pe-2">
-                    <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
-                      <input class="form-check-input" type="checkbox" data-kt-check="true"
-                        data-kt-check-target="#kt_datatable_column_rendering .form-check-input" value="1" />
-                    </div>
-                  </th>
-                  <th class="min-w-100px">Kode Urusan</th>
-                  <th class="min-w-300px">Nama Urusan</th>
-                  <th class="min-w-100px">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="fw-semibold text-gray-600">
-                @foreach ($data as $item)
-                  <tr>
-                    <td>
-                      <div class="form-check form-check-sm form-check-custom form-check-solid">
-                        <input class="form-check-input" type="checkbox" value="{{ $item->id }}" />
-                      </div>
-                    </td>
-                    <td class="fw-bold">{{ $item->kode_urusan }}</td>
-                    <td>{{ $item->nama_urusan }}</td>
-                    <td>
-                      <div class="d-flex justify-content-end">
-                        <a href="{{ route('urusan.edit', $item->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                          title="Edit Urusan">
-                          <i class="ki-outline ki-pencil fs-2"></i>
-                        </a>
-                        <form action="{{ route('urusan.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus Urusan"
-                            data-name="{{ $item->nama_urusan }}">
-                            <i class="ki-outline ki-trash fs-2"></i>
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                @endforeach
-              </tbody>
-            </table>
-          @endif
+          <!--begin::Datatable-->
+          <table id="kt_datatable_example_1" class="table align-middle table-row-dashed fs-6 gy-5">
+            <thead>
+              <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                <th class="w-10px pe-2">
+                  <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
+                    <input class="form-check-input" type="checkbox" data-kt-check="true"
+                      data-kt-check-target="#kt_datatable_example_1 .form-check-input" value="1" />
+                  </div>
+                </th>
+                <th class="min-w-100px">Kode Urusan</th>
+                <th class="min-w-300px">Nama Urusan</th>
+                <th class="text-end min-w-100px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="fw-semibold text-gray-600">
+            </tbody>
+          </table>
+          <!--end::Datatable-->
         </div>
       </div>
     </div>
@@ -123,7 +98,7 @@
   <div class="modal fade" id="kt_modal_add_urusan" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
-        <form class="form" action="{{ route('urusan.store') }}" method="POST" id="kt_modal_add_urusan_form">
+        <form class="form" action="{{ route('referensi.urusan.store') }}" method="POST" id="kt_modal_add_urusan_form">
           @csrf
           <div class="modal-header" id="kt_modal_add_urusan_header">
             <h2 class="fw-bold">Tambah Urusan</h2>
@@ -134,7 +109,6 @@
 
           <div class="modal-body py-10 px-lg-17">
             <div class="scroll-y me-n7 pe-7" id="kt_modal_add_urusan_scroll">
-
               <!-- Kode Urusan -->
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Kode Urusan</label>
@@ -156,7 +130,6 @@
                 @enderror
                 <div class="form-text">Maksimal 255 karakter</div>
               </div>
-
             </div>
           </div>
 
@@ -176,192 +149,282 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      // Initialize DataTable
-      var table = $('#kt_datatable_column_rendering').DataTable({
-        responsive: true,
-        searchDelay: 500,
-        processing: true,
-        serverSide: false,
-        order: [
-          [1, 'asc']
-        ],
-        columnDefs: [{
-            targets: [0],
-            orderable: false,
-            className: 'text-center'
+      var table;
+      var dt;
+
+      // Initialize DataTable dengan Server-Side Processing
+      var initDatatable = function() {
+        dt = $("#kt_datatable_example_1").DataTable({
+          searchDelay: 500,
+          processing: true,
+          serverSide: true,
+          order: [
+            [1, 'asc']
+          ],
+          stateSave: false,
+          ajax: {
+            url: "{{ route('referensi.urusan.getData') }}",
+            type: "GET",
           },
-          {
-            targets: [1, 2],
-            className: 'fs-6'
-          },
-          {
-            targets: [3],
-            orderable: false,
-            className: 'text-end'
+          columns: [{
+              data: 'id',
+              orderable: false,
+              render: function(data) {
+                return `
+                  <div class="form-check form-check-sm form-check-custom form-check-solid">
+                    <input class="form-check-input" type="checkbox" value="${data}" />
+                  </div>`;
+              }
+            },
+            {
+              data: 'kode_urusan'
+            },
+            {
+              data: 'nama_urusan'
+            },
+            {
+              data: 'actions',
+              orderable: false,
+              className: 'text-end',
+              render: function(data, type, row) {
+                return `
+                  <div class="d-flex justify-content-end">
+                    <a href="{{ url('referensi/urusan') }}/${data}/edit" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit Urusan">
+                      <i class="ki-outline ki-pencil fs-2"></i>
+                    </a>
+                    <button type="button" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" 
+                      data-id="${data}" data-name="${row.nama_urusan}" title="Hapus Urusan">
+                      <i class="ki-outline ki-trash fs-2"></i>
+                    </button>
+                  </div>
+                `;
+              }
+            }
+          ],
+          columnDefs: [{
+              targets: 0,
+              orderable: false,
+              className: 'text-center'
+            },
+            {
+              targets: [1, 2],
+              className: 'fs-6'
+            }
+          ],
+          dom: "<'row'<'col-sm-12'tr>>" +
+            "<'row mt-4'" +
+            "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
+            "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
+            ">",
+          language: {
+            paginate: {
+              previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
+              next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
+            },
+            processing: '<span class="spinner-border spinner-border-sm align-middle ms-2"></span> Loading...'
           }
-        ],
-        dom: "<'row'<'col-sm-12'tr>>" +
-          "<'row mt-4'" +
-          "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
-          "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
-          ">",
-        language: {
-          paginate: {
-            previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
-            next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
-          }
+        });
+
+        table = dt.$;
+
+        // Re-init functions on every table re-draw
+        dt.on('draw', function() {
+          initToggleToolbar();
+          handleDeleteRows();
+        });
+      };
+
+      // Search Datatable
+      var handleSearchDatatable = function() {
+        const filterSearch = document.querySelector('[data-kt-docs-table-filter="search"]');
+        filterSearch.addEventListener('keyup', function(e) {
+          dt.search(e.target.value).draw();
+        });
+      };
+
+      // Delete rows
+      var handleDeleteRows = function() {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+
+        deleteButtons.forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+
+            Swal.fire({
+              title: 'Apakah Anda yakin?',
+              html: `Data urusan <strong>"${name}"</strong> akan dihapus!`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Ya, hapus!',
+              cancelButtonText: 'Batal',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-danger",
+                cancelButton: "btn btn-secondary"
+              }
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{{ url('referensi/urusan') }}/${id}`;
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+                form.appendChild(csrfToken);
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'DELETE';
+                form.appendChild(methodField);
+
+                document.body.appendChild(form);
+                form.submit();
+              }
+            });
+          });
+        });
+      };
+
+      // Init toggle toolbar
+      var initToggleToolbar = function() {
+        const container = document.querySelector('#kt_datatable_example_1');
+        const checkboxes = container.querySelectorAll('[type="checkbox"]');
+        const deleteSelected = document.querySelector('#bulk_delete_btn');
+
+        checkboxes.forEach(c => {
+          c.addEventListener('click', function() {
+            setTimeout(function() {
+              toggleToolbars();
+            }, 50);
+          });
+        });
+
+        if (deleteSelected) {
+          deleteSelected.addEventListener('click', function() {
+            const checkedBoxes = container.querySelectorAll('tbody [type="checkbox"]:checked');
+
+            if (checkedBoxes.length === 0) {
+              Swal.fire({
+                icon: 'info',
+                title: 'Tidak ada data dipilih',
+                text: 'Pilih minimal satu urusan untuk dihapus.',
+                confirmButtonText: 'OK',
+                buttonsStyling: false,
+                customClass: {
+                  confirmButton: "btn btn-primary"
+                }
+              });
+              return;
+            }
+
+            Swal.fire({
+              title: 'Apakah Anda yakin?',
+              html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data urusan terpilih!`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Ya, hapus!',
+              cancelButtonText: 'Batal',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-danger",
+                cancelButton: "btn btn-secondary"
+              }
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const ids = Array.from(checkedBoxes).map(cb => cb.value);
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route('referensi.urusan.bulk-delete') }}';
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+                form.appendChild(csrfToken);
+
+                ids.forEach(id => {
+                  const input = document.createElement('input');
+                  input.type = 'hidden';
+                  input.name = 'ids[]';
+                  input.value = id;
+                  form.appendChild(input);
+                });
+
+                document.body.appendChild(form);
+                form.submit();
+              }
+            });
+          });
         }
-      });
+      };
 
-      // Search functionality
-      $('#kt_datatable_search_input').keyup(function() {
-        table.search(this.value).draw();
-      });
+      // Toggle toolbars
+      var toggleToolbars = function() {
+        const container = document.querySelector('#kt_datatable_example_1');
+        const toolbarBase = document.querySelector('[data-kt-docs-table-toolbar="base"]');
+        const toolbarSelected = document.querySelector('[data-kt-docs-table-toolbar="selected"]');
+        const selectedCount = document.querySelector('[data-kt-docs-table-select="selected_count"]');
+        const allCheckboxes = container.querySelectorAll('tbody [type="checkbox"]');
 
-      // === SweetAlert2 Session Messages ===
+        let checkedState = false;
+        let count = 0;
+
+        allCheckboxes.forEach(c => {
+          if (c.checked) {
+            checkedState = true;
+            count++;
+          }
+        });
+
+        if (checkedState) {
+          selectedCount.innerHTML = count;
+          toolbarBase.classList.add('d-none');
+          toolbarSelected.classList.remove('d-none');
+        } else {
+          toolbarBase.classList.remove('d-none');
+          toolbarSelected.classList.add('d-none');
+        }
+      };
+
+      // Initialize
+      initDatatable();
+      handleSearchDatatable();
+      initToggleToolbar();
+
+      // Session messages
       const sessionMessages = document.querySelectorAll('#session-messages div');
       sessionMessages.forEach(msg => {
         const type = msg.dataset.type;
         const message = msg.dataset.message;
-
-        Swal.fire({
-          icon: type,
-          title: type === 'success' ? 'Berhasil' : 'Gagal',
-          text: message,
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
       });
 
-      // === Delete confirmation pakai SweetAlert2 ===
-      $(document).on('click', '.delete-btn', function(e) {
-        e.preventDefault();
-        const form = $(this).closest('form');
-        const name = $(this).data('name');
-
-        Swal.fire({
-          title: 'Apakah Anda yakin?',
-          html: `Data urusan <strong>"${name}"</strong> akan dihapus!`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, hapus!',
-          cancelButtonText: 'Batal',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-danger",
-            cancelButton: "btn btn-secondary"
-          }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            form.submit();
-          }
-        });
-      });
-
-      // === Bulk selection ===
-      const checkboxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]');
-      const masterCheckbox = document.querySelector('#kt_datatable_column_rendering thead input[type="checkbox"]');
-      const selectedToolbar = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
-      const baseToolbar = document.querySelector('[data-kt-customer-table-toolbar="base"]');
-      const selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
-
-      function updateToolbar() {
-        const checkedBoxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]:checked');
-
-        if (checkedBoxes.length > 0) {
-          selectedCount.textContent = checkedBoxes.length;
-          baseToolbar.classList.add('d-none');
-          selectedToolbar.classList.remove('d-none');
-        } else {
-          baseToolbar.classList.remove('d-none');
-          selectedToolbar.classList.add('d-none');
-        }
-      }
-
-      // Master checkbox functionality
-      if (masterCheckbox) {
-        masterCheckbox.addEventListener('change', function() {
-          checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-          });
-          updateToolbar();
-        });
-      }
-
-      // Individual checkbox functionality
-      checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-          updateToolbar();
-          const checkedBoxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]:checked');
-          if (masterCheckbox) {
-            masterCheckbox.checked = checkedBoxes.length === checkboxes.length;
-            masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < checkboxes.length;
-          }
-        });
-      });
-
-      // === Bulk delete confirmation pakai SweetAlert2 ===
-      document.getElementById('bulk_delete_btn')?.addEventListener('click', function() {
-        const checkedBoxes = document.querySelectorAll('#kt_datatable_column_rendering tbody input[type="checkbox"]:checked');
-
-        if (checkedBoxes.length === 0) {
-          Swal.fire({
-            icon: 'info',
-            title: 'Tidak ada data dipilih',
-            text: 'Pilih minimal satu urusan untuk dihapus.',
-            confirmButtonText: 'OK',
-            buttonsStyling: false,
-            customClass: {
-              confirmButton: "btn btn-primary"
-            }
-          });
-          return;
-        }
-
-        Swal.fire({
-          title: 'Apakah Anda yakin?',
-          html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data urusan terpilih!`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, hapus!',
-          cancelButtonText: 'Batal',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-danger",
-            cancelButton: "btn btn-secondary"
-          }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            const ids = Array.from(checkedBoxes).map(cb => cb.value);
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route('urusan.bulk-delete') }}';
-
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-
-            ids.forEach(id => {
-              const input = document.createElement('input');
-              input.type = 'hidden';
-              input.name = 'ids[]';
-              input.value = id;
-              form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-          }
-        });
-      });
-
-      // === Form validation ===
+      // Form validation
       const form = document.getElementById('kt_modal_add_urusan_form');
       const submitButton = document.getElementById('kt_modal_add_urusan_submit');
 
@@ -390,11 +453,10 @@
         });
       }
 
-      // === Auto show modal if validation errors exist ===
+      // Auto show modal if validation errors exist
       @if ($errors->any() && old('_token'))
         $('#kt_modal_add_urusan').modal('show');
       @endif
     });
   </script>
-
 @endsection
