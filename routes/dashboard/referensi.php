@@ -27,6 +27,7 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     Route::post('/bidang-urusan/bulk-delete', [BidangUrusanController::class, 'bulkDelete'])->name('referensi.bidang-urusan.bulk-delete');
 
     Route::get('/program', [ProgramController::class, 'index'])->name('referensi.program.index');
+    Route::get('/program/get-data', [ProgramController::class, 'getData'])->name('referensi.program.getData');
     Route::post('/program', [ProgramController::class, 'store'])->name('referensi.program.store');
     Route::get('/program/{id}/edit', [ProgramController::class, 'edit'])->name('referensi.program.edit');
     Route::put('/program/{id}', [ProgramController::class, 'update'])->name('referensi.program.update');
