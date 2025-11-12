@@ -43,6 +43,7 @@ Route::middleware('auth')->prefix('referensi')->group(function () {
     Route::post('/kegiatan/bulk-delete', [KegiatanController::class, 'bulkDelete'])->name('referensi.kegiatan.bulk-delete');
 
     Route::get('/sub-kegiatan', [SubKegiatanController::class, 'index'])->name('referensi.sub-kegiatan.index');
+    Route::get('sub-kegiatan/get-data', [SubKegiatanController::class, 'getData'])->name('referensi.sub-kegiatan.getData');
     Route::post('/sub-kegiatan', [SubKegiatanController::class, 'store'])->name('referensi.sub-kegiatan.store');
     Route::get('/sub-kegiatan/{id}/edit', [SubKegiatanController::class, 'edit'])->name('referensi.sub-kegiatan.edit');
     Route::put('/sub-kegiatan/{id}', [SubKegiatanController::class, 'update'])->name('referensi.sub-kegiatan.update');
