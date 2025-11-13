@@ -67,7 +67,7 @@
                   <th class="w-10px pe-2">
                     <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
                       <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_akun_table .form-check-input"
-                        value="1" />
+                        value="1" id="master_checkbox" />
                     </div>
                   </th>
                   <th class="min-w-100px">Kode</th>
@@ -117,7 +117,7 @@
               render: function(data) {
                 return `
                   <div class="form-check form-check-sm form-check-custom form-check-solid">
-                    <input class="form-check-input" type="checkbox" value="${data}" />
+                    <input class="form-check-input row-checkbox" type="checkbox" value="${data}" />
                   </div>`;
               }
             },
@@ -192,14 +192,70 @@
             processing: '<span class="spinner-border spinner-border-sm align-middle ms-2"></span> Loading...'
           },
           drawCallback: function(settings) {
-            // Re-init handlers after draw
-            initToggleToolbar();
-            handleDeleteRows();
+            // CRITICAL: Re-attach event listeners after draw
+            attachCheckboxListeners();
+            attachDeleteListeners();
           }
         });
       };
 
-      // 2. Search Datatable
+      // 2. Attach checkbox listeners (DIPANGGIL SETIAP DRAW)
+      var attachCheckboxListeners = function() {
+        const container = document.querySelector('#kt_akun_table');
+        const masterCheckbox = document.getElementById('master_checkbox');
+        const rowCheckboxes = container.querySelectorAll('.row-checkbox');
+
+        // Master checkbox click
+        if (masterCheckbox) {
+          masterCheckbox.onclick = function() {
+            rowCheckboxes.forEach(checkbox => {
+              checkbox.checked = this.checked;
+            });
+            toggleToolbars();
+          };
+        }
+
+        // Individual checkbox click
+        rowCheckboxes.forEach(checkbox => {
+          checkbox.onclick = function() {
+            updateMasterCheckbox();
+            toggleToolbars();
+          };
+        });
+      };
+
+      // 3. Update master checkbox state
+      var updateMasterCheckbox = function() {
+        const container = document.querySelector('#kt_akun_table');
+        const masterCheckbox = document.getElementById('master_checkbox');
+        const rowCheckboxes = container.querySelectorAll('.row-checkbox');
+        const checkedBoxes = container.querySelectorAll('.row-checkbox:checked');
+
+        if (masterCheckbox && rowCheckboxes.length > 0) {
+          masterCheckbox.checked = checkedBoxes.length === rowCheckboxes.length;
+          masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < rowCheckboxes.length;
+        }
+      };
+
+      // 4. Toggle toolbars
+      var toggleToolbars = function() {
+        const container = document.querySelector('#kt_akun_table');
+        const toolbarBase = document.querySelector('[data-kt-customer-table-toolbar="base"]');
+        const toolbarSelected = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
+        const selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
+        const checkedBoxes = container.querySelectorAll('.row-checkbox:checked');
+
+        if (checkedBoxes.length > 0) {
+          selectedCount.textContent = checkedBoxes.length;
+          toolbarBase.classList.add('d-none');
+          toolbarSelected.classList.remove('d-none');
+        } else {
+          toolbarBase.classList.remove('d-none');
+          toolbarSelected.classList.add('d-none');
+        }
+      };
+
+      // 5. Search Datatable
       var handleSearchDatatable = function() {
         const filterSearch = document.querySelector('[data-kt-docs-table-filter="search"]');
         filterSearch.addEventListener('keyup', function(e) {
@@ -207,12 +263,12 @@
         });
       };
 
-      // 3. Delete rows handler
-      var handleDeleteRows = function() {
+      // 6. Attach delete listeners (DIPANGGIL SETIAP DRAW)
+      var attachDeleteListeners = function() {
         const deleteButtons = document.querySelectorAll('.delete-btn');
 
         deleteButtons.forEach(button => {
-          button.addEventListener('click', function(e) {
+          button.onclick = function(e) {
             e.preventDefault();
             const id = this.getAttribute('data-id');
             const name = this.getAttribute('data-name');
@@ -251,27 +307,18 @@
                 form.submit();
               }
             });
-          });
+          };
         });
       };
 
-      // 4. Init toggle toolbar
-      var initToggleToolbar = function() {
-        const container = document.querySelector('#kt_akun_table');
-        const checkboxes = container.querySelectorAll('[type="checkbox"]');
-        const deleteSelected = document.querySelector('#bulk_delete_btn');
+      // 7. Bulk delete handler
+      var handleBulkDelete = function() {
+        const bulkDeleteBtn = document.getElementById('bulk_delete_btn');
 
-        checkboxes.forEach(c => {
-          c.addEventListener('click', function() {
-            setTimeout(function() {
-              toggleToolbars();
-            }, 50);
-          });
-        });
-
-        if (deleteSelected) {
-          deleteSelected.addEventListener('click', function() {
-            const checkedBoxes = container.querySelectorAll('tbody [type="checkbox"]:checked');
+        if (bulkDeleteBtn) {
+          bulkDeleteBtn.onclick = function() {
+            const container = document.querySelector('#kt_akun_table');
+            const checkedBoxes = container.querySelectorAll('.row-checkbox:checked');
 
             if (checkedBoxes.length === 0) {
               Swal.fire({
@@ -325,42 +372,14 @@
                 form.submit();
               }
             });
-          });
-        }
-      };
-
-      // 5. Toggle toolbars
-      var toggleToolbars = function() {
-        const container = document.querySelector('#kt_akun_table');
-        const toolbarBase = document.querySelector('[data-kt-customer-table-toolbar="base"]');
-        const toolbarSelected = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
-        const selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
-        const allCheckboxes = container.querySelectorAll('tbody [type="checkbox"]');
-
-        let checkedState = false;
-        let count = 0;
-
-        allCheckboxes.forEach(c => {
-          if (c.checked) {
-            checkedState = true;
-            count++;
-          }
-        });
-
-        if (checkedState) {
-          selectedCount.innerHTML = count;
-          toolbarBase.classList.add('d-none');
-          toolbarSelected.classList.remove('d-none');
-        } else {
-          toolbarBase.classList.remove('d-none');
-          toolbarSelected.classList.add('d-none');
+          };
         }
       };
 
       // Initialize
       initDatatable();
       handleSearchDatatable();
-      initToggleToolbar();
+      handleBulkDelete();
 
       // Session messages with Toastr
       const sessionMessages = document.querySelectorAll('#session-messages div');
