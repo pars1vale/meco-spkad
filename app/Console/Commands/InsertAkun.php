@@ -5,41 +5,57 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class InsertAkun extends Command // Fixed class name
+class InsertAkun extends Command
 {
-    protected $signature = 'insert:akun {--truncate : Kosongkan tabel akun terlebih dulu}';
+    protected $signature = 'insert:akun 
+                            {--truncate : Kosongkan tabel akun terlebih dulu}
+                            {--dry-run : Jalankan tanpa menyimpan data ke database}';
+
     protected $description = 'Insert akun data from SIPD-RI into the akun (SPKAD) table';
 
     public function handle()
     {
+        // memory limit
+        ini_set('memory_limit', '1024M');
+
+        $dryRun = $this->option('dry-run');
+
         try {
-            if ($this->option('truncate')) {
+            if ($this->option('truncate') && !$dryRun) {
                 DB::connection('mysql')->table('akun')->truncate();
                 $this->warn('Truncated akun table.');
             }
 
-            // Check if data_sources connection is available
+            // Cek koneksi ke sumber data
             if (!$this->checkSourceConnection()) {
                 $this->error('Cannot connect to data_sources database.');
                 return Command::FAILURE;
             }
 
+            $this->info('Fetching data from source...');
             $data = $this->fetchSourceData();
 
-            if ($data->isEmpty()) {
-                $this->info('No data found in source table.');
-                return Command::SUCCESS;
+            if ($data === null) {
+                $this->error('Failed to fetch data.');
+                return Command::FAILURE;
             }
 
-            $this->info($data->count() . " records found.");
+            if ($dryRun) {
+                $this->warn('⚙️  Running in DRY-RUN mode — no data will be inserted.');
+            }
 
-            $insertData = $this->prepareInsertData($data);
-            $this->insertDataInBatches($insertData);
+            $this->info('Starting insert process (streamed)...');
+            $this->insertDataInBatches($data, $dryRun);
 
-            $this->info('Insert akun command completed successfully.');
+            if ($dryRun) {
+                $this->info('Dry-run completed successfully. No changes were made.');
+            } else {
+                $this->info('Insert akun command completed successfully.');
+            }
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('Error occurred: ' . $e->getMessage());
+            $this->error('❌ Error occurred: ' . $e->getMessage());
             return Command::FAILURE;
         }
     }
@@ -68,99 +84,104 @@ class InsertAkun extends Command // Fixed class name
                 'pendapatan',
                 'belanja',
                 'pembiayaan'
-                // Add 'is_belanja' here if it exists in source
             )
             ->orderBy('kode_akun', 'asc')
-            ->get();
+            ->cursor();
     }
 
-    private function prepareInsertData($data): array
+    private function insertDataInBatches($cursor, bool $dryRun = false): void
     {
-        $insertData = [];
+        $batch = [];
+        $batchSize = 500;
+        $count = 0;
+        $batchCount = 0;
 
-        foreach ($data as $row) {
-            // Determine is_belanja based on belanja field or other logic
-            $isBelanja = $this->determineIsBelanja($row);
-
-            $insertData[] = [
-                'id'             => $row->id_akun,
-                'kode_akun'      => $row->kode_akun,
-                'nama_akun'      => $row->nama_akun,
-                'keterangan_akun' => $row->ket_akun ?? null, // Handle null values
-                'is_pendapatan'  => (int) $row->is_pendapatan,
-                'is_belanja'     => $isBelanja,
-                'is_pembiayaan'  => (int) $row->is_pembiayaan,
-                'pendapatan'     => $row->pendapatan ?? 'tidak',
-                'belanja'        => $row->belanja ?? 'tidak',
-                'pembiayaan'     => $row->pembiayaan ?? 'tidak',
-                'created_at'     => now(),
-                'updated_at'     => now(),
+        foreach ($cursor as $row) {
+            $batch[] = [
+                'id'              => $row->id_akun,
+                'kode_akun'       => $row->kode_akun,
+                'nama_akun'       => $row->nama_akun,
+                'keterangan_akun' => $row->ket_akun ?? null,
+                'is_pendapatan'   => (int) $row->is_pendapatan,
+                'is_belanja'      => $this->determineIsBelanja($row),
+                'is_pembiayaan'   => (int) $row->is_pembiayaan,
+                'pendapatan'      => $row->pendapatan ?? 'tidak',
+                'belanja'         => $row->belanja ?? 'tidak',
+                'pembiayaan'      => $row->pembiayaan ?? 'tidak',
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ];
+
+            if (count($batch) >= $batchSize) {
+                $count += count($batch);
+                $batchCount++;
+
+                if ($dryRun) {
+                    $this->outputDryRunSample($batch, $batchCount);
+                } else {
+                    $this->upsertBatch($batch);
+                }
+
+                $this->info("Processed batch {$batchCount} ({$count} records total)");
+                $batch = [];
+            }
         }
 
-        return $insertData;
+        // Sisa batch terakhir
+        if (!empty($batch)) {
+            $count += count($batch);
+            $batchCount++;
+
+            if ($dryRun) {
+                $this->outputDryRunSample($batch, $batchCount);
+            } else {
+                $this->upsertBatch($batch);
+            }
+
+            $this->info("Processed final batch {$batchCount} ({$count} total)");
+        }
+
+        $this->info("Done processing {$count} records in {$batchCount} batches.");
+    }
+
+    private function upsertBatch(array $batch): void
+    {
+        DB::connection('mysql')->table('akun')->upsert(
+            $batch,
+            ['id'], // Unique key
+            [
+                'kode_akun',
+                'nama_akun',
+                'keterangan_akun',
+                'is_pendapatan',
+                'is_belanja',
+                'is_pembiayaan',
+                'pendapatan',
+                'belanja',
+                'pembiayaan',
+                'updated_at',
+            ]
+        );
+    }
+
+    private function outputDryRunSample(array $batch, int $batchCount): void
+    {
+        $this->line("🔍 Dry-run batch {$batchCount}: showing first 2 records:");
+        foreach (array_slice($batch, 0, 2) as $item) {
+            $this->line(" - [{$item['kode_akun']}] {$item['nama_akun']}");
+        }
     }
 
     private function determineIsBelanja($row): int
     {
-        // Option 1: If source has is_belanja field
-        // return (int) ($row->is_belanja ?? 0);
-
-        // Option 2: Derive from belanja field
-        if (isset($row->belanja)) {
-            return $row->belanja === 'Ya' ? 1 : 0;
+        if (isset($row->belanja) && strtolower($row->belanja) === 'ya') {
+            return 1;
         }
 
-        // Option 3: Derive from account code pattern (example)
-        // if (str_starts_with($row->kode_akun, '5')) {
-        //     return 1; // Belanja accounts typically start with 5
-        // }
-
-        // Option 4: Check if not pendapatan and not pembiayaan
-        if (!$row->is_pendapatan && !$row->is_pembiayaan) {
-            return 1; // Assume it's belanja if not the other two
+        if (!(int)$row->is_pendapatan && !(int)$row->is_pembiayaan) {
+            return 1;
         }
 
-        return 0; // Default to 0
-    }
-
-    private function insertDataInBatches(array $insertData): void
-    {
-        if (empty($insertData)) {
-            $this->info("No data to insert.");
-            return;
-        }
-
-        $columnCount = count($insertData[0]);
-        $maxPlaceholders = 65535;
-        $batchSize = (int) floor(($maxPlaceholders / $columnCount) * 0.9);
-
-        $chunks = array_chunk($insertData, $batchSize);
-
-        $this->output->progressStart(count($chunks));
-
-        foreach ($chunks as $chunk) {
-            DB::connection('mysql')->table('akun')->upsert(
-                $chunk,
-                ['id'], // Unique key for upsert
-                [
-                    'kode_akun',
-                    'nama_akun',
-                    'keterangan_akun',
-                    'is_pendapatan',
-                    'is_belanja',
-                    'is_pembiayaan',
-                    'pendapatan',
-                    'belanja',
-                    'pembiayaan',
-                    'updated_at',
-                ]
-            );
-
-            $this->output->progressAdvance();
-        }
-
-        $this->output->progressFinish();
-        $this->info(count($insertData) . " records successfully inserted/updated in " . count($chunks) . " batches.");
+        return 0;
     }
 }
