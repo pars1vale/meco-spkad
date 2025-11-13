@@ -6,23 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Referensi\Akun;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class AkunController extends Controller
 {
     public function index()
     {
-        // UBAH: Tidak perlu lagi query data di sini
-        // Hanya render view kosong, data akan di-load via Ajax
         return view('referensi.akun.index');
     }
 
     public function getData(Request $request)
     {
         if ($request->ajax()) {
-            $query = Akun::query();
+            // CRITICAL: Gunakan Query Builder untuk menghindari Eloquent overhead
+            $query = DB::table('akun');
 
-            // Total records tanpa filter
-            $totalRecords = $query->count();
+            // Total records tanpa filter (OPTIMIZED)
+            $totalRecords = DB::table('akun')->count();
 
             // Global search
             if ($request->has('search') && !empty($request->search['value'])) {
@@ -45,7 +45,6 @@ class AkunController extends Controller
                 $orderColumnIndex = $request->order[0]['column'];
                 $orderDir = $request->order[0]['dir'];
 
-                // Columns: 0=checkbox, 1=kode_akun, 2=nama_akun, 3=pendapatan, 4=belanja, 5=pembiayaan, 6=actions
                 $columns = [
                     'id',
                     'kode_akun',
@@ -60,7 +59,6 @@ class AkunController extends Controller
                     $query->orderBy($columns[$orderColumnIndex], $orderDir);
                 }
             } else {
-                // Default sorting
                 $query->orderBy('kode_akun', 'asc');
             }
 
@@ -68,23 +66,35 @@ class AkunController extends Controller
             $start = $request->start ?? 0;
             $length = $request->length ?? 10;
 
-            $data = $query->skip($start)
+            // CRITICAL: Select only needed columns
+            $data = $query->select([
+                'id',
+                'kode_akun',
+                'nama_akun',
+                'pendapatan',
+                'belanja',
+                'pembiayaan',
+                'is_pendapatan',
+                'is_belanja',
+                'is_pembiayaan'
+            ])
+                ->skip($start)
                 ->take($length)
                 ->get();
 
-            // Format data untuk DataTables
+            // Format data untuk DataTables (OPTIMIZED - no loops inside loops)
             $formattedData = [];
             foreach ($data as $item) {
                 $formattedData[] = [
                     'id' => $item->id,
                     'kode_akun' => $item->kode_akun,
                     'nama_akun' => $item->nama_akun,
-                    'pendapatan' => $item->pendapatan,
-                    'belanja' => $item->belanja,
-                    'pembiayaan' => $item->pembiayaan,
-                    'is_pendapatan' => $item->is_pendapatan,
-                    'is_belanja' => $item->is_belanja,
-                    'is_pembiayaan' => $item->is_pembiayaan,
+                    'pendapatan' => $item->pendapatan ?? 'Tidak',
+                    'belanja' => $item->belanja ?? 'Tidak',
+                    'pembiayaan' => $item->pembiayaan ?? 'Tidak',
+                    'is_pendapatan' => $item->is_pendapatan ?? 0,
+                    'is_belanja' => $item->is_belanja ?? 0,
+                    'is_pembiayaan' => $item->is_pembiayaan ?? 0,
                     'actions' => $item->id
                 ];
             }
@@ -287,7 +297,6 @@ class AkunController extends Controller
 
         return redirect()->route('referensi.akun.index')->with('success', $message);
     }
-
 
     private function errorResponse(Request $request, \Exception $e)
     {
