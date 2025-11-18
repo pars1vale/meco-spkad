@@ -158,6 +158,11 @@ class RenjaController extends Controller
                 'sumber_dana' => 'required|array|min:1',
                 'sumber_dana.*.id_sumber_dana' => 'required|integer',
                 'sumber_dana.*.pagu' => 'required|numeric|min:0',
+                'indikator' => 'nullable|array',
+                'indikator.*.id_indikator' => 'nullable|integer',
+                'indikator.*.indikator_text' => 'nullable|string',
+                'indikator.*.satuan' => 'nullable|string',
+                'indikator.*.target' => 'required_with:indikator.*.indikator_text|string',
             ], [
                 'id_skpd.required' => 'SKPD harus dipilih',
                 'id_sub_kegiatan.required' => 'Sub Kegiatan harus dipilih',
@@ -165,6 +170,7 @@ class RenjaController extends Controller
                 'sumber_dana.*.id_sumber_dana.required' => 'Sumber dana harus dipilih',
                 'sumber_dana.*.pagu.required' => 'Pagu harus diisi',
                 'sumber_dana.*.pagu.numeric' => 'Pagu harus berupa angka',
+                'indikator.*.target.required_with' => 'Target indikator harus diisi',
             ]);
 
             // Ambil tahun anggaran
@@ -339,10 +345,10 @@ class RenjaController extends Controller
                 'nama_giat' => $subKegiatanData->nama_kegiatan,
                 'kode_skpd' => $subKegiatanData->kode_skpd,
                 'nama_skpd' => $subKegiatanData->nama_skpd,
-                'kode_sub_skpd' => $dataUnit->kode_skpd ?? '', // Ambil dari data_unit
+                'kode_sub_skpd' => $dataUnit->kode_skpd ?? '',
                 'id_skpd' => $subKegiatanData->id_skpd,
                 'id_sub_bl' => null,
-                'nama_sub_skpd' => $dataUnit->nama_skpd ?? '', // Ambil dari data_unit
+                'nama_sub_skpd' => $dataUnit->nama_skpd ?? '',
                 'target_1' => null,
                 'nama_urusan' => $subKegiatanData->nama_urusan,
                 'target_2' => null,
@@ -360,7 +366,6 @@ class RenjaController extends Controller
 
             // 2. Insert multiple sumber dana ke tabel data_dana_sub_keg
             foreach ($validated['sumber_dana'] as $dana) {
-                // Ambil detail sumber dana
                 $sumberDanaInfo = SumberDana::find($dana['id_sumber_dana']);
 
                 if ($sumberDanaInfo) {
@@ -380,6 +385,28 @@ class RenjaController extends Controller
                 }
             }
 
+            // 3. Insert indikator ke tabel data_sub_keg_indikator (DIPINDAHKAN KE LUAR LOOP)
+            if (!empty($validated['indikator'])) {
+                foreach ($validated['indikator'] as $index => $indikator) {
+                    // Hilangkan format dari target (titik pemisah ribuan)
+                    $targetValue = str_replace('.', '', $indikator['target']);
+                    
+                    DB::table('data_sub_keg_indikator')->insert([
+                        'outputteks' => $indikator['indikator_text'],
+                        'targetoutput' => $targetValue,
+                        'satuanoutput' => $indikator['satuan'],
+                        'idoutputbl' => $indikator['id_indikator'] ?? 0,
+                        'targetoutputteks' => $targetValue,
+                        'kode_sbl' => $kode_sbl,
+                        'idsubbl' => $idSubKegBl,
+                        'bobot_kinerja' => '1',
+                        'active' => 1,
+                        'update_at' => now(),
+                        'tahun_anggaran' => $tahunAnggaran
+                    ]);
+                }
+            }
+
             // Commit transaction
             DB::commit();
 
@@ -388,11 +415,17 @@ class RenjaController extends Controller
                 'kode_bl' => $kode_bl,
                 'kode_sbl' => $kode_sbl,
                 'total_pagu' => $totalPagu,
-                'jumlah_sumber_dana' => count($validated['sumber_dana'])
+                'jumlah_sumber_dana' => count($validated['sumber_dana']),
+                'jumlah_indikator' => count($validated['indikator'] ?? [])
             ]);
 
+            $message = 'Sub Kegiatan berhasil ditambahkan dengan ' . count($validated['sumber_dana']) . ' sumber dana';
+            if (!empty($validated['indikator'])) {
+                $message .= ' dan ' . count($validated['indikator']) . ' indikator';
+            }
+
             return redirect()->route('rkpd.renja.index')
-                ->with('success', 'Sub Kegiatan berhasil ditambahkan dengan ' . count($validated['sumber_dana']) . ' sumber dana');
+                ->with('success', $message);
 
         } catch (ValidationException $e) {
             return redirect()->back()
@@ -413,4 +446,161 @@ class RenjaController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+ * Get data untuk DataTable dengan grouping
+ */
+public function getData(Request $request)
+{
+    $tahunAnggaran = 2025;
+    
+    try {
+        $query = DB::table('data_sub_keg_bl as dskb')
+            ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
+            ->select(
+                'dskb.id',
+                'dskb.kode_sbl',
+                'dskb.kode_skpd',
+                'dskb.nama_skpd',
+                'dskb.kode_urusan',
+                'dskb.nama_urusan',
+                'dskb.kode_bidang_urusan',
+                'dskb.nama_bidang_urusan',
+                'dskb.kode_program',
+                'dskb.nama_program',
+                'dskb.kode_giat',
+                'dskb.nama_giat',
+                'dskb.kode_sub_giat',
+                'dskb.nama_sub_giat',
+                'dskb.pagu',
+                'dskb.pagumurni',
+                'dskb.active',
+                DB::raw('COUNT(DISTINCT ddsk.iddana) as jumlah_sumber_dana'),
+                DB::raw('GROUP_CONCAT(DISTINCT ddsk.namadana SEPARATOR ", ") as sumber_dana_list')
+            )
+            ->where('dskb.tahun_anggaran', $tahunAnggaran)
+            ->where('dskb.active', 1)
+            ->groupBy(
+                'dskb.id',
+                'dskb.kode_sbl',
+                'dskb.kode_skpd',
+                'dskb.nama_skpd',
+                'dskb.kode_urusan',
+                'dskb.nama_urusan',
+                'dskb.kode_bidang_urusan',
+                'dskb.nama_bidang_urusan',
+                'dskb.kode_program',
+                'dskb.nama_program',
+                'dskb.kode_giat',
+                'dskb.nama_giat',
+                'dskb.kode_sub_giat',
+                'dskb.nama_sub_giat',
+                'dskb.pagu',
+                'dskb.pagumurni',
+                'dskb.active'
+            )
+            ->orderBy('dskb.kode_skpd')
+            ->orderBy('dskb.kode_urusan')
+            ->orderBy('dskb.kode_program')
+            ->orderBy('dskb.kode_giat')
+            ->orderBy('dskb.kode_sub_giat');
+
+        // Jika ada filter pencarian
+        if ($request->has('search') && !empty($request->search['value'])) {
+            $search = $request->search['value'];
+            $query->where(function($q) use ($search) {
+                $q->where('dskb.nama_sub_giat', 'like', "%{$search}%")
+                  ->orWhere('dskb.kode_sub_giat', 'like', "%{$search}%")
+                  ->orWhere('dskb.nama_skpd', 'like', "%{$search}%")
+                  ->orWhere('dskb.kode_sbl', 'like', "%{$search}%");
+            });
+        }
+
+        $totalRecords = DB::table('data_sub_keg_bl')
+            ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('active', 1)
+            ->count();
+
+        $totalFiltered = $query->count(DB::raw('DISTINCT dskb.id'));
+
+        // Pagination
+        if ($request->has('start') && $request->has('length')) {
+            $query->skip($request->start)->take($request->length);
+        }
+
+        $data = $query->get();
+
+        // Format data untuk DataTable dengan grouping
+        $formattedData = [];
+        foreach ($data as $row) {
+            // Hitung jumlah indikator
+            $jumlahIndikator = DB::table('data_sub_keg_indikator')
+                ->where('kode_sbl', $row->kode_sbl)
+                ->where('active', 1)
+                ->count();
+
+            // Hitung jumlah usulan (contoh, sesuaikan dengan tabel Anda)
+            $jumlahUsulan = $row->jumlah_sumber_dana ?? 0;
+
+            // Badge untuk usulan (warna random seperti screenshot)
+            $badgeColors = ['danger', 'primary', 'success', 'warning', 'info'];
+            $randomColor = $badgeColors[array_rand($badgeColors)];
+            
+            $usulanBadge = $jumlahUsulan > 0 
+                ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>' 
+                : '';
+
+            // Icon checklist hijau jika ada indikator
+            $checkIcon = $jumlahIndikator > 0 
+                ? '<i class="ki-outline ki-check-circle fs-2 text-success ms-2"></i>' 
+                : '';
+
+            $formattedData[] = [
+                'DT_RowIndex' => count($formattedData) + 1,
+                'checkbox' => '',
+                'group_skpd' => $row->kode_skpd . ' ' . $row->nama_skpd,
+                'group_urusan' => $row->kode_urusan . ' ' . $row->nama_urusan,
+                'group_program' => $row->kode_program . ' ' . $row->nama_program,
+                'group_kegiatan' => $row->kode_giat . ' ' . $row->nama_giat,
+                'sub_kegiatan' => '
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-sm btn-icon btn-light me-3 btn-collapse">
+                            <i class="ki-outline ki-minus fs-3"></i>
+                        </button>
+                        <div>
+                            <a href="#" class="text-primary fw-bold">' . $row->kode_sub_giat . ' ' . $row->nama_sub_giat . '</a>
+                            ' . $checkIcon . '
+                            ' . $usulanBadge . '
+                        </div>
+                    </div>
+                ',
+                'status_sub_kegiatan' => '<span class="badge badge-light-danger">DIKUNCI</span>',
+                'status_rincian' => '<span class="badge badge-light-danger">DIKUNCI</span>',
+                'sebelum_perubahan' => number_format($row->pagumurni ?? 0, 2, '.', ','),
+                'pagu_validasi' => number_format($row->pagu ?? 0, 2, '.', ','),
+                'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
+                'total_realisasi' => '0.00',
+                'persentase' => '0.00 %',
+                'aksi' => ''
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($request->draw ?? 1),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $formattedData
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error getting data: ' . $e->getMessage());
+        return response()->json([
+            'draw' => intval($request->draw ?? 1),
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => [],
+            'error' => $e->getMessage()
+        ]);
+    }
+}
 }

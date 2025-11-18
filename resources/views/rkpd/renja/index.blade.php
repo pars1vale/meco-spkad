@@ -208,25 +208,24 @@
             </div>
           @else
             <table id="kt_datatable_column_rendering" class="table table-striped table-row-bordered gy-5 gs-7">
-              <thead>
-                <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
-                  <th class="w-10px pe-2">
-                    <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
-                      <input class="form-check-input" type="checkbox" data-kt-check="true"
-                        data-kt-check-target="#kt_datatable_column_rendering .form-check-input" value="1" />
-                    </div>
-                  </th>
-                  <th class="min-w-300px">Sub Kegiatan</th>
-                  <th class="min-w-100px">Status Sub Kegiatan</th>
-                  <th class="min-w-100px">Status Rincian</th>
-                  <th class="min-w-100px">Sebelum Perubahan</th>
-                  <th class="min-w-100px">Pagu Validasi Setelah Perubahan</th>
-                  <th class="min-w-100px">Total Rincian Setelah Perubahan</th>
-                  <th class="min-w-100px">Total Realisasi</th>
-                  <th class="min-w-100px">Persentase</th>
-                  <th class="min-w-100px">Aksi</th>
-                </tr>
-              </thead>
+             <thead>
+               <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                 <th class="min-w-10px" style="display:none;">Check</th>
+                 <th class="min-w-10px" style="display:none;">SKPD</th>
+                 <th class="min-w-10px" style="display:none;">Urusan</th>
+                 <th class="min-w-10px" style="display:none;">Program</th>
+                 <th class="min-w-10px" style="display:none;">Kegiatan</th>
+                 <th class="min-w-300px">Sub Kegiatan</th>
+                 <th class="min-w-100px">Status Sub Kegiatan</th>
+                 <th class="min-w-100px">Status Rincian</th>
+                 <th class="min-w-150px">Sebelum Perubahan</th>
+                 <th class="min-w-150px">Pagu Validasi Setelah Perubahan</th>
+                 <th class="min-w-150px">Total Rincian Setelah Perubahan</th>
+                 <th class="min-w-100px">Total Realisasi</th>
+                 <th class="min-w-100px">Persentase</th>
+                 <th class="min-w-100px">Aksi</th>
+               </tr>
+             </thead>
             </table>
           @endif
         </div>
@@ -440,6 +439,60 @@
     </div>
   </div>
 
+
+  <style>
+/* Custom styling untuk grouping hierarki */
+.dtrg-group {
+    background-color: #f5f8fa !important;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 15px !important;
+    border-left: 4px solid #3699FF;
+}
+
+.dtrg-level-0 {
+    background-color: #E8F5E9 !important;
+    border-left-color: #4CAF50 !important;
+    font-size: 15px;
+}
+
+.dtrg-level-1 {
+    background-color: #E3F2FD !important;
+    border-left-color: #2196F3 !important;
+    padding-left: 30px !important;
+}
+
+.dtrg-level-2 {
+    background-color: #FFF3E0 !important;
+    border-left-color: #FF9800 !important;
+    padding-left: 50px !important;
+}
+
+.dtrg-level-3 {
+    background-color: #F3E5F5 !important;
+    border-left-color: #9C27B0 !important;
+    padding-left: 70px !important;
+}
+
+/* Sub kegiatan row styling */
+table.dataTable tbody tr {
+    background-color: #ffffff;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Collapse button */
+.btn-collapse {
+    transition: transform 0.3s;
+}
+
+.btn-collapse.collapsed {
+    transform: rotate(-90deg);
+}
+</style>
+
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       // Store data globally
@@ -577,23 +630,35 @@
       });
 
       // === Function: Display Indikator ===
+   
       function displayIndikator(idSubKegiatan) {
-        // Filter data indikator dari subKegiatanData
-        const indikatorData = subKegiatanData.filter(item => 
+        const indikatorData = subKegiatanData.filter(item =>
           item.id_sub_kegiatan == idSubKegiatan && item.indikator
         );
 
         if (indikatorData.length > 0) {
-          let indikatorHtml = '';
-          
+          let indikatorHtml = '<h6 class="mb-3 fw-bold">Indikator Kinerja</h6>'; // ← TAMBAH INI
+
           indikatorData.forEach((item, index) => {
             indikatorHtml += `
               <div class="row align-items-center mb-3">
                 <div class="col-md-5">
                   <div class="fw-semibold text-gray-800">${item.indikator}</div>
+                  
+                  <!-- ========== TAMBAH 3 HIDDEN INPUT INI ========== -->
+                  <input type="hidden" name="indikator[${index}][id_indikator]" value="${item.id_indikator || ''}">
+                  <input type="hidden" name="indikator[${index}][indikator_text]" value="${item.indikator}">
+                  <input type="hidden" name="indikator[${index}][satuan]" value="${item.satuan}">
+                  <!-- ================================================ -->
                 </div>
                 <div class="col-md-5">
-                  <input type="text" class="form-control form-control-solid" placeholder="0"  />
+                  <!-- ========== UBAH INPUT INI (tambah class dan name) ========== -->
+                  <input type="text" 
+                        class="form-control form-control-solid input-target" 
+                        name="indikator[${index}][target]" 
+                        placeholder="0" 
+                        required />
+                  <!-- ============================================================= -->
                 </div>
                 <div class="col-md-2">
                   <div class="text-gray-600">${item.satuan}</div>
@@ -604,11 +669,36 @@
 
           $('#indikator_list').html(indikatorHtml);
           $('#indikator_section').removeClass('d-none');
+
+          // ========== TAMBAH BARIS INI ==========
+          initializeTargetFormat();
+          // ======================================
         } else {
-          // Tidak menampilkan apa-apa jika tidak ada indikator
           $('#indikator_section').addClass('d-none');
         }
       }
+
+     
+      function initializeTargetFormat() {
+        $('.input-target').off('input').on('input', function() {
+          let value = $(this).val().replace(/[^\d]/g, '');
+          
+          if (value) {
+            const formatted = new Intl.NumberFormat('id-ID').format(value);
+            $(this).val(formatted);
+          }
+        });
+        
+        $('.input-target').off('blur').on('blur', function() {
+          let value = $(this).val().replace(/[^\d]/g, '');
+          if (value) {
+            const formatted = new Intl.NumberFormat('id-ID').format(value);
+            $(this).val(formatted);
+          }
+        });
+      }
+
+
 
       // === Add Sumber Dana ===
       $('#btn_add_sumber_dana').on('click', function() {
@@ -820,36 +910,224 @@
       }
 
       // === Initialize DataTable ===
-      var table = $('#kt_datatable_column_rendering').DataTable({
-        responsive: true,
-        searchDelay: 500,
-        processing: true,
-        serverSide: false,
-        order: [[1, 'asc']],
-        columnDefs: [
-          {
-            targets: [0],
-            orderable: false,
-            className: 'text-center'
-          },
-          {
-            targets: [9],
-            orderable: false,
-            className: 'text-end'
-          }
-        ],
-        dom: "<'row'<'col-sm-12'tr>>" +
-          "<'row mt-4'" +
-          "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
-          "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
-          ">",
-        language: {
-          paginate: {
-            previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
-            next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
-          }
+  
+var table = $('#kt_datatable_column_rendering').DataTable({
+  responsive: true,
+  searchDelay: 500,
+  processing: true,
+  serverSide: true,
+  ajax: {
+    url: '{{ route('renja.data') }}',
+    type: 'GET',
+    error: function(xhr, error, code) {
+      console.error('DataTable Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Memuat Data',
+        text: 'Terjadi kesalahan saat mengambil data',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: "btn btn-primary"
         }
       });
+    }
+  },
+  columns: [
+    { data: 'checkbox', orderable: false, searchable: false, visible: false },
+    { data: 'group_skpd', visible: false },
+    { data: 'group_urusan', visible: false },
+    { data: 'group_program', visible: false },
+    { data: 'group_kegiatan', visible: false },
+    { data: 'sub_kegiatan' },
+    { data: 'status_sub_kegiatan' },
+    { data: 'status_rincian' },
+    { data: 'sebelum_perubahan', className: 'text-end' },
+    { data: 'pagu_validasi', className: 'text-end' },
+    { data: 'total_rincian', className: 'text-end' },
+    { data: 'total_realisasi', className: 'text-end' },
+    { data: 'persentase', className: 'text-end' },
+    { data: 'aksi', orderable: false, searchable: false }
+  ],
+  order: [[1, 'asc']],
+  rowGroup: {
+    dataSrc: ['group_skpd', 'group_urusan', 'group_program', 'group_kegiatan'],
+    startRender: function(rows, group, level) {
+      return $('<tr class="dtrg-group dtrg-level-' + level + '"/>')
+        .append('<td colspan="14">' + group + '</td>');
+    }
+  },
+  dom: "<'row'<'col-sm-12'tr>>" +
+    "<'row mt-4'" +
+    "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
+    "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
+    ">",
+  language: {
+    paginate: {
+      previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
+      next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
+    },
+    processing: '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"></div></div>',
+    emptyTable: 'Tidak ada data yang tersedia',
+    info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+    infoEmpty: 'Menampilkan 0 sampai 0 dari 0 data',
+    infoFiltered: '(disaring dari _MAX_ total data)',
+    lengthMenu: 'Tampilkan _MENU_ data',
+    zeroRecords: 'Tidak ada data yang cocok'
+  }
+});
+
+// Search functionality
+$('#kt_datatable_search_input').keyup(function() {
+  table.search(this.value).draw();
+});
+
+// Collapse/Expand button functionality
+$(document).on('click', '.btn-collapse', function(e) {
+  e.preventDefault();
+  $(this).toggleClass('collapsed');
+  // TODO: Implement collapse logic jika perlu
+});
+
+// Search functionality
+$('#kt_datatable_search_input').keyup(function() {
+  table.search(this.value).draw();
+});
+
+// ========== TAMBAHKAN EVENT HANDLER UNTUK TOMBOL ==========
+// Detail Button
+$(document).on('click', '.btn-detail', function() {
+  const id = $(this).data('id');
+  
+  Swal.fire({
+    icon: 'info',
+    title: 'Detail Sub Kegiatan',
+    html: `
+      <div class="text-start">
+        <p>Fitur detail akan menampilkan:</p>
+        <ul>
+          <li>Informasi lengkap sub kegiatan</li>
+          <li>Daftar indikator dan target</li>
+          <li>Rincian sumber dana</li>
+          <li>Timeline pelaksanaan</li>
+        </ul>
+        <p class="text-muted mt-3">ID: ${id}</p>
+      </div>
+    `,
+    confirmButtonText: 'OK',
+    buttonsStyling: false,
+    customClass: {
+      confirmButton: "btn btn-primary"
+    }
+  });
+});
+
+// Edit Button
+$(document).on('click', '.btn-edit', function() {
+  const id = $(this).data('id');
+  
+  Swal.fire({
+    icon: 'info',
+    title: 'Edit Sub Kegiatan',
+    html: `
+      <div class="text-start">
+        <p>Fitur edit akan memungkinkan Anda untuk:</p>
+        <ul>
+          <li>Mengubah sumber dana dan pagu</li>
+          <li>Memperbarui indikator dan target</li>
+          <li>Mengatur waktu pelaksanaan</li>
+        </ul>
+        <p class="text-muted mt-3">ID: ${id}</p>
+      </div>
+    `,
+    confirmButtonText: 'OK',
+    buttonsStyling: false,
+    customClass: {
+      confirmButton: "btn btn-primary"
+    }
+  });
+});
+
+// Delete Button
+$(document).on('click', '.btn-delete', function() {
+  const id = $(this).data('id');
+  
+  Swal.fire({
+    title: 'Hapus Sub Kegiatan?',
+    html: `
+      <div class="text-start">
+        <p>Data yang akan dihapus meliputi:</p>
+        <ul>
+          <li>Data sub kegiatan</li>
+          <li>Semua indikator terkait</li>
+          <li>Semua sumber dana terkait</li>
+        </ul>
+        <p class="text-danger fw-bold mt-3">⚠️ Tindakan ini tidak dapat dibatalkan!</p>
+      </div>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus!',
+    cancelButtonText: 'Batal',
+    buttonsStyling: false,
+    customClass: {
+      confirmButton: "btn btn-danger",
+      cancelButton: "btn btn-light"
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Show loading
+      Swal.fire({
+        title: 'Menghapus...',
+        html: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // TODO: Implement delete via AJAX
+      // $.ajax({
+      //   url: `/renja/${id}`,
+      //   type: 'DELETE',
+      //   data: {
+      //     _token: '{{ csrf_token() }}'
+      //   },
+      //   success: function(response) {
+      //     Swal.fire({
+      //       icon: 'success',
+      //       title: 'Berhasil!',
+      //       text: 'Data berhasil dihapus',
+      //       timer: 1500,
+      //       showConfirmButton: false
+      //     });
+      //     table.ajax.reload();
+      //   },
+      //   error: function(xhr) {
+      //     Swal.fire({
+      //       icon: 'error',
+      //       title: 'Gagal!',
+      //       text: 'Terjadi kesalahan saat menghapus data'
+      //     });
+      //   }
+      // });
+
+      // Simulasi (hapus ini nanti ketika implement AJAX delete)
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Data berhasil dihapus',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        table.ajax.reload(null, false);
+      }, 1000);
+    }
+  });
+});
+// ========================================================
 
       // Search functionality
       $('#kt_datatable_search_input').keyup(function() {
@@ -928,8 +1206,14 @@
             $(this).val(plainValue);
           });
 
-          submitButton.setAttribute('data-kt-indicator', 'on');
-          submitButton.disabled = true;
+           $('.input-target').each(function () {
+             const plainValue = $(this).val().replace(/[^\d]/g, '');
+             $(this).val(plainValue);
+           });
+           // =====================================
+
+           submitButton.setAttribute('data-kt-indicator', 'on');
+           submitButton.disabled = true;
         });
       }
 
