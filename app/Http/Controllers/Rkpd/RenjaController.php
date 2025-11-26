@@ -38,116 +38,111 @@ class RenjaController extends Controller
 
         return view('rkpd.renja.index', compact('data', 'data_unit','sumberdana','daerah','kec','kel','bln'));
     }
+    public function getSubKegiatanBySkpd(Request $request)
+    {
+            $id_skpd = $request->input('id_skpd');
+            $tahun_anggaran = $request->input('tahun_anggaran', 2025);
 
-    /**
-     * Get Sub Kegiatan berdasarkan SKPD yang dipilih
-     */
-   public function getSubKegiatanBySkpd(Request $request)
-   {
-        $id_skpd = $request->input('id_skpd');
-        $tahun_anggaran = $request->input('tahun_anggaran', 2025);
+            try {
+                // Query pertama: Sub kegiatan milik SKPD dengan indikator
+                $query1 = DB::table('data_unit as du')
+                    ->join('bidang_urusan as bu', function($join) {
+                        $join->whereRaw('bu.id IN (du.bidur_1, du.bidur_2, du.bidur_3)');
+                    })
+                    ->join('program as p', 'p.id_bidang_urusan', '=', 'bu.id')
+                    ->join('kegiatan as k', 'k.id_program', '=', 'p.id')
+                    ->join('sub_kegiatan as sk', 'sk.id_kegiatan', '=', 'k.id')
+                    ->leftJoin('data_master_indikator_subgiat as dmis', function($join) use ($tahun_anggaran) {
+                        $join->on('dmis.id_sub_keg', '=', 'sk.id')
+                            ->where('dmis.tahun_anggaran', '=', $tahun_anggaran)
+                            ->where('dmis.active', '=', 1);
+                    })
+                    ->select(
+                        'du.id_skpd',
+                        'du.kode_skpd',
+                        'du.nama_skpd',
+                        'du.bidur_1',
+                        'du.bidur_2',
+                        'du.bidur_3',
+                        'bu.id as id_bidang_urusan',
+                        'bu.kode_bidang_urusan',
+                        'bu.nama_bidang_urusan',
+                        'p.id as id_program',
+                        'p.kode_program',
+                        'p.nama_program',
+                        'k.id as id_kegiatan',
+                        'k.kode_kegiatan',
+                        'k.nama_kegiatan',
+                        'sk.id as id_sub_kegiatan',
+                        'sk.kode_sub_kegiatan',
+                        'sk.nama_sub_kegiatan',
+                        'dmis.id as id_indikator',
+                        'dmis.indikator',
+                        'dmis.satuan'
+                    )
+                    ->where('du.id_skpd', $id_skpd)
+                    ->where('du.tahun_anggaran', $tahun_anggaran)
+                    ->where('bu.id', '>', 0);
 
-        try {
-            // Query pertama: Sub kegiatan milik SKPD dengan indikator
-            $query1 = DB::table('data_unit as du')
-                ->join('bidang_urusan as bu', function($join) {
-                    $join->whereRaw('bu.id IN (du.bidur_1, du.bidur_2, du.bidur_3)');
-                })
-                ->join('program as p', 'p.id_bidang_urusan', '=', 'bu.id')
-                ->join('kegiatan as k', 'k.id_program', '=', 'p.id')
-                ->join('sub_kegiatan as sk', 'sk.id_kegiatan', '=', 'k.id')
-                ->leftJoin('data_master_indikator_subgiat as dmis', function($join) use ($tahun_anggaran) {
-                    $join->on('dmis.id_sub_keg', '=', 'sk.id')
-                        ->where('dmis.tahun_anggaran', '=', $tahun_anggaran)
-                        ->where('dmis.active', '=', 1);
-                })
-                ->select(
-                    'du.id_skpd',
-                    'du.kode_skpd',
-                    'du.nama_skpd',
-                    'du.bidur_1',
-                    'du.bidur_2',
-                    'du.bidur_3',
-                    'bu.id as id_bidang_urusan',
-                    'bu.kode_bidang_urusan',
-                    'bu.nama_bidang_urusan',
-                    'p.id as id_program',
-                    'p.kode_program',
-                    'p.nama_program',
-                    'k.id as id_kegiatan',
-                    'k.kode_kegiatan',
-                    'k.nama_kegiatan',
-                    'sk.id as id_sub_kegiatan',
-                    'sk.kode_sub_kegiatan',
-                    'sk.nama_sub_kegiatan',
-                    'dmis.id as id_indikator',
-                    'dmis.indikator',
-                    'dmis.satuan'
-                )
-                ->where('du.id_skpd', $id_skpd)
-                ->where('du.tahun_anggaran', $tahun_anggaran)
-                ->where('bu.id', '>', 0);
+                // Query kedua: Sub kegiatan dari urusan X (id_urusan = 20) dengan indikator
+                $query2 = DB::table('data_unit as du')
+                    ->join('bidang_urusan as bu', 'bu.id_urusan', '=', DB::raw('20'))
+                    ->join('program as p', 'p.id_bidang_urusan', '=', 'bu.id')
+                    ->join('kegiatan as k', 'k.id_program', '=', 'p.id')
+                    ->join('sub_kegiatan as sk', 'sk.id_kegiatan', '=', 'k.id')
+                    ->leftJoin('data_master_indikator_subgiat as dmis', function($join) use ($tahun_anggaran) {
+                        $join->on('dmis.id_sub_keg', '=', 'sk.id')
+                            ->where('dmis.tahun_anggaran', '=', $tahun_anggaran)
+                            ->where('dmis.active', '=', 1);
+                    })
+                    ->select(
+                        'du.id_skpd',
+                        'du.kode_skpd',
+                        'du.nama_skpd',
+                        'du.bidur_1',
+                        'du.bidur_2',
+                        'du.bidur_3',
+                        'bu.id as id_bidang_urusan',
+                        'bu.kode_bidang_urusan',
+                        'bu.nama_bidang_urusan',
+                        'p.id as id_program',
+                        'p.kode_program',
+                        'p.nama_program',
+                        'k.id as id_kegiatan',
+                        'k.kode_kegiatan',
+                        'k.nama_kegiatan',
+                        'sk.id as id_sub_kegiatan',
+                        'sk.kode_sub_kegiatan',
+                        'sk.nama_sub_kegiatan',
+                        'dmis.id as id_indikator',
+                        'dmis.indikator',
+                        'dmis.satuan'
+                    )
+                    ->where('du.id_skpd', $id_skpd)
+                    ->where('du.tahun_anggaran', $tahun_anggaran);
 
-            // Query kedua: Sub kegiatan dari urusan X (id_urusan = 20) dengan indikator
-            $query2 = DB::table('data_unit as du')
-                ->join('bidang_urusan as bu', 'bu.id_urusan', '=', DB::raw('20'))
-                ->join('program as p', 'p.id_bidang_urusan', '=', 'bu.id')
-                ->join('kegiatan as k', 'k.id_program', '=', 'p.id')
-                ->join('sub_kegiatan as sk', 'sk.id_kegiatan', '=', 'k.id')
-                ->leftJoin('data_master_indikator_subgiat as dmis', function($join) use ($tahun_anggaran) {
-                    $join->on('dmis.id_sub_keg', '=', 'sk.id')
-                        ->where('dmis.tahun_anggaran', '=', $tahun_anggaran)
-                        ->where('dmis.active', '=', 1);
-                })
-                ->select(
-                    'du.id_skpd',
-                    'du.kode_skpd',
-                    'du.nama_skpd',
-                    'du.bidur_1',
-                    'du.bidur_2',
-                    'du.bidur_3',
-                    'bu.id as id_bidang_urusan',
-                    'bu.kode_bidang_urusan',
-                    'bu.nama_bidang_urusan',
-                    'p.id as id_program',
-                    'p.kode_program',
-                    'p.nama_program',
-                    'k.id as id_kegiatan',
-                    'k.kode_kegiatan',
-                    'k.nama_kegiatan',
-                    'sk.id as id_sub_kegiatan',
-                    'sk.kode_sub_kegiatan',
-                    'sk.nama_sub_kegiatan',
-                    'dmis.id as id_indikator',
-                    'dmis.indikator',
-                    'dmis.satuan'
-                )
-                ->where('du.id_skpd', $id_skpd)
-                ->where('du.tahun_anggaran', $tahun_anggaran);
+                // Gabungkan kedua query dengan UNION ALL
+                $subKegiatan = $query1
+                    ->unionAll($query2)
+                    ->orderBy('kode_bidang_urusan')
+                    ->orderBy('kode_sub_kegiatan')
+                    ->get();
 
-            // Gabungkan kedua query dengan UNION ALL
-            $subKegiatan = $query1
-                ->unionAll($query2)
-                ->orderBy('kode_bidang_urusan')
-                ->orderBy('kode_sub_kegiatan')
-                ->get();
+                return response()->json([
+                    'success' => true,
+                    'data' => $subKegiatan,
+                    'count' => $subKegiatan->count()
+                ]);
 
-            return response()->json([
-                'success' => true,
-                'data' => $subKegiatan,
-                'count' => $subKegiatan->count()
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error getting sub kegiatan: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat mengambil data',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-   }
-
+            } catch (\Exception $e) {
+                Log::error('Error getting sub kegiatan: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengambil data',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+    }
     public function store(Request $request)
     {
         try {
@@ -446,14 +441,164 @@ class RenjaController extends Controller
                 ->withInput();
         }
     }
+    // public function getData(Request $request)
+    // {
+    // $tahunAnggaran = 2025;
 
-    /**
- * Get data untuk DataTable dengan grouping
- */
-public function getData(Request $request)
+    // try {
+    //     $query = DB::table('data_sub_keg_bl as dskb')
+    //         ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
+    //         ->select(
+    //             'dskb.id',
+    //             'dskb.kode_sbl',
+    //             'dskb.kode_skpd',
+    //             'dskb.nama_skpd',
+    //             'dskb.kode_urusan',
+    //             'dskb.nama_urusan',
+    //             'dskb.kode_bidang_urusan',
+    //             'dskb.nama_bidang_urusan',
+    //             'dskb.kode_program',
+    //             'dskb.nama_program',
+    //             'dskb.kode_giat',
+    //             'dskb.nama_giat',
+    //             'dskb.kode_sub_giat',
+    //             'dskb.nama_sub_giat',
+    //             'dskb.pagu',
+    //             'dskb.pagumurni',
+    //             'dskb.active',
+    //             DB::raw('COUNT(DISTINCT ddsk.iddana) as jumlah_sumber_dana'),
+    //             DB::raw('GROUP_CONCAT(DISTINCT ddsk.namadana SEPARATOR ", ") as sumber_dana_list')
+    //         )
+    //         ->where('dskb.tahun_anggaran', $tahunAnggaran)
+    //         ->where('dskb.active', 1)
+    //         ->groupBy(
+    //             'dskb.id',
+    //             'dskb.kode_sbl',
+    //             'dskb.kode_skpd',
+    //             'dskb.nama_skpd',
+    //             'dskb.kode_urusan',
+    //             'dskb.nama_urusan',
+    //             'dskb.kode_bidang_urusan',
+    //             'dskb.nama_bidang_urusan',
+    //             'dskb.kode_program',
+    //             'dskb.nama_program',
+    //             'dskb.kode_giat',
+    //             'dskb.nama_giat',
+    //             'dskb.kode_sub_giat',
+    //             'dskb.nama_sub_giat',
+    //             'dskb.pagu',
+    //             'dskb.pagumurni',
+    //             'dskb.active'
+    //         )
+    //         ->orderBy('dskb.kode_skpd')
+    //         ->orderBy('dskb.kode_urusan')
+    //         ->orderBy('dskb.kode_program')
+    //         ->orderBy('dskb.kode_giat')
+    //         ->orderBy('dskb.kode_sub_giat');
+
+    //     // Jika ada filter pencarian
+    //     if ($request->has('search') && !empty($request->search['value'])) {
+    //         $search = $request->search['value'];
+    //         $query->where(function($q) use ($search) {
+    //             $q->where('dskb.nama_sub_giat', 'like', "%{$search}%")
+    //                 ->orWhere('dskb.kode_sub_giat', 'like', "%{$search}%")
+    //                 ->orWhere('dskb.nama_skpd', 'like', "%{$search}%")
+    //                 ->orWhere('dskb.kode_sbl', 'like', "%{$search}%");
+    //         });
+    //     }
+
+    //     $totalRecords = DB::table('data_sub_keg_bl')
+    //         ->where('tahun_anggaran', $tahunAnggaran)
+    //         ->where('active', 1)
+    //         ->count();
+
+    //     $totalFiltered = $query->count(DB::raw('DISTINCT dskb.id'));
+
+    //     // Pagination
+    //     if ($request->has('start') && $request->has('length')) {
+    //         $query->skip($request->start)->take($request->length);
+    //     }
+
+    //     $data = $query->get();
+
+    //     // Format data untuk DataTable dengan grouping
+    //     $formattedData = [];
+    //     foreach ($data as $row) {
+    //         // Hitung jumlah indikator
+    //         $jumlahIndikator = DB::table('data_sub_keg_indikator')
+    //             ->where('kode_sbl', $row->kode_sbl)
+    //             ->where('active', 1)
+    //             ->count();
+
+    //         // Hitung jumlah usulan (contoh, sesuaikan dengan tabel Anda)
+    //         $jumlahUsulan = $row->jumlah_sumber_dana ?? 0;
+
+    //         // Badge untuk usulan (warna random seperti screenshot)
+    //         $badgeColors = ['danger', 'primary', 'success', 'warning', 'info'];
+    //         $randomColor = $badgeColors[array_rand($badgeColors)];
+            
+    //         $usulanBadge = $jumlahUsulan > 0 
+    //             ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>' 
+    //             : '';
+
+    //         // Icon checklist hijau jika ada indikator
+    //         $checkIcon = $jumlahIndikator > 0 
+    //             ? '<i class="ki-outline ki-check-circle fs-2 text-success ms-2"></i>' 
+    //             : '';
+
+    //         $formattedData[] = [
+    //             'DT_RowIndex' => count($formattedData) + 1,
+    //             'checkbox' => '',
+    //             'group_skpd' => $row->kode_skpd . ' ' . $row->nama_skpd,
+    //             'group_urusan' => $row->kode_urusan . ' ' . $row->nama_urusan,
+    //             'group_program' => $row->kode_program . ' ' . $row->nama_program,
+    //             'group_kegiatan' => $row->kode_giat . ' ' . $row->nama_giat,
+    //             'sub_kegiatan' => '
+    //                 <div class="d-flex align-items-center">
+    //                     <button class="btn btn-sm btn-icon btn-light me-3 btn-collapse">
+    //                         <i class="ki-outline ki-minus fs-3"></i>
+    //                     </button>
+    //                     <div>
+    //                         <a href="#" class="text-primary fw-bold">' . $row->kode_sub_giat . ' ' . $row->nama_sub_giat . '</a>
+    //                         ' . $checkIcon . '
+    //                         ' . $usulanBadge . '
+    //                     </div>
+    //                 </div>
+    //             ',
+    //             'status_sub_kegiatan' => '<span class="badge badge-light-danger">DIKUNCI</span>',
+    //             'status_rincian' => '<span class="badge badge-light-danger">DIKUNCI</span>',
+    //             'sebelum_perubahan' => number_format($row->pagumurni ?? 0, 2, '.', ','),
+    //             'pagu_validasi' => number_format($row->pagu ?? 0, 2, '.', ','),
+    //             'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
+    //             'total_realisasi' => '0.00',
+    //             'persentase' => '0.00 %',
+    //             'aksi' => ''
+    //         ];
+    //     }
+
+    //     return response()->json([
+    //         'draw' => intval($request->draw ?? 1),
+    //         'recordsTotal' => $totalRecords,
+    //         'recordsFiltered' => $totalFiltered,
+    //         'data' => $formattedData
+    //     ]);
+
+    // } catch (\Exception $e) {
+    //     Log::error('Error getting data: ' . $e->getMessage());
+    //     return response()->json([
+    //         'draw' => intval($request->draw ?? 1),
+    //         'recordsTotal' => 0,
+    //         'recordsFiltered' => 0,
+    //         'data' => [],
+    //         'error' => $e->getMessage()
+    //     ]);
+    // }
+    // }
+
+    public function getData(Request $request)
 {
     $tahunAnggaran = 2025;
-    
+
     try {
         $query = DB::table('data_sub_keg_bl as dskb')
             ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
@@ -505,14 +650,13 @@ public function getData(Request $request)
             ->orderBy('dskb.kode_giat')
             ->orderBy('dskb.kode_sub_giat');
 
-        // Jika ada filter pencarian
         if ($request->has('search') && !empty($request->search['value'])) {
             $search = $request->search['value'];
             $query->where(function($q) use ($search) {
                 $q->where('dskb.nama_sub_giat', 'like', "%{$search}%")
-                  ->orWhere('dskb.kode_sub_giat', 'like', "%{$search}%")
-                  ->orWhere('dskb.nama_skpd', 'like', "%{$search}%")
-                  ->orWhere('dskb.kode_sbl', 'like', "%{$search}%");
+                    ->orWhere('dskb.kode_sub_giat', 'like', "%{$search}%")
+                    ->orWhere('dskb.nama_skpd', 'like', "%{$search}%")
+                    ->orWhere('dskb.kode_sbl', 'like', "%{$search}%");
             });
         }
 
@@ -523,26 +667,21 @@ public function getData(Request $request)
 
         $totalFiltered = $query->count(DB::raw('DISTINCT dskb.id'));
 
-        // Pagination
         if ($request->has('start') && $request->has('length')) {
             $query->skip($request->start)->take($request->length);
         }
 
         $data = $query->get();
 
-        // Format data untuk DataTable dengan grouping
         $formattedData = [];
         foreach ($data as $row) {
-            // Hitung jumlah indikator
             $jumlahIndikator = DB::table('data_sub_keg_indikator')
                 ->where('kode_sbl', $row->kode_sbl)
                 ->where('active', 1)
                 ->count();
 
-            // Hitung jumlah usulan (contoh, sesuaikan dengan tabel Anda)
             $jumlahUsulan = $row->jumlah_sumber_dana ?? 0;
 
-            // Badge untuk usulan (warna random seperti screenshot)
             $badgeColors = ['danger', 'primary', 'success', 'warning', 'info'];
             $randomColor = $badgeColors[array_rand($badgeColors)];
             
@@ -550,10 +689,49 @@ public function getData(Request $request)
                 ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>' 
                 : '';
 
-            // Icon checklist hijau jika ada indikator
             $checkIcon = $jumlahIndikator > 0 
                 ? '<i class="ki-outline ki-check-circle fs-2 text-success ms-2"></i>' 
                 : '';
+
+            // ========== PERBAIKAN: TAMBAHKAN TOMBOL AKSI ==========
+            $aksiButtons = '
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-icon btn-light btn-active-light-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ki-outline ki-category fs-3"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="px-3 py-2">
+                            <div class="text-gray-800 fw-bold fs-6">Pilih Aksi</div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item btn-lihat-sub-kegiatan" href="#" data-id="' . $row->id . '">
+                                <i class="ki-outline ki-file-down fs-5 me-2 text-primary"></i>
+                                Lihat Sub Kegiatan
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item btn-lihat-rincian" href="#" data-id="' . $row->id . '">
+                                <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
+                                Lihat Rincian Belanja
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item btn-rka-paket" href="#" data-id="' . $row->id . '">
+                                <i class="ki-outline ki-package fs-5 me-2 text-success"></i>
+                                RKA Paket / Kelompok
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item btn-rka-rincian" href="#" data-id="' . $row->id . '">
+                                <i class="ki-outline ki-copy fs-5 me-2 text-warning"></i>
+                                RKA Rincian Belanja
+                            </a>
+                        </li>
+                    </ul>
+                </div>';
+            // =====================================================
 
             $formattedData[] = [
                 'DT_RowIndex' => count($formattedData) + 1,
@@ -581,7 +759,7 @@ public function getData(Request $request)
                 'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
                 'total_realisasi' => '0.00',
                 'persentase' => '0.00 %',
-                'aksi' => ''
+                'aksi' => $aksiButtons  // ← UBAH DARI '' MENJADI $aksiButtons
             ];
         }
 
@@ -601,6 +779,62 @@ public function getData(Request $request)
             'data' => [],
             'error' => $e->getMessage()
         ]);
+    }
+}
+
+public function showRincian($id)
+{
+    try {
+        // Ambil data sub kegiatan
+        $subKegiatan = DB::table('data_sub_keg_bl as dskb')
+            ->select(
+                'dskb.*',
+                'du.nama_skpd as nama_unit'
+            )
+            ->leftJoin('data_unit as du', function($join) {
+                $join->on('dskb.id_skpd', '=', 'du.id_skpd')
+                     ->where('du.tahun_anggaran', '=', 2025);
+            })
+            ->where('dskb.id', $id)
+            ->where('dskb.tahun_anggaran', 2025)
+            ->where('dskb.active', 1)
+            ->first();
+
+        if (!$subKegiatan) {
+            return redirect()->route('rkpd.renja.index')
+                ->with('error', 'Data sub kegiatan tidak ditemukan');
+        }
+
+        // Ambil data sumber dana
+        $sumberDana = DB::table('data_dana_sub_keg')
+            ->where('idsubbl', $id)
+            ->where('tahun_anggaran', 2025)
+            ->where('active', 1)
+            ->get();
+
+        // Ambil data indikator
+        $indikator = DB::table('data_sub_keg_indikator')
+            ->where('idsubbl', $id)
+            ->where('tahun_anggaran', 2025)
+            ->where('active', 1)
+            ->get();
+
+        // Sementara kosongkan rincian belanja jika tabel belum ada
+        $rincianBelanja = collect([]);
+        $totalPerObjek = collect([]);
+
+        return view('rkpd.renja.rincian', compact(
+            'subKegiatan',
+            'sumberDana',
+            'indikator',
+            'rincianBelanja',
+            'totalPerObjek'
+        ));
+
+    } catch (\Exception $e) {
+        Log::error('Error showing rincian: ' . $e->getMessage());
+        return redirect()->route('rkpd.renja.index')
+            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
 }
 }

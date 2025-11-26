@@ -35,5 +35,6 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('/renja/sub-kegiatan', [RenjaController::class, 'getSubKegiatanBySkpd'])->name('sub-kegiatan');
     Route::post('/rkpd/renja/store', [RenjaController::class, 'store'])->name('renja.store');
     Route::get('renja/data', [RenjaController::class, 'getData'])->name('renja.data');
+     Route::get('/renja/{id}/rincian', [RenjaController::class, 'showRincian'])->name('renja.rincian');
 
 });
