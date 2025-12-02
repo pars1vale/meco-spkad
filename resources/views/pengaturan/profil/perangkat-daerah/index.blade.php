@@ -38,28 +38,24 @@
           <div class="card-title">
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input"
-                class="form-control form-control-solid w-250px ps-12" placeholder="Cari Perangkat Daerah">
+              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12"
+                placeholder="Cari Perangkat Daerah">
             </div>
           </div>
 
           <div class="card-toolbar">
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
-              <!-- Dropdown Tambah -->
               <div class="btn-group">
-                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
-                  aria-expanded="false">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                   Tambah
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <!-- Tambah SKPD -->
                     <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_add_pd">
                       Tambah SKPD
                     </a>
                   </li>
                   <li>
-                    <!-- Tambah Unit SKPD -->
                     <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_add_unit_skpd">
                       Tambah Unit SKPD
                     </a>
@@ -118,15 +114,18 @@
                     <td>{{ $item->posisi }}</td>
                     <td>
                       <div class="d-flex justify-content-end">
-                        <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                          title="Edit"><i class="ki-outline ki-pencil fs-2"></i></a>
-                        <form method="POST" class="d-inline delete-form"
-                          action="{{-- {{ route('perangkat-daerah.destroy', $item->id ?? '#') }} --}}">
+                        {{-- Tombol Edit --}}
+                        <a href="{{ route('perangkat-daerah.edit', $item->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                          title="Edit">
+                          <i class="ki-outline ki-pencil fs-2"></i>
+                        </a>
+
+                        {{-- Form Delete --}}
+                        <form method="POST" class="d-inline delete-form" action="{{ route('perangkat-daerah.destroy', $item->id) }}">
                           @csrf
                           @method('DELETE')
-                          <button type="submit"
-                            class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn"
-                            title="Hapus" data-name="{{ $item->nama_skpd }}">
+                          <button type="button" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus"
+                            data-name="{{ $item->nama_skpd }}" data-id="{{ $item->id }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
@@ -161,8 +160,9 @@
               <!-- Bidur 1 -->
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Bidang Urusan 1</label>
-                <select class="form-select form-select-solid" name="bidur1" required>
-                  <option value="">Pilih Bidang Urusan 1</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_pd"
+                  data-placeholder="Pilih Bidang Urusan 1" name="bidur1" required>
+                  <option></option>
                   @foreach ($data_bidur as $bidur)
                     <option value="{{ $bidur->id }}">{{ $bidur->kode_bidang_urusan }} - {{ $bidur->nama_bidang_urusan }}</option>
                   @endforeach
@@ -172,8 +172,9 @@
               <!-- Bidur 2 -->
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Bidang Urusan 2</label>
-                <select class="form-select form-select-solid" name="bidur2">
-                  <option value="">Pilih Bidang Urusan 2</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_pd"
+                  data-placeholder="Pilih Bidang Urusan 2" data-allow-clear="true" name="bidur2">
+                  <option></option>
                   @foreach ($data_bidur as $bidur)
                     <option value="{{ $bidur->id }}">{{ $bidur->kode_bidang_urusan }} - {{ $bidur->nama_bidang_urusan }}</option>
                   @endforeach
@@ -183,8 +184,9 @@
               <!-- Bidur 3 -->
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Bidang Urusan 3</label>
-                <select class="form-select form-select-solid" name="bidur3">
-                  <option value="">Pilih Bidang Urusan 3</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_pd"
+                  data-placeholder="Pilih Bidang Urusan 3" data-allow-clear="true" name="bidur3">
+                  <option></option>
                   @foreach ($data_bidur as $bidur)
                     <option value="{{ $bidur->id }}">{{ $bidur->kode_bidang_urusan }} - {{ $bidur->nama_bidang_urusan }}</option>
                   @endforeach
@@ -195,8 +197,7 @@
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Kode SKPD</label>
                 <input type="text" class="form-control form-control-solid @error('kode_skpd_1') is-invalid @enderror"
-                  placeholder="Masukkan Kode SKPD" name="kode_skpd_1" value="{{ old('kode_skpd_1') }}" maxlength="255"
-                  required />
+                  placeholder="Masukkan Kode SKPD" name="kode_skpd_1" value="{{ old('kode_skpd_1') }}" maxlength="255" required />
                 @error('kode_skpd_1')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -209,8 +210,7 @@
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Nama SKPD</label>
                 <input type="text" class="form-control form-control-solid @error('nama_skpd') is-invalid @enderror"
-                  placeholder="Masukkan Nama SKPD" name="nama_skpd" value="{{ old('nama_skpd') }}" maxlength="255"
-                  required />
+                  placeholder="Masukkan Nama SKPD" name="nama_skpd" value="{{ old('nama_skpd') }}" maxlength="255" required />
                 @error('nama_skpd')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -220,8 +220,7 @@
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">NIP Kepala</label>
                 <input type="text" class="form-control form-control-solid @error('nipkepala') is-invalid @enderror"
-                  placeholder="Masukkan NIP Kepala" name="nipkepala" value="{{ old('nipkepala') }}" maxlength="255"
-                  required />
+                  placeholder="Masukkan NIP Kepala" name="nipkepala" value="{{ old('nipkepala') }}" maxlength="255" required />
                 @error('nipkepala')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -231,8 +230,7 @@
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Nama Kepala</label>
                 <input type="text" class="form-control form-control-solid @error('namakepala') is-invalid @enderror"
-                  placeholder="Masukkan Nama Kepala" name="namakepala" value="{{ old('namakepala') }}" maxlength="255"
-                  required />
+                  placeholder="Masukkan Nama Kepala" name="namakepala" value="{{ old('namakepala') }}" maxlength="255" required />
                 @error('namakepala')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -241,8 +239,9 @@
               <!-- Pangkat Kepala -->
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Pangkat Kepala</label>
-                <select class="form-select form-select-solid" name="pangkatkepala">
-                  <option value="">Pilih Pangkat</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_pd"
+                  data-placeholder="Pilih Pangkat" data-allow-clear="true" name="pangkatkepala">
+                  <option></option>
                   @foreach ($pangkat as $p)
                     <option value="{{ $p->id }}">{{ $p->nama }}</option>
                   @endforeach
@@ -252,8 +251,9 @@
               <!-- Status Kepala -->
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Status Kepala</label>
-                <select class="form-select form-select-solid" name="statuskepala">
-                  <option value="">Pilih Status</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_pd"
+                  data-placeholder="Pilih Status" data-allow-clear="true" name="statuskepala">
+                  <option></option>
                   <option value="PA">Pengguna Anggaran</option>
                   <option value="KPA">Kuasa Pengguna Anggaran</option>
                   <option value="PLT">Pelaksana Tugas</option>
@@ -265,8 +265,7 @@
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2 d-block">Pengaturan Akses</label>
                 <div class="form-check form-switch form-check-custom form-check-solid d-flex align-items-center">
-                  <input class="form-check-input akun-type-switch me-3" type="checkbox" value="1"
-                    id="pendapatanSwitch" name="ispendapatan" />
+                  <input class="form-check-input akun-type-switch me-3" type="checkbox" value="1" id="pendapatanSwitch" name="ispendapatan" />
                   <label class="form-check-label fs-6 fw-semibold" for="pendapatanSwitch">
                     Input Semua Akun Pendapatan Daerah
                   </label>
@@ -311,8 +310,9 @@
 
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Pilih SKPD Induk</label>
-                <select class="form-select form-select-solid" name="skpd_id" required>
-                  <option value="">Pilih SKPD Induk</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_unit_skpd"
+                  data-placeholder="Pilih SKPD Induk" name="skpd_id" required>
+                  <option></option>
                   @foreach ($data as $skpd)
                     <option value="{{ $skpd->id }}">{{ $skpd->kode_skpd }} - {{ $skpd->nama_skpd }}</option>
                   @endforeach
@@ -322,33 +322,32 @@
 
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Kode Unit</label>
-                <input type="text" class="form-control form-control-solid" placeholder="Masukkan Kode Unit"
-                  name="kode_unit" maxlength="10" required />
+                <input type="text" class="form-control form-control-solid" placeholder="Masukkan Kode Unit" name="kode_unit" maxlength="10"
+                  required />
                 <div class="form-text text-muted">Urutan kode di tulis dalam 4 digit, Contoh : <strong>0001 s.d 9999</strong></div>
               </div>
 
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Nama Unit SKPD</label>
-                <input type="text" class="form-control form-control-solid" placeholder="Masukkan Nama Unit SKPD"
-                  name="nama_unit" maxlength="255" required />
+                <input type="text" class="form-control form-control-solid" placeholder="Masukkan Nama Unit SKPD" name="nama_unit"
+                  maxlength="255" required />
               </div>
 
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">NIP Kepala Unit</label>
-                <input type="text" class="form-control form-control-solid" placeholder="Masukkan NIP Kepala Unit"
-                  name="nip_kepala_unit" />
+                <input type="text" class="form-control form-control-solid" placeholder="Masukkan NIP Kepala Unit" name="nip_kepala_unit" />
               </div>
 
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Nama Kepala Unit</label>
-                <input type="text" class="form-control form-control-solid" placeholder="Masukkan Nama Kepala Unit"
-                  name="nama_kepala_unit" />
+                <input type="text" class="form-control form-control-solid" placeholder="Masukkan Nama Kepala Unit" name="nama_kepala_unit" />
               </div>
 
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Pangkat Kepala Unit</label>
-                <select class="form-select form-select-solid" name="pangkat_kepala_unit">
-                  <option value="">Pilih Pangkat</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_unit_skpd"
+                  data-placeholder="Pilih Pangkat" data-allow-clear="true" name="pangkat_kepala_unit">
+                  <option></option>
                   @foreach ($pangkat as $p)
                     <option value="{{ $p->id }}">{{ $p->nama }}</option>
                   @endforeach
@@ -357,8 +356,9 @@
 
               <div class="fv-row mb-7">
                 <label class="fs-6 fw-semibold mb-2">Status Kepala Unit</label>
-                <select class="form-select form-select-solid" name="status_kepala_unit">
-                  <option value="">Pilih Status</option>
+                <select class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_add_unit_skpd"
+                  data-placeholder="Pilih Status" data-allow-clear="true" name="status_kepala_unit">
+                  <option></option>
                   <option value="PA">Pengguna Anggaran</option>
                   <option value="KPA">Kuasa Pengguna Anggaran</option>
                   <option value="PLT">Pelaksana Tugas</option>
@@ -385,42 +385,63 @@
   </div>
 
   <style>
-    #kt_modal_add_pd .modal-body {
+    #kt_modal_add_pd .modal-body,
+    #kt_modal_add_unit_skpd .modal-body {
       max-height: 70vh;
       overflow-y: auto;
       padding-right: 1rem;
     }
 
-    #kt_modal_add_pd .scroll-y {
+    #kt_modal_add_pd .scroll-y,
+    #kt_modal_add_unit_skpd .scroll-y {
       padding-bottom: 3rem;
     }
   </style>
 
   {{-- jQuery --}}
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  {{-- SweetAlert2 --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
-  $(function() {
-    const table = $('#kt_datatable_column_rendering').DataTable({
-      searching: true,
-      ordering: true,
-      paging: true,
-      language: {
-        search: "Cari SKPD:",
-        zeroRecords: "Data tidak ditemukan",
-        info: "Menampilkan _START_–_END_ dari _TOTAL_ data"
-      }
-    });
+    $(function() {
+      const table = $('#kt_datatable_column_rendering').DataTable({
+        searching: true,
+        ordering: true,
+        paging: true,
+        language: {
+          search: "Cari SKPD:",
+          zeroRecords: "Data tidak ditemukan",
+          info: "Menampilkan _START_–_END_ dari _TOTAL_ data"
+        }
+      });
 
-    $('#kt_datatable_search_input').on('keyup', function() {
-      table.search(this.value).draw();
+      $('#kt_datatable_search_input').on('keyup', function() {
+        table.search(this.value).draw();
+      });
     });
-  });
-</script>
-
+  </script>
 
   <script>
     $(document).ready(function() {
+      // ============ INISIALISASI SELECT2 DI MODAL ============
+      function initSelect2InModal(modalId) {
+        $(modalId).on('shown.bs.modal', function() {
+          $(this).find('[data-control="select2"]').each(function() {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+              $(this).select2({
+                dropdownParent: $(this).data('dropdown-parent') ? $($(this).data('dropdown-parent')) : $(this).closest('.modal')
+              });
+            }
+          });
+        });
+      }
+
+      // Inisialisasi untuk kedua modal
+      initSelect2InModal('#kt_modal_add_pd');
+      initSelect2InModal('#kt_modal_add_unit_skpd');
+
+      // ============ MODAL TAMBAH SKPD ============
       const $modal = $('#kt_modal_add_pd');
       const $form = $('#kt_modal_add_pd_form');
       const $submitBtn = $('#kt_modal_add_pd_submit');
@@ -434,6 +455,8 @@
       $modal.on('hidden.bs.modal', function() {
         $form[0].reset();
         $form.find('.is-invalid').removeClass('is-invalid');
+        // Reset Select2
+        $form.find('[data-control="select2"]').val(null).trigger('change');
       });
 
       $form.on('submit', function() {
@@ -441,6 +464,124 @@
         $submitBtn.find('.indicator-label').hide();
         $submitBtn.find('.indicator-progress').show();
       });
+
+      // ============ MODAL TAMBAH UNIT SKPD ============
+      const $modalUnit = $('#kt_modal_add_unit_skpd');
+      const $formUnit = $('#kt_modal_add_unit_skpd_form');
+      const $submitBtnUnit = $('#kt_modal_add_unit_skpd_submit');
+
+      $modalUnit.on('hidden.bs.modal', function() {
+        $formUnit[0].reset();
+        $formUnit.find('.is-invalid').removeClass('is-invalid');
+        // Reset Select2
+        $formUnit.find('[data-control="select2"]').val(null).trigger('change');
+      });
+
+      $formUnit.on('submit', function() {
+        $submitBtnUnit.prop('disabled', true);
+        $submitBtnUnit.find('.indicator-label').hide();
+        $submitBtnUnit.find('.indicator-progress').show();
+      });
+
+      // ============ DELETE SINGLE ============
+      $('.delete-btn').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        const name = $(this).data('name');
+
+        Swal.fire({
+          title: 'Hapus Data?',
+          html: `Apakah Anda yakin ingin menghapus:<br><strong>${name}</strong>?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Ya, Hapus!',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+
+      // ============ BULK DELETE ============
+      $('#bulk_delete_btn').on('click', function(e) {
+        e.preventDefault();
+
+        const selectedIds = [];
+        $('.form-check-input:checked').each(function() {
+          const val = $(this).val();
+          if (val && val !== '1') {
+            selectedIds.push(val);
+          }
+        });
+
+        if (selectedIds.length === 0) {
+          Swal.fire('Perhatian', 'Tidak ada data yang dipilih', 'warning');
+          return;
+        }
+
+        Swal.fire({
+          title: 'Hapus Data Terpilih?',
+          text: `${selectedIds.length} data akan dihapus`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Ya, Hapus Semua!',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: '{{ route('perangkat-daerah.bulk-delete') }}',
+              type: 'POST',
+              data: {
+                _token: '{{ csrf_token() }}',
+                ids: selectedIds
+              },
+              success: function(response) {
+                Swal.fire('Berhasil!', 'Data berhasil dihapus', 'success')
+                  .then(() => location.reload());
+              },
+              error: function(xhr) {
+                Swal.fire('Gagal!', 'Terjadi kesalahan saat menghapus data', 'error');
+              }
+            });
+          }
+        });
+      });
+
+      // ============ TOGGLE BULK DELETE BUTTON ============
+      $(document).on('change', '.form-check-input', function() {
+        const checkedCount = $('.form-check-input:checked').not('[data-kt-check="true"]').length;
+
+        if (checkedCount > 0) {
+          $('[data-kt-customer-table-toolbar="selected"]').removeClass('d-none');
+          $('[data-kt-customer-table-toolbar="base"]').addClass('d-none');
+          $('[data-kt-customer-table-select="selected_count"]').text(checkedCount);
+        } else {
+          $('[data-kt-customer-table-toolbar="selected"]').addClass('d-none');
+          $('[data-kt-customer-table-toolbar="base"]').removeClass('d-none');
+        }
+      });
+
+      // ============ DISPLAY SESSION MESSAGES ============
+      const sessionMessages = $('#session-messages');
+      if (sessionMessages.length) {
+        sessionMessages.find('[data-type]').each(function() {
+          const type = $(this).data('type');
+          const message = $(this).data('message');
+
+          Swal.fire({
+            icon: type,
+            title: type === 'success' ? 'Berhasil!' : 'Gagal!',
+            text: message,
+            timer: 3000,
+            showConfirmButton: false
+          });
+        });
+      }
     });
   </script>
 @endsection
