@@ -596,245 +596,534 @@ class RenjaController extends Controller
     // }
 
     public function getData(Request $request)
-{
-    $tahunAnggaran = 2025;
+    {
+        $tahunAnggaran = 2025;
 
-    try {
-        $query = DB::table('data_sub_keg_bl as dskb')
-            ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
-            ->select(
-                'dskb.id',
-                'dskb.kode_sbl',
-                'dskb.kode_skpd',
-                'dskb.nama_skpd',
-                'dskb.kode_urusan',
-                'dskb.nama_urusan',
-                'dskb.kode_bidang_urusan',
-                'dskb.nama_bidang_urusan',
-                'dskb.kode_program',
-                'dskb.nama_program',
-                'dskb.kode_giat',
-                'dskb.nama_giat',
-                'dskb.kode_sub_giat',
-                'dskb.nama_sub_giat',
-                'dskb.pagu',
-                'dskb.pagumurni',
-                'dskb.active',
-                DB::raw('COUNT(DISTINCT ddsk.iddana) as jumlah_sumber_dana'),
-                DB::raw('GROUP_CONCAT(DISTINCT ddsk.namadana SEPARATOR ", ") as sumber_dana_list')
-            )
-            ->where('dskb.tahun_anggaran', $tahunAnggaran)
-            ->where('dskb.active', 1)
-            ->groupBy(
-                'dskb.id',
-                'dskb.kode_sbl',
-                'dskb.kode_skpd',
-                'dskb.nama_skpd',
-                'dskb.kode_urusan',
-                'dskb.nama_urusan',
-                'dskb.kode_bidang_urusan',
-                'dskb.nama_bidang_urusan',
-                'dskb.kode_program',
-                'dskb.nama_program',
-                'dskb.kode_giat',
-                'dskb.nama_giat',
-                'dskb.kode_sub_giat',
-                'dskb.nama_sub_giat',
-                'dskb.pagu',
-                'dskb.pagumurni',
-                'dskb.active'
-            )
-            ->orderBy('dskb.kode_skpd')
-            ->orderBy('dskb.kode_urusan')
-            ->orderBy('dskb.kode_program')
-            ->orderBy('dskb.kode_giat')
-            ->orderBy('dskb.kode_sub_giat');
+        try {
+            $query = DB::table('data_sub_keg_bl as dskb')
+                ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
+                ->select(
+                    'dskb.id',
+                    'dskb.kode_sbl',
+                    'dskb.kode_skpd',
+                    'dskb.nama_skpd',
+                    'dskb.kode_urusan',
+                    'dskb.nama_urusan',
+                    'dskb.kode_bidang_urusan',
+                    'dskb.nama_bidang_urusan',
+                    'dskb.kode_program',
+                    'dskb.nama_program',
+                    'dskb.kode_giat',
+                    'dskb.nama_giat',
+                    'dskb.kode_sub_giat',
+                    'dskb.nama_sub_giat',
+                    'dskb.pagu',
+                    'dskb.pagumurni',
+                    'dskb.active',
+                    DB::raw('COUNT(DISTINCT ddsk.iddana) as jumlah_sumber_dana'),
+                    DB::raw('GROUP_CONCAT(DISTINCT ddsk.namadana SEPARATOR ", ") as sumber_dana_list')
+                )
+                ->where('dskb.tahun_anggaran', $tahunAnggaran)
+                ->where('dskb.active', 1)
+                ->groupBy(
+                    'dskb.id',
+                    'dskb.kode_sbl',
+                    'dskb.kode_skpd',
+                    'dskb.nama_skpd',
+                    'dskb.kode_urusan',
+                    'dskb.nama_urusan',
+                    'dskb.kode_bidang_urusan',
+                    'dskb.nama_bidang_urusan',
+                    'dskb.kode_program',
+                    'dskb.nama_program',
+                    'dskb.kode_giat',
+                    'dskb.nama_giat',
+                    'dskb.kode_sub_giat',
+                    'dskb.nama_sub_giat',
+                    'dskb.pagu',
+                    'dskb.pagumurni',
+                    'dskb.active'
+                )
+                ->orderBy('dskb.kode_skpd')
+                ->orderBy('dskb.kode_urusan')
+                ->orderBy('dskb.kode_program')
+                ->orderBy('dskb.kode_giat')
+                ->orderBy('dskb.kode_sub_giat');
 
-        if ($request->has('search') && !empty($request->search['value'])) {
-            $search = $request->search['value'];
-            $query->where(function($q) use ($search) {
-                $q->where('dskb.nama_sub_giat', 'like', "%{$search}%")
-                    ->orWhere('dskb.kode_sub_giat', 'like', "%{$search}%")
-                    ->orWhere('dskb.nama_skpd', 'like', "%{$search}%")
-                    ->orWhere('dskb.kode_sbl', 'like', "%{$search}%");
-            });
-        }
+            if ($request->has('search') && !empty($request->search['value'])) {
+                $search = $request->search['value'];
+                $query->where(function($q) use ($search) {
+                    $q->where('dskb.nama_sub_giat', 'like', "%{$search}%")
+                        ->orWhere('dskb.kode_sub_giat', 'like', "%{$search}%")
+                        ->orWhere('dskb.nama_skpd', 'like', "%{$search}%")
+                        ->orWhere('dskb.kode_sbl', 'like', "%{$search}%");
+                });
+            }
 
-        $totalRecords = DB::table('data_sub_keg_bl')
-            ->where('tahun_anggaran', $tahunAnggaran)
-            ->where('active', 1)
-            ->count();
-
-        $totalFiltered = $query->count(DB::raw('DISTINCT dskb.id'));
-
-        if ($request->has('start') && $request->has('length')) {
-            $query->skip($request->start)->take($request->length);
-        }
-
-        $data = $query->get();
-
-        $formattedData = [];
-        foreach ($data as $row) {
-            $jumlahIndikator = DB::table('data_sub_keg_indikator')
-                ->where('kode_sbl', $row->kode_sbl)
+            $totalRecords = DB::table('data_sub_keg_bl')
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->count();
 
-            $jumlahUsulan = $row->jumlah_sumber_dana ?? 0;
+            $totalFiltered = $query->count(DB::raw('DISTINCT dskb.id'));
 
-            $badgeColors = ['danger', 'primary', 'success', 'warning', 'info'];
-            $randomColor = $badgeColors[array_rand($badgeColors)];
-            
-            $usulanBadge = $jumlahUsulan > 0 
-                ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>' 
-                : '';
+            if ($request->has('start') && $request->has('length')) {
+                $query->skip($request->start)->take($request->length);
+            }
 
-            $checkIcon = $jumlahIndikator > 0 
-                ? '<i class="ki-outline ki-check-circle fs-2 text-success ms-2"></i>' 
-                : '';
+            $data = $query->get();
 
-            // ========== PERBAIKAN: TAMBAHKAN TOMBOL AKSI ==========
-            $aksiButtons = '
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-icon btn-light btn-active-light-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="ki-outline ki-category fs-3"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="px-3 py-2">
-                            <div class="text-gray-800 fw-bold fs-6">Pilih Aksi</div>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item btn-lihat-sub-kegiatan" href="#" data-id="' . $row->id . '">
-                                <i class="ki-outline ki-file-down fs-5 me-2 text-primary"></i>
-                                Lihat Sub Kegiatan
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item btn-lihat-rincian" href="#" data-id="' . $row->id . '">
-                                <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
-                                Lihat Rincian Belanja
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item btn-rka-paket" href="#" data-id="' . $row->id . '">
-                                <i class="ki-outline ki-package fs-5 me-2 text-success"></i>
-                                RKA Paket / Kelompok
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item btn-rka-rincian" href="#" data-id="' . $row->id . '">
-                                <i class="ki-outline ki-copy fs-5 me-2 text-warning"></i>
-                                RKA Rincian Belanja
-                            </a>
-                        </li>
-                    </ul>
-                </div>';
-            // =====================================================
+            $formattedData = [];
+            foreach ($data as $row) {
+                $jumlahIndikator = DB::table('data_sub_keg_indikator')
+                    ->where('kode_sbl', $row->kode_sbl)
+                    ->where('active', 1)
+                    ->count();
 
-            $formattedData[] = [
-                'DT_RowIndex' => count($formattedData) + 1,
-                'checkbox' => '',
-                'group_skpd' => $row->kode_skpd . ' ' . $row->nama_skpd,
-                'group_urusan' => $row->kode_urusan . ' ' . $row->nama_urusan,
-                'group_program' => $row->kode_program . ' ' . $row->nama_program,
-                'group_kegiatan' => $row->kode_giat . ' ' . $row->nama_giat,
-                'sub_kegiatan' => '
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-sm btn-icon btn-light me-3 btn-collapse">
-                            <i class="ki-outline ki-minus fs-3"></i>
+                $jumlahUsulan = $row->jumlah_sumber_dana ?? 0;
+
+                $badgeColors = ['danger', 'primary', 'success', 'warning', 'info'];
+                $randomColor = $badgeColors[array_rand($badgeColors)];
+                
+                $usulanBadge = $jumlahUsulan > 0 
+                    ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>' 
+                    : '';
+
+                $checkIcon = $jumlahIndikator > 0 
+                    ? '<i class="ki-outline ki-check-circle fs-2 text-success ms-2"></i>' 
+                    : '';
+
+                // ========== PERBAIKAN: TAMBAHKAN TOMBOL AKSI ==========
+                $aksiButtons = '
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-icon btn-light btn-active-light-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="ki-outline ki-category fs-3"></i>
                         </button>
-                        <div>
-                            <a href="#" class="text-primary fw-bold">' . $row->kode_sub_giat . ' ' . $row->nama_sub_giat . '</a>
-                            ' . $checkIcon . '
-                            ' . $usulanBadge . '
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="px-3 py-2">
+                                <div class="text-gray-800 fw-bold fs-6">Pilih Aksi</div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item btn-lihat-sub-kegiatan" href="#" data-id="' . $row->id . '">
+                                    <i class="ki-outline ki-file-down fs-5 me-2 text-primary"></i>
+                                    Lihat Sub Kegiatan
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item btn-lihat-rincian" href="#" data-id="' . $row->id . '">
+                                    <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
+                                    Lihat Rincian Belanja
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item btn-rka-paket" href="#" data-id="' . $row->id . '">
+                                    <i class="ki-outline ki-package fs-5 me-2 text-success"></i>
+                                    RKA Paket / Kelompok
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item btn-rka-rincian" href="#" data-id="' . $row->id . '">
+                                    <i class="ki-outline ki-copy fs-5 me-2 text-warning"></i>
+                                    RKA Rincian Belanja
+                                </a>
+                            </li>
+                        </ul>
+                    </div>';
+                // =====================================================
+
+                $formattedData[] = [
+                    'DT_RowIndex' => count($formattedData) + 1,
+                    'checkbox' => '',
+                    'group_skpd' => $row->kode_skpd . ' ' . $row->nama_skpd,
+                    'group_urusan' => $row->kode_urusan . ' ' . $row->nama_urusan,
+                    'group_program' => $row->kode_program . ' ' . $row->nama_program,
+                    'group_kegiatan' => $row->kode_giat . ' ' . $row->nama_giat,
+                    'sub_kegiatan' => '
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-sm btn-icon btn-light me-3 btn-collapse">
+                                <i class="ki-outline ki-minus fs-3"></i>
+                            </button>
+                            <div>
+                                <a href="#" class="text-primary fw-bold">' . $row->kode_sub_giat . ' ' . $row->nama_sub_giat . '</a>
+                                ' . $checkIcon . '
+                                ' . $usulanBadge . '
+                            </div>
                         </div>
-                    </div>
-                ',
-                'status_sub_kegiatan' => '<span class="badge badge-light-danger">DIKUNCI</span>',
-                'status_rincian' => '<span class="badge badge-light-danger">DIKUNCI</span>',
-                'sebelum_perubahan' => number_format($row->pagumurni ?? 0, 2, '.', ','),
-                'pagu_validasi' => number_format($row->pagu ?? 0, 2, '.', ','),
-                'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
-                'total_realisasi' => '0.00',
-                'persentase' => '0.00 %',
-                'aksi' => $aksiButtons  // ← UBAH DARI '' MENJADI $aksiButtons
-            ];
+                    ',
+                    'status_sub_kegiatan' => '<span class="badge badge-light-danger">DIKUNCI</span>',
+                    'status_rincian' => '<span class="badge badge-light-danger">DIKUNCI</span>',
+                    'sebelum_perubahan' => number_format($row->pagumurni ?? 0, 2, '.', ','),
+                    'pagu_validasi' => number_format($row->pagu ?? 0, 2, '.', ','),
+                    'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
+                    'total_realisasi' => '0.00',
+                    'persentase' => '0.00 %',
+                    'aksi' => $aksiButtons  // ← UBAH DARI '' MENJADI $aksiButtons
+                ];
+            }
+
+            return response()->json([
+                'draw' => intval($request->draw ?? 1),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalFiltered,
+                'data' => $formattedData
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting data: ' . $e->getMessage());
+            return response()->json([
+                'draw' => intval($request->draw ?? 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => $e->getMessage()
+            ]);
         }
-
-        return response()->json([
-            'draw' => intval($request->draw ?? 1),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalFiltered,
-            'data' => $formattedData
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Error getting data: ' . $e->getMessage());
-        return response()->json([
-            'draw' => intval($request->draw ?? 1),
-            'recordsTotal' => 0,
-            'recordsFiltered' => 0,
-            'data' => [],
-            'error' => $e->getMessage()
-        ]);
     }
-}
 
-public function showRincian($id)
-{
-    try {
-        // Ambil data sub kegiatan
-        $subKegiatan = DB::table('data_sub_keg_bl as dskb')
-            ->select(
-                'dskb.*',
-                'du.nama_skpd as nama_unit'
-            )
-            ->leftJoin('data_unit as du', function($join) {
-                $join->on('dskb.id_skpd', '=', 'du.id_skpd')
-                     ->where('du.tahun_anggaran', '=', 2025);
-            })
-            ->where('dskb.id', $id)
-            ->where('dskb.tahun_anggaran', 2025)
-            ->where('dskb.active', 1)
-            ->first();
+    public function showRincian($id)
+    {
+        try {
+            // Ambil data sub kegiatan
+            $subKegiatan = DB::table('data_sub_keg_bl as dskb')
+                ->select(
+                    'dskb.*',
+                    'du.nama_skpd as nama_unit'
+                )
+                ->leftJoin('data_unit as du', function($join) {
+                    $join->on('dskb.id_skpd', '=', 'du.id_skpd')
+                        ->where('du.tahun_anggaran', '=', 2025);
+                })
+                ->where('dskb.id', $id)
+                ->where('dskb.tahun_anggaran', 2025)
+                ->where('dskb.active', 1)
+                ->first();
 
-        if (!$subKegiatan) {
+            if (!$subKegiatan) {
+                return redirect()->route('rkpd.renja.index')
+                    ->with('error', 'Data sub kegiatan tidak ditemukan');
+            }
+
+            // Ambil data sumber dana
+            $sumberDana = DB::table('data_dana_sub_keg')
+                ->where('idsubbl', $id)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->get();
+
+            // Ambil data indikator
+            $indikator = DB::table('data_sub_keg_indikator')
+                ->where('idsubbl', $id)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->get();
+
+            // Sementara kosongkan rincian belanja jika tabel belum ada
+            $rincianBelanja = collect([]);
+            $totalPerObjek = collect([]);
+
+            return view('rkpd.renja.rincian', compact(
+                'subKegiatan',
+                'sumberDana',
+                'indikator',
+                'rincianBelanja',
+                'totalPerObjek'
+            ));
+
+        } catch (\Exception $e) {
+            Log::error('Error showing rincian: ' . $e->getMessage());
             return redirect()->route('rkpd.renja.index')
-                ->with('error', 'Data sub kegiatan tidak ditemukan');
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        // Ambil data sumber dana
-        $sumberDana = DB::table('data_dana_sub_keg')
-            ->where('idsubbl', $id)
-            ->where('tahun_anggaran', 2025)
-            ->where('active', 1)
-            ->get();
-
-        // Ambil data indikator
-        $indikator = DB::table('data_sub_keg_indikator')
-            ->where('idsubbl', $id)
-            ->where('tahun_anggaran', 2025)
-            ->where('active', 1)
-            ->get();
-
-        // Sementara kosongkan rincian belanja jika tabel belum ada
-        $rincianBelanja = collect([]);
-        $totalPerObjek = collect([]);
-
-        return view('rkpd.renja.rincian', compact(
-            'subKegiatan',
-            'sumberDana',
-            'indikator',
-            'rincianBelanja',
-            'totalPerObjek'
-        ));
-
-    } catch (\Exception $e) {
-        Log::error('Error showing rincian: ' . $e->getMessage());
-        return redirect()->route('rkpd.renja.index')
-            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
-}
+
+    /**
+     * Get akun rekening berdasarkan jenis belanja
+     */
+    public function getAkunByJenisBelanja(Request $request)
+    {
+        try {
+            $jenisBelanja = $request->input('jenis_bl');
+            $tahunAnggaran = $request->input('tahun_anggaran', 2025);
+            
+            Log::info('GET AKUN REQUEST', [
+                'jenis_bl' => $jenisBelanja,
+                'tahun' => $tahunAnggaran
+            ]);
+            
+            // Mapping jenis belanja ke field boolean di tabel akun
+            $mappingField = [
+                'BTL-GAJI' => 'is_gaji_asn',
+                'BARJAS-MODAL' => 'is_barjas',
+                'BUNGA' => 'is_bunga',
+                'SUBSIDI' => 'is_subsidi',
+                'HIBAH-BRG' => 'is_hibah_brg',
+                'HIBAH' => 'is_hibah_uang',
+                'BANSOS-BRG' => 'is_sosial_brg',
+                'BANSOS' => 'is_sosial_uang',
+                'BAGI-HASIL' => 'is_bagi_hasil',
+                'BANKEU' => 'is_bankeu_umum',
+                'BANKEU-KHUSUS' => 'is_bankeu_khusus',
+                'BTT' => 'is_btt',
+                'BOS' => 'is_bos',
+                'BLUD' => 'is_bl',
+                'TANAH' => 'is_modal_tanah'
+            ];
+            
+            // Validasi jenis belanja
+            if (!isset($mappingField[$jenisBelanja])) {
+                Log::error('Jenis belanja tidak valid', ['jenis_bl' => $jenisBelanja]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jenis belanja tidak valid: ' . $jenisBelanja
+                ], 400);
+            }
+            
+            $field = $mappingField[$jenisBelanja];
+            
+            Log::info('Querying akun', [
+                'field' => $field,
+                'tahun' => $tahunAnggaran
+            ]);
+            
+            // Query akun berdasarkan field boolean
+            $akunList = DB::table('akun')
+                ->where('tahun_anggaran', $tahunAnggaran)
+                ->where('active', 1)
+                ->where($field, 1)
+                ->where('set_input', 1) // Hanya akun yang bisa diinput
+                ->orderBy('kode_akun')
+                ->get(['id', 'kode_akun', 'nama_akun', 'level']);
+            
+            Log::info('Query result', [
+                'count' => $akunList->count(),
+                'sample' => $akunList->take(2)->toArray()
+            ]);
+            
+            // Format data untuk select2
+            $data = $akunList->map(function($akun) {
+                return [
+                    'id' => $akun->id,
+                    'kode_akun' => $akun->kode_akun,
+                    'nama_akun' => $akun->nama_akun,
+                    'text' => $akun->kode_akun . ' - ' . $akun->nama_akun,
+                    'level' => $akun->level
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'count' => $data->count()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error loading akun', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get detail akun
+     */
+    public function getDetailAkun(Request $request)
+    {
+        $akunId = $request->akun_id;
+        
+        try {
+            $akun = DB::table('akun')->where('id', $akunId)->first();
+            
+            if (!$akun) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akun tidak ditemukan'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $akun->id,
+                    'kode_akun' => $akun->kode_akun,
+                    'nama_akun' => $akun->nama_akun,
+                    'level' => $akun->level,
+                    'set_input' => $akun->set_input
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting detail akun: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan'
+            ], 500);
+        }
+    }
+    
+    /**
+     * Store rincian belanja
+     */
+    public function storerincian(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_rinci_sub_bl' => 'required',
+                'jenis_bl' => 'required',
+                'id_akun' => 'required|exists:akun,id',
+                'uraian' => 'required',
+                'volume' => 'required|numeric',
+                'satuan' => 'required',
+                'harga_satuan' => 'required|numeric'
+            ]);
+
+            // Get info sub kegiatan
+            $subKegiatan = DB::table('data_sub_keg_bl')
+                ->where('id', $request->id_rinci_sub_bl)
+                ->first();
+
+            if (!$subKegiatan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sub kegiatan tidak ditemukan'
+                ], 404);
+            }
+
+            $total = $request->volume * $request->harga_satuan;
+
+            $data = [
+                'id_rinci_sub_bl' => $request->id_rinci_sub_bl,
+                'kode_sbl' => $subKegiatan->kode_sbl,
+                'jenis_bl' => $request->jenis_bl,
+                'id_akun' => $request->id_akun,
+                'kode_rekening' => $request->kode_rekening,
+                'nama_rekening' => $request->nama_rekening,
+                'uraian' => $request->uraian,
+                'volume' => $request->volume,
+                'satuan' => $request->satuan,
+                'harga_satuan' => $request->harga_satuan,
+                'total' => $total,
+                'active' => 1,
+                'tahun_anggaran' => $subKegiatan->tahun_anggaran,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+
+            DB::table('data_rinci_sub_keg_bl')->insert($data);
+
+            Log::info('Rincian belanja created', [
+                'id_sub_bl' => $request->id_rinci_sub_bl,
+                'jenis_bl' => $request->jenis_bl,
+                'total' => $total
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Rincian belanja berhasil ditambahkan',
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error storing rincian: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update rincian belanja
+     */
+    public function updateRincian(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'id_akun' => 'required|exists:akun,id',
+                'uraian' => 'required',
+                'volume' => 'required|numeric',
+                'satuan' => 'required',
+                'harga_satuan' => 'required|numeric'
+            ]);
+
+            $total = $request->volume * $request->harga_satuan;
+
+            $updated = DB::table('data_rinci_sub_keg_bl')
+                ->where('id', $id)
+                ->update([
+                    'id_akun' => $request->id_akun,
+                    'kode_rekening' => $request->kode_rekening,
+                    'nama_rekening' => $request->nama_rekening,
+                    'uraian' => $request->uraian,
+                    'volume' => $request->volume,
+                    'satuan' => $request->satuan,
+                    'harga_satuan' => $request->harga_satuan,
+                    'total' => $total,
+                    'updated_at' => now()
+                ]);
+
+            if ($updated) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Rincian belanja berhasil diupdate'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error updating rincian: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete rincian belanja (soft delete)
+     */
+    public function destroyRincian($id)
+    {
+        try {
+            $deleted = DB::table('data_rinci_sub_keg_bl')
+                ->where('id', $id)
+                ->update([
+                    'active' => 0,
+                    'updated_at' => now()
+                ]);
+
+            if ($deleted) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Rincian belanja berhasil dihapus'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting rincian: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    
+
+    
 }

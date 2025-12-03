@@ -37,4 +37,14 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('renja/data', [RenjaController::class, 'getData'])->name('renja.data');
      Route::get('/renja/{id}/rincian', [RenjaController::class, 'showRincian'])->name('renja.rincian');
 
+     // ✅ RINCIAN BELANJA - PINDAHKAN KE DALAM GROUP RKPD
+    Route::get('/rincian/get-akun', [RenjaController::class, 'getAkunByJenisBelanja'])->name('rincian.get-akun');
+    Route::get('/rincian/get-detail-akun', [RenjaController::class, 'getDetailAkun'])->name('rincian.get-detail-akun');
+    Route::post('/rincian/store', [RenjaController::class, 'storerincian'])->name('rincian.store');
+    Route::put('/rincian/update/{id}', [RenjaController::class, 'updateRincian'])->name('rincian.update');
+    Route::delete('/rincian/delete/{id}', [RenjaController::class, 'destroyRincian'])->name('rincian.delete');
+     
+
 });
+
+    
