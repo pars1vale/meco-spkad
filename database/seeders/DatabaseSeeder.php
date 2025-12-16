@@ -22,9 +22,13 @@ class DatabaseSeeder extends Seeder
 
         // super admin account
         User::create([
-            'name' => 'Super Admin',
-            'email' => 'super.admin@test.com',
+            'name' => 'it',
+            'email' => 'it@gmail.com',
             'password' => bcrypt('12345678'),
         ]);
+        $this->call(DataDaerahSeeder::class);
+        $this->call(DataKecamatanSeeder::class);
+        $this->call(DataKelurahanSeeder::class);
+        $this->call(DataBulanSeeder::class);
     }
 }
