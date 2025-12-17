@@ -45,7 +45,7 @@
               </div>
             </div>
             <div class="card-body">
-              <form id="kt_edit_sumberdana_form" action="{{ route('sumber-dana.update', $sumberDana->id) }}" method="POST">
+              <form id="kt_edit_sumberdana_form" action="{{ route('referensi.sumber-dana.update', $sumberDana->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 

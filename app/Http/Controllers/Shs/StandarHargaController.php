@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Shs;
 use App\Http\Controllers\Controller;
 use App\Models\Referensi\Akun;
 use App\Models\StandarHargaSatuan\StandarHarga;
-use App\Models\StandarHargaSatuan\DataKelompokStandarHarga;
+use App\Models\StandarHargaSatuan\KelompokBarang;
 use App\Models\StandarHargaSatuan\DataSatuan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ class StandarHargaController extends Controller
             ->orderBy('kode_standar_harga', 'asc')
             ->get();
 
-        $kelompok = DataKelompokStandarHarga::orderBy('nama_kelompok_standar_harga', 'asc')->get();
+        $kelompok = KelompokBarang::orderBy('nama_kelompok_standar_harga', 'asc')->get();
         $satuan = DataSatuan::orderBy('nama_satuan', 'asc')->get();
         $akun = Akun::where('is_belanja', 1)->orderBy('kode_akun', 'asc')->get();
 
@@ -115,7 +115,7 @@ class StandarHargaController extends Controller
     public function edit($id)
     {
         $standarHarga = StandarHarga::with(['kelompokStandarHarga', 'satuan', 'rekeningBelanja'])->findOrFail($id);
-        $kelompok = DataKelompokStandarHarga::orderBy('nama_kelompok_standar_harga', 'asc')->get();
+        $kelompok = KelompokBarang::orderBy('nama_kelompok_standar_harga', 'asc')->get();
         $satuan = DataSatuan::orderBy('nama_satuan', 'asc')->get();
         $akun = Akun::where('is_belanja', 1)->orderBy('kode_akun', 'asc')->get();
 

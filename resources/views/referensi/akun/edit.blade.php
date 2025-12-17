@@ -44,7 +44,7 @@
           </div>
         </div>
 
-        <form action="{{ route('akun.update', $akun->id) }}" method="POST" class="form" id="edit_akun_form">
+        <form action="{{ route('referensi.akun.update', $akun->id) }}" method="POST" class="form" id="edit_akun_form">
           @csrf
           @method('PUT')
 

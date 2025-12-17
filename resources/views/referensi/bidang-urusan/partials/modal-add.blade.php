@@ -1,7 +1,7 @@
 <div class="modal fade" id="kt_modal_add_bidang_urusan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered mw-650px">
     <div class="modal-content">
-      <form class="form" action="{{ route('bidang-urusan.store') }}" method="POST" id="kt_modal_add_bidang_urusan_form">
+      <form class="form" action="{{ route('referensi.bidang-urusan.store') }}" method="POST" id="kt_modal_add_bidang_urusan_form">
         @csrf
         <div class="modal-header" id="kt_modal_add_bidang_urusan_header">
           <h2 class="fw-bold">Tambah Bidang Urusan</h2>
