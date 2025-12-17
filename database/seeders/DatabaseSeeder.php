@@ -26,5 +26,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'it@gmail.com',
             'password' => bcrypt('12345678'),
         ]);
+
+        $this->call(DataSatuanSeeder::class);
+        $this->call(KelompokStandartHargaSeeder::class);
+        $this->call(PangkatSeeder::class);
     }
 }
