@@ -6,21 +6,110 @@ use App\Http\Controllers\Controller;
 use App\Models\Referensi\Akun;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class AkunController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $data = Akun::orderBy('kode_akun')->get();
-        return view('referensi.akun.index', compact('data'));
+        return view('referensi.akun.index');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function getData(Request $request)
+    {
+        if ($request->ajax()) {
+            // CRITICAL: Gunakan Query Builder untuk menghindari Eloquent overhead
+            $query = DB::table('akun');
+
+            // Total records tanpa filter (OPTIMIZED)
+            $totalRecords = DB::table('akun')->count();
+
+            // Global search
+            if ($request->has('search') && !empty($request->search['value'])) {
+                $search = $request->search['value'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('kode_akun', 'like', "%{$search}%")
+                        ->orWhere('nama_akun', 'like', "%{$search}%")
+                        ->orWhere('keterangan_akun', 'like', "%{$search}%")
+                        ->orWhere('pendapatan', 'like', "%{$search}%")
+                        ->orWhere('belanja', 'like', "%{$search}%")
+                        ->orWhere('pembiayaan', 'like', "%{$search}%");
+                });
+            }
+
+            // Total records setelah filter
+            $totalFiltered = $query->count();
+
+            // Sorting
+            if ($request->has('order')) {
+                $orderColumnIndex = $request->order[0]['column'];
+                $orderDir = $request->order[0]['dir'];
+
+                $columns = [
+                    'id',
+                    'kode_akun',
+                    'nama_akun',
+                    'pendapatan',
+                    'belanja',
+                    'pembiayaan',
+                    'id'
+                ];
+
+                if (isset($columns[$orderColumnIndex])) {
+                    $query->orderBy($columns[$orderColumnIndex], $orderDir);
+                }
+            } else {
+                $query->orderBy('kode_akun', 'asc');
+            }
+
+            // Pagination
+            $start = $request->start ?? 0;
+            $length = $request->length ?? 10;
+
+            // CRITICAL: Select only needed columns
+            $data = $query->select([
+                'id',
+                'kode_akun',
+                'nama_akun',
+                'pendapatan',
+                'belanja',
+                'pembiayaan',
+                'is_pendapatan',
+                'is_belanja',
+                'is_pembiayaan'
+            ])
+                ->skip($start)
+                ->take($length)
+                ->get();
+
+            // Format data untuk DataTables (OPTIMIZED - no loops inside loops)
+            $formattedData = [];
+            foreach ($data as $item) {
+                $formattedData[] = [
+                    'id' => $item->id,
+                    'kode_akun' => $item->kode_akun,
+                    'nama_akun' => $item->nama_akun,
+                    'pendapatan' => $item->pendapatan ?? 'Tidak',
+                    'belanja' => $item->belanja ?? 'Tidak',
+                    'pembiayaan' => $item->pembiayaan ?? 'Tidak',
+                    'is_pendapatan' => $item->is_pendapatan ?? 0,
+                    'is_belanja' => $item->is_belanja ?? 0,
+                    'is_pembiayaan' => $item->is_pembiayaan ?? 0,
+                    'actions' => $item->id
+                ];
+            }
+
+            return response()->json([
+                'draw' => intval($request->draw),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalFiltered,
+                'data' => $formattedData
+            ]);
+        }
+
+        return response()->json(['error' => 'Invalid request'], 400);
+    }
+
     public function store(Request $request)
     {
         $validator = $this->validateAkun($request);
@@ -51,18 +140,12 @@ class AkunController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $akun = Akun::findOrFail($id);
         return view('referensi.akun.edit', compact('akun'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $akun = Akun::findOrFail($id);
@@ -97,9 +180,6 @@ class AkunController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         try {
@@ -115,9 +195,6 @@ class AkunController extends Controller
         }
     }
 
-    /**
-     * Remove multiple resources from storage.
-     */
     public function bulkDelete(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -140,9 +217,6 @@ class AkunController extends Controller
         }
     }
 
-    /**
-     * Validate akun data
-     */
     private function validateAkun(Request $request, $id = null)
     {
         $uniqueRule = $id ? "unique:akun,kode_akun,{$id}" : 'unique:akun,kode_akun';
@@ -158,9 +232,6 @@ class AkunController extends Controller
         ]);
     }
 
-    /**
-     * Get akun types from request
-     */
     private function getAkunTypes(Request $request)
     {
         return [
@@ -170,17 +241,11 @@ class AkunController extends Controller
         ];
     }
 
-    /**
-     * Check if any type is selected
-     */
     private function hasAnyTypeSelected(array $types)
     {
         return array_sum($types) > 0;
     }
 
-    /**
-     * Create or update akun instance
-     */
     private function createOrUpdateAkun(Akun $akun, Request $request, array $types)
     {
         $akun->kode_akun = $request->kode_akun;
@@ -200,9 +265,6 @@ class AkunController extends Controller
         return $akun;
     }
 
-    /**
-     * Handle validation error response
-     */
     private function handleValidationError($validator, $errorKey, $errorMessage, Request $request)
     {
         if ($errorKey) {
@@ -223,9 +285,6 @@ class AkunController extends Controller
             ->with('error', $errorMessage);
     }
 
-    /**
-     * Success response handler
-     */
     private function successResponse(Request $request, $message, $data = null)
     {
         if ($request->ajax() || $request->wantsJson()) {
@@ -239,9 +298,6 @@ class AkunController extends Controller
         return redirect()->route('referensi.akun.index')->with('success', $message);
     }
 
-    /**
-     * Error response handler
-     */
     private function errorResponse(Request $request, \Exception $e)
     {
         \Log::error('Error in AkunController: ' . $e->getMessage());

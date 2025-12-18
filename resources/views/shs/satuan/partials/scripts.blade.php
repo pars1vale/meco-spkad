@@ -52,32 +52,39 @@
       });
     }
 
-    // Session Messages
-    @if (session('success'))
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: "{{ session('success') }}",
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "btn btn-primary"
-        }
-      });
-    @endif
+    // Configure Toastr options
+    toastr.options = {
+      "closeButton": true,
+      "debug": false,
+      "newestOnTop": false,
+      "progressBar": true,
+      "positionClass": "toastr-top-right",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "5000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    };
 
-    @if (session('error'))
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: "{{ session('error') }}",
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "btn btn-primary"
-        }
-      });
-    @endif
+    // Session Messages dengan Toaster
+    const sessionMessages = document.querySelectorAll('#session-messages div');
+    sessionMessages.forEach(msg => {
+      const type = msg.dataset.type;
+      const message = msg.dataset.message;
+
+      if (type === 'error') {
+        toastr.error(message, "GAGAL");
+      } else if (type === 'success') {
+        toastr.success(message, "BERHASIL");
+      } else {
+        toastr.info(message);
+      }
+    });
 
     // Event delegation untuk delete buttons
     DOM.table.on('click', '.delete-btn', function(e) {
@@ -145,16 +152,7 @@
       const checkedBoxes = document.querySelectorAll('#kt_satuan_table tbody input[type="checkbox"]:checked');
 
       if (checkedBoxes.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Tidak ada data dipilih',
-          text: 'Pilih minimal satu satuan untuk dihapus.',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
-          }
-        });
+        toastr.info('Pilih minimal satu satuan untuk dihapus.', 'INFORMASI');
         return;
       }
 
@@ -207,16 +205,7 @@
         const namaSatuan = formData.get('nama_satuan');
 
         if (!namaSatuan || !namaSatuan.trim()) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Validasi gagal',
-            text: 'Nama satuan harus diisi!',
-            confirmButtonText: 'OK',
-            buttonsStyling: false,
-            customClass: {
-              confirmButton: "btn btn-primary"
-            }
-          });
+          toastr.error('Nama satuan harus diisi!', 'VALIDASI GAGAL');
           return;
         }
 
@@ -239,17 +228,11 @@
             $('#kt_modal_add_satuan').modal('hide');
             DOM.addForm.reset();
 
-            Swal.fire({
-              icon: 'success',
-              title: 'Berhasil',
-              text: response.message || 'Data berhasil disimpan!',
-              confirmButtonText: 'OK',
-              buttonsStyling: false,
-              customClass: {
-                confirmButton: "btn btn-primary"
+            toastr.success(response.message || 'Data berhasil disimpan!', 'BERHASIL', {
+              timeOut: 2000,
+              onHidden: function() {
+                location.reload();
               }
-            }).then(() => {
-              location.reload();
             });
           },
           error: function(xhr) {
@@ -265,17 +248,9 @@
                   }
                 }
               });
+              toastr.error('Periksa kembali form Anda', 'VALIDASI GAGAL');
             } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Terjadi kesalahan saat menyimpan data',
-                confirmButtonText: 'OK',
-                buttonsStyling: false,
-                customClass: {
-                  confirmButton: "btn btn-primary"
-                }
-              });
+              toastr.error('Terjadi kesalahan saat menyimpan data', 'GAGAL');
             }
           },
           complete: function() {

@@ -12,13 +12,76 @@ class UrusanController extends Controller
 {
     public function index()
     {
-        $data = Urusan::all();
-        return view('referensi.urusan.index', compact('data'));
+        return view('referensi.urusan.index');
+    }
+
+    // Method baru untuk Ajax DataTables
+    public function getData(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Urusan::query();
+
+            // Total records tanpa filter
+            $totalRecords = $query->count();
+
+            // Global search
+            if ($request->has('search') && !empty($request->search['value'])) {
+                $search = $request->search['value'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('kode_urusan', 'like', "%{$search}%")
+                        ->orWhere('nama_urusan', 'like', "%{$search}%");
+                });
+            }
+
+            // Total records setelah filter
+            $totalFiltered = $query->count();
+
+            // Sorting
+            if ($request->has('order')) {
+                $orderColumnIndex = $request->order[0]['column'];
+                $orderDir = $request->order[0]['dir'];
+
+                $columns = ['id', 'kode_urusan', 'nama_urusan'];
+
+                if (isset($columns[$orderColumnIndex])) {
+                    $query->orderBy($columns[$orderColumnIndex], $orderDir);
+                }
+            } else {
+                $query->orderBy('id', 'asc');
+            }
+
+            // Pagination
+            $start = $request->start ?? 0;
+            $length = $request->length ?? 10;
+
+            $data = $query->skip($start)
+                ->take($length)
+                ->get();
+
+            // Format data untuk DataTables
+            $formattedData = [];
+            foreach ($data as $item) {
+                $formattedData[] = [
+                    'id' => $item->id,
+                    'kode_urusan' => $item->kode_urusan,
+                    'nama_urusan' => $item->nama_urusan,
+                    'actions' => $item->id
+                ];
+            }
+
+            return response()->json([
+                'draw' => intval($request->draw),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalFiltered,
+                'data' => $formattedData
+            ]);
+        }
+
+        return response()->json(['error' => 'Invalid request'], 400);
     }
 
     public function store(Request $request)
     {
-        // Validasi input
         $validator = Validator::make($request->all(), [
             'kode_urusan' => 'required|max:10|unique:urusan,kode_urusan',
             'nama_urusan' => 'required|max:255',
@@ -38,13 +101,10 @@ class UrusanController extends Controller
         }
 
         try {
-            // Menggunakan database transaction untuk thread safety
             DB::transaction(function () use ($request) {
-                // Lock table untuk mencegah race condition
                 $maxId = DB::table('urusan')->lockForUpdate()->max('id') ?? 0;
                 $newId = $maxId + 1;
 
-                // Insert dengan ID yang sudah ditentukan
                 DB::table('urusan')->insert([
                     'id' => $newId,
                     'kode_urusan' => $request->kode_urusan,
@@ -115,7 +175,6 @@ class UrusanController extends Controller
         try {
             $urusan = Urusan::findOrFail($id);
 
-            // Cek apakah urusan memiliki relasi dengan bidang urusan
             if ($urusan->bidangUrusan()->exists()) {
                 return redirect()->back()
                     ->with('error', 'Tidak dapat menghapus urusan karena masih memiliki bidang urusan terkait.');
@@ -150,7 +209,6 @@ class UrusanController extends Controller
         try {
             $ids = $request->ids;
 
-            // Cek apakah ada urusan yang memiliki relasi dengan bidang urusan
             $urusanWithRelations = Urusan::whereIn('id', $ids)
                 ->whereHas('bidangUrusan')
                 ->pluck('nama_urusan')

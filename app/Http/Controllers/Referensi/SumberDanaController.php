@@ -5,158 +5,286 @@ namespace App\Http\Controllers\Referensi;
 use App\Http\Controllers\Controller;
 use App\Models\Referensi\SumberDana;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class SumberDanaController extends Controller
 {
     public function index()
     {
-        $data = SumberDana::orderBy('kode_dana')->get();
-        return view('referensi.sumber-dana.index', compact('data'));
+        return view('referensi.sumber-dana.index');
+    }
+
+    public function getData(Request $request)
+    {
+        if ($request->ajax()) {
+            // Gunakan Query Builder untuk optimasi memory
+            $query = DB::table('sumber_dana');
+
+            // Total records tanpa filter
+            $totalRecords = DB::table('sumber_dana')->count();
+
+            // Global search
+            if ($request->has('search') && !empty($request->search['value'])) {
+                $search = $request->search['value'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('kode_dana', 'like', "%{$search}%")
+                        ->orWhere('nama_dana', 'like', "%{$search}%")
+                        ->orWhere('sumber_dana', 'like', "%{$search}%")
+                        ->orWhere('set_input', 'like', "%{$search}%");
+                });
+            }
+
+            // Total records setelah filter
+            $totalFiltered = $query->count();
+
+            // Sorting
+            if ($request->has('order')) {
+                $orderColumnIndex = $request->order[0]['column'];
+                $orderDir = $request->order[0]['dir'];
+
+                // Columns: 0=checkbox, 1=kode_dana, 2=nama_dana, 3=sumber_dana, 4=set_input, 5=actions
+                $columns = [
+                    'id',
+                    'kode_dana',
+                    'nama_dana',
+                    'sumber_dana',
+                    'set_input',
+                    'id'
+                ];
+
+                if (isset($columns[$orderColumnIndex])) {
+                    $query->orderBy($columns[$orderColumnIndex], $orderDir);
+                }
+            } else {
+                $query->orderBy('kode_dana', 'asc');
+            }
+
+            // Pagination
+            $start = $request->start ?? 0;
+            $length = $request->length ?? 10;
+
+            // Select only needed columns
+            $data = $query->select([
+                'id',
+                'kode_dana',
+                'nama_dana',
+                'sumber_dana',
+                'set_input'
+            ])
+                ->skip($start)
+                ->take($length)
+                ->get();
+
+            // Format data untuk DataTables
+            $formattedData = [];
+            foreach ($data as $item) {
+                $formattedData[] = [
+                    'id' => $item->id,
+                    'kode_dana' => $item->kode_dana,
+                    'nama_dana' => $item->nama_dana,
+                    'sumber_dana' => $item->sumber_dana ?? '-',
+                    'set_input' => $item->set_input ?? 'Tidak',
+                    'actions' => $item->id
+                ];
+            }
+
+            return response()->json([
+                'draw' => intval($request->draw),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalFiltered,
+                'data' => $formattedData
+            ]);
+        }
+
+        return response()->json(['error' => 'Invalid request'], 400);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'kode_dana' => 'required|string|max:50|unique:sumber_dana,kode_dana',
             'nama_dana' => 'required|string|max:255',
             'sumber_dana' => 'nullable|string',
         ], [
-            'kode_dana.required' => 'Kode Dana wajib diisi',
-            'kode_dana.unique' => 'Kode Dana sudah ada',
-            'nama_dana.required' => 'Nama Dana wajib diisi',
+            'kode_dana.required' => 'Kode dana wajib diisi',
+            'kode_dana.unique' => 'Kode dana sudah ada',
+            'nama_dana.required' => 'Nama dana wajib diisi',
         ]);
 
-        try {
-            $nextId = $this->getNextId();
+        if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-            DB::table('sumber_dana')->insert([
-                'id' => $nextId,
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error', 'Gagal menambah data. Periksa kembali input Anda.');
+        }
+
+        try {
+            $sumberDana = SumberDana::create([
                 'kode_dana' => $request->kode_dana,
                 'nama_dana' => $request->nama_dana,
                 'sumber_dana' => $request->sumber_dana,
-                'time_stamp' => now(),
-                'updated_at' => now(),
+                'set_input' => 'Tidak',
+                'time_stamp' => now()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data Sumber Dana berhasil ditambahkan'
-            ]);
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data sumber dana berhasil ditambahkan',
+                    'data' => $sumberDana
+                ], 201);
+            }
+
+            return redirect()->route('referensi.sumber-dana.index')
+                ->with('success', 'Data sumber dana berhasil ditambahkan');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menambahkan data: ' . $e->getMessage()
-            ], 500);
+            \Log::error('Error creating sumber dana: ' . $e->getMessage());
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menyimpan data',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
     }
 
     public function edit($id)
     {
-        $sumberDana = DB::table('sumber_dana')->where('id', $id)->first();
-
-        if (!$sumberDana) {
+        try {
+            $sumberDana = SumberDana::findOrFail($id);
+            return view('referensi.sumber-dana.edit', compact('sumberDana'));
+        } catch (\Exception $e) {
             return redirect()->route('referensi.sumber-dana.index')
-                ->with('error', 'Data Sumber Dana tidak ditemukan');
+                ->with('error', 'Sumber dana tidak ditemukan');
         }
-
-        return view('referensi.sumber-dana.edit', compact('sumberDana'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'kode_dana' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('sumber_dana', 'kode_dana')->ignore($id)
-            ],
+        $sumberDana = SumberDana::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'kode_dana' => 'required|string|max:50|unique:sumber_dana,kode_dana,' . $id,
             'nama_dana' => 'required|string|max:255',
             'sumber_dana' => 'nullable|string',
         ], [
-            'kode_dana.required' => 'Kode Dana wajib diisi',
-            'kode_dana.unique' => 'Kode Dana sudah ada',
-            'nama_dana.required' => 'Nama Dana wajib diisi',
+            'kode_dana.required' => 'Kode dana wajib diisi',
+            'kode_dana.unique' => 'Kode dana sudah ada',
+            'nama_dana.required' => 'Nama dana wajib diisi',
         ]);
 
-        try {
-            $updated = DB::table('sumber_dana')
-                ->where('id', $id)
-                ->update([
-                    'kode_dana' => $request->kode_dana,
-                    'nama_dana' => $request->nama_dana,
-                    'sumber_dana' => $request->sumber_dana,
-                    'updated_at' => now(),
-                ]);
-
-            if ($updated) {
-                return redirect()->route('referensi.sumber-dana.index')
-                    ->with('success', 'Data Sumber Dana berhasil diupdate');
-            } else {
-                return redirect()->back()
-                    ->with('error', 'Data tidak ditemukan atau tidak ada perubahan')
-                    ->withInput();
-            }
-        } catch (\Exception $e) {
+        if ($validator->fails()) {
             return redirect()->back()
-                ->with('error', 'Gagal mengupdate data: ' . $e->getMessage())
-                ->withInput();
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data. Periksa kembali input Anda.');
+        }
+
+        try {
+            $sumberDana->update([
+                'kode_dana' => $request->kode_dana,
+                'nama_dana' => $request->nama_dana,
+                'sumber_dana' => $request->sumber_dana,
+            ]);
+
+            return redirect()->route('referensi.sumber-dana.index')
+                ->with('success', 'Data sumber dana berhasil diperbarui');
+        } catch (\Exception $e) {
+            \Log::error('Error updating sumber dana: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
         }
     }
 
     public function destroy($id)
     {
         try {
-            $deleted = DB::table('sumber_dana')->where('id', $id)->delete();
+            $sumberDana = SumberDana::findOrFail($id);
+            $nama_dana = $sumberDana->nama_dana;
+            $sumberDana->delete();
 
-            if ($deleted) {
+            if (request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Data Sumber Dana berhasil dihapus'
+                    'message' => "Data sumber dana '{$nama_dana}' berhasil dihapus"
                 ]);
-            } else {
+            }
+
+            return redirect()->route('referensi.sumber-dana.index')
+                ->with('success', "Data sumber dana '{$nama_dana}' berhasil dihapus");
+        } catch (\Exception $e) {
+            \Log::error('Error deleting sumber dana: ' . $e->getMessage());
+
+            if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Data tidak ditemukan'
-                ], 404);
+                    'message' => 'Terjadi kesalahan saat menghapus data'
+                ], 500);
             }
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
         }
     }
 
     public function bulkDelete(Request $request)
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:sumber_dana,id'
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:sumber_dana,id',
         ]);
 
-        try {
-            $deleted = DB::table('sumber_dana')
-                ->whereIn('id', $request->ids)
-                ->delete();
+        if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data yang dipilih tidak valid'
+                ], 422);
+            }
 
-            return response()->json([
-                'success' => true,
-                'message' => $deleted . ' data berhasil dihapus'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->with('error', 'Data yang dipilih tidak valid');
         }
-    }
 
-    private function getNextId()
-    {
-        $maxId = DB::table('sumber_dana')->max('id');
-        return $maxId ? $maxId + 1 : 1;
+        try {
+            $deletedCount = SumberDana::whereIn('id', $request->ids)->delete();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "{$deletedCount} data sumber dana berhasil dihapus"
+                ]);
+            }
+
+            return redirect()->route('referensi.sumber-dana.index')
+                ->with('success', "{$deletedCount} data sumber dana berhasil dihapus");
+        } catch (\Exception $e) {
+            \Log::error('Error bulk deleting sumber dana: ' . $e->getMessage());
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menghapus data'
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
+        }
     }
 }

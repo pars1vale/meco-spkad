@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Shs\KelompokStandarHargaController;
+use App\Http\Controllers\Shs\KelompokBarangController;
 use App\Http\Controllers\Shs\StandarHargaController;
 use App\Http\Controllers\Shs\SatuanController;
 use Illuminate\Support\Facades\Route;
@@ -14,13 +14,13 @@ Route::middleware('auth')->prefix('standarHarga')->group(function () {
     Route::delete('/satuan/{id}', [SatuanController::class, 'destroy'])->name('satuan.destroy');
     Route::post('/satuan/bulk-delete', [SatuanController::class, 'bulkDelete'])->name('satuan.bulk-delete');
 
-    Route::get('/kel_satuan_harga', [KelompokStandarHargaController::class, 'index'])->name('kelompok_satuan_harga.index');
-    Route::post('/kel_satuan_harga', [KelompokStandarHargaController::class, 'store'])->name('kelompok_satuan_harga.store');
-    Route::get('/kel_satuan_harga/{id}/edit', [KelompokStandarHargaController::class, 'edit'])->name('kelompok_satuan_harga.edit');
-    Route::put('/kel_satuan_harga/{id}', [KelompokStandarHargaController::class, 'update'])->name('kelompok_satuan_harga.update');
-    Route::delete('/kel_satuan_harga/{id}', [KelompokStandarHargaController::class, 'destroy'])->name('kelompok_satuan_harga.destroy');
-    Route::post('/kel_satuan_harga/bulk-delete', [KelompokStandarHargaController::class, 'bulkDelete'])->name('kelompok_satuan_harga.bulk-delete');
-    Route::get('/kelompok-standar-harga/get-by-tipe', [KelompokStandarHargaController::class, 'getByTipe'])->name('kelompok_satuan_harga.get-by-tipe');
+    Route::get('/kel_satuan_harga', [KelompokBarangController::class, 'index'])->name('kelompok_satuan_harga.index');
+    Route::post('/kel_satuan_harga', [KelompokBarangController::class, 'store'])->name('kelompok_satuan_harga.store');
+    Route::get('/kel_satuan_harga/{id}/edit', [KelompokBarangController::class, 'edit'])->name('kelompok_satuan_harga.edit');
+    Route::put('/kel_satuan_harga/{id}', [KelompokBarangController::class, 'update'])->name('kelompok_satuan_harga.update');
+    Route::delete('/kel_satuan_harga/{id}', [KelompokBarangController::class, 'destroy'])->name('kelompok_satuan_harga.destroy');
+    Route::post('/kel_satuan_harga/bulk-delete', [KelompokBarangController::class, 'bulkDelete'])->name('kelompok_satuan_harga.bulk-delete');
+    Route::get('/kelompok-standar-harga/get-by-tipe', [KelompokBarangController::class, 'getByTipe'])->name('kelompok_satuan_harga.get-by-tipe');
 
     Route::get('/', [StandarHargaController::class, 'index'])->name('standar_harga.index');
     Route::post('/', [StandarHargaController::class, 'store'])->name('standar_harga.store');

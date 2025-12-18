@@ -44,7 +44,7 @@
         </div>
 
         <div class="card-body pt-0">
-          <form id="kt_sub_kegiatan_edit_form" class="form" action="{{ route('sub-kegiatan.update', $subKegiatan->id) }}" method="POST">
+          <form id="kt_sub_kegiatan_edit_form" class="form" action="{{ route('referensi.sub-kegiatan.update', $subKegiatan->id) }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -271,25 +271,15 @@
 
       // SweetAlert for flash messages
       @if (session('success'))
-        toastr.options = {
-          "closeButton": true,
-          "debug": false,
-          "newestOnTop": false,
-          "progressBar": true,
-          "positionClass": "toastr-top-right",
-          "preventDuplicates": false,
-          "onclick": null,
-          "showDuration": "300",
-          "hideDuration": "1000",
-          "timeOut": "5000",
-          "extendedTimeOut": "1000",
-          "showEasing": "swing",
-          "hideEasing": "linear",
-          "showMethod": "fadeIn",
-          "hideMethod": "fadeOut"
-        };
-
-        toastr.success("{{ session('success') }}", "PROSES BERHASIL!");
+        Swal.fire({
+          text: "{{ session('success') }}",
+          icon: "success",
+          buttonsStyling: false,
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: "btn fw-bold btn-primary",
+          }
+        });
       @endif
 
       @if (session('error'))

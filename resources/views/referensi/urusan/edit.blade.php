@@ -24,7 +24,7 @@
     <div id="kt_app_content_container" class="app-container container-fluid">
       <div class="card">
         <div class="card-body">
-          <form action="{{ route('urusan.update', $urusan->id) }}" method="POST">
+          <form action="{{ route('referensi.urusan.update', $urusan->id) }}" method="POST">
             @csrf
             @method('PUT')
 

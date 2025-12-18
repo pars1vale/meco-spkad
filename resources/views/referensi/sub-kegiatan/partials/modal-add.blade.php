@@ -1,7 +1,7 @@
 <div class="modal fade" id="kt_modal_add_sub_kegiatan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered mw-650px">
     <div class="modal-content">
-      <form class="form" action="{{ route('sub-kegiatan.store') }}" method="POST" id="kt_modal_add_sub_kegiatan_form">
+      <form class="form" action="{{ route('referensi.sub-kegiatan.store') }}" method="POST" id="kt_modal_add_sub_kegiatan_form">
         @csrf
         <div class="modal-header" id="kt_modal_add_sub_kegiatan_header">
           <h2 class="fw-bold">Tambah Sub Kegiatan</h2>
@@ -16,16 +16,14 @@
             <!-- Kegiatan -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Kegiatan</label>
-              <select name="id_kegiatan" data-control="select2" data-dropdown-parent="#kt_modal_add_sub_kegiatan"
-                class="form-select form-select-solid @error('id_kegiatan') is-invalid @enderror" data-placeholder="Pilih Kegiatan"
-                data-allow-clear="true" required>
-                <option></option> {{-- penting untuk menampilkan placeholder di Select2 --}}
+              <select class="form-select form-select-solid @error('id_kegiatan') is-invalid @enderror" data-control="select2"
+                data-dropdown-parent="#kt_modal_add_sub_kegiatan" name="id_kegiatan" required>
+                <option value="">Pilih Kegiatan</option>
                 @php
                   $currentUrusan = null;
                   $currentBidang = null;
                   $currentProgram = null;
                 @endphp
-
                 @foreach ($listKegiatan as $kegiatan)
                   @if ($currentUrusan !== $kegiatan->nama_urusan)
                     @if ($currentUrusan !== null)
@@ -38,7 +36,6 @@
                         $currentProgram = null;
                       @endphp
                   @endif
-
                   @if ($currentBidang !== $kegiatan->nama_bidang_urusan)
                     @if ($currentBidang !== null)
                       </optgroup>
@@ -49,7 +46,6 @@
                         $currentProgram = null;
                       @endphp
                   @endif
-
                   @if ($currentProgram !== $kegiatan->nama_program)
                     @if ($currentProgram !== null)
                       </optgroup>
@@ -57,13 +53,10 @@
                     <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;{{ $kegiatan->kode_program }} - {{ $kegiatan->nama_program }}">
                       @php $currentProgram = $kegiatan->nama_program; @endphp
                   @endif
-
-                  <option value="{{ $kegiatan->id }}"
-                    {{ old('id_kegiatan', isset($subKegiatan) ? $subKegiatan->id_kegiatan : '') == $kegiatan->id ? 'selected' : '' }}>
+                  <option value="{{ $kegiatan->id }}" {{ old('id_kegiatan') == $kegiatan->id ? 'selected' : '' }}>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $kegiatan->kode_kegiatan }} - {{ $kegiatan->nama_kegiatan }}
                   </option>
                 @endforeach
-
                 @if ($currentProgram !== null)
                   </optgroup>
                 @endif
@@ -74,7 +67,6 @@
                   </optgroup>
                 @endif
               </select>
-
               @error('id_kegiatan')
                 <div class="invalid-feedback">{{ $message }}</div>
               @enderror
@@ -119,5 +111,4 @@
   </div>
 </div>
 
-
-{{-- @include('referensi.sub-kegiatan.partials.scripts-modal') --}}
+@include('referensi.sub-kegiatan.partials.scripts-modal')
