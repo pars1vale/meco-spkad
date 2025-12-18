@@ -222,7 +222,6 @@
               <tbody>
                 @php $no = 1; @endphp
                 @foreach($totalPerObjek as $objekId => $objek)
-                  <!-- Header Objek Belanja -->
                   <tr class="bg-light-primary">
                     <td class="fw-bold">{{ $no++ }}</td>
                     <td class="fw-bold">{{ $objek['kode_rekening'] }}</td>
@@ -231,7 +230,6 @@
                     <td></td>
                   </tr>
                   
-                  <!-- Detail Rincian -->
                   @foreach($objek['items'] as $index => $item)
                   <tr>
                     <td class="text-center">{{ $no++ }}</td>
@@ -280,7 +278,6 @@
 
   </div>
 </div>
-@endsection
 
 <!-- Modal Tambah Rincian -->
 <div class="modal fade" id="modal_add_rincian" tabindex="-1" aria-hidden="true">
@@ -321,7 +318,7 @@
             <div class="form-text">Pilih jenis objek belanja terlebih dahulu</div>
           </div>
 
-          <!-- Step 2: Pilih Rekening (Akan muncul setelah pilih objek belanja) -->
+          <!-- Step 2: Pilih Rekening -->
           <div class="mb-7" id="wrapper_akun_rekening" style="display: none;">
             <label class="required form-label fw-bold fs-6">Rekening Belanja</label>
             <select class="form-select form-select-solid" id="select_akun_rekening" name="id_akun" required disabled>
@@ -330,6 +327,32 @@
             <div class="form-text">Pilih rekening belanja yang sesuai</div>
             <input type="hidden" name="kode_rekening" id="kode_rekening">
             <input type="hidden" name="nama_rekening" id="nama_rekening">
+          </div>
+
+          <!-- Step 3: Pilih Tipe Paket -->
+          <div class="mb-7">
+            <label class="required form-label fw-bold fs-6">Pengelompokan Belanja / Paket Pekerjaan</label>
+            <select class="form-select form-select-solid" id="select_tipe_paket" name="tipe_paket" required>
+              <option value="">Pilih Paket/Kelompok...</option>
+              <option value="1">Pemaketan Kerja</option>
+              <option value="2">Pengelompokan Belanja</option>
+            </select>
+            <div class="form-text">Pilih jenis pemaketan atau pengelompokan</div>
+          </div>
+
+          <!-- Step 4: Pilih/Tambah Uraian Paket -->
+          <div class="mb-7" id="wrapper_uraian_paket" style="display: none;">
+            <label class="required form-label fw-bold fs-6">Uraian Pengelompokan Belanja / Paket Pekerjaan</label>
+            <div class="input-group">
+              <select class="form-select form-select-solid" id="select_uraian_paket" name="id_paket_belanja" required disabled>
+                <option value="">Pilih Paket Belanja...</option>
+              </select>
+              <button class="btn btn-primary" type="button" id="btn_open_modal_paket">
+                <i class="ki-outline ki-add-files fs-4"></i>
+                Tambah Paket Belanja
+              </button>
+            </div>
+            <div class="form-text">Pilih paket belanja yang sudah ada atau tambah baru</div>
           </div>
 
           <div class="separator separator-dashed my-7"></div>
@@ -377,6 +400,91 @@
   </div>
 </div>
 
+<!-- Modal Tambah Paket Belanja (Nested Modal) -->
+<div class="modal fade" id="modal_add_paket" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered mw-650px">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="fw-bold">Tambah Paket Belanja</h2>
+        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+          <i class="ki-outline ki-cross fs-1"></i>
+        </div>
+      </div>
+      <div class="modal-body">
+        <form id="form_add_paket">
+          <input type="hidden" name="id_rinci_sub_bl" value="{{ $subKegiatan->id }}">
+          <input type="hidden" name="tipe_paket_new" id="tipe_paket_new">
+          <input type="hidden" name="jenis_bl_new" id="jenis_bl_new">
+          <input type="hidden" name="id_akun_new" id="id_akun_new">
+          
+          <!-- Informasi Context (Read-only) -->
+          <div class="alert alert-info d-flex align-items-center p-4 mb-7">
+            <i class="ki-outline ki-information-5 fs-2x text-info me-4"></i>
+            <div>
+              <div class="text-info fw-bold">Paket/Kelompok akan dibuat untuk:</div>
+              <div id="info_jenis_belanja" class="text-gray-800 mt-1"></div>
+              <div id="info_rekening" class="text-gray-800"></div>
+            </div>
+          </div>
+          
+          <!-- Uraian Pemaketan Kerja/Pengelompokan Belanja -->
+          <div class="mb-7">
+            <label class="required form-label fw-bold fs-6">Uraian Pemaketan Kerja/Pengelompokan Belanja</label>
+            <textarea class="form-control form-control-solid" name="uraian_paket" rows="4" placeholder="Masukkan uraian pemaketan kerja atau pengelompokan belanja..." required></textarea>
+            <div class="form-text">
+              Contoh: "Belanja Alat Tulis Kantor Semester I" atau "Pemaketan Pekerjaan Pembangunan Gedung Kantor"
+            </div>
+          </div>
+
+          <div class="separator separator-dashed my-5"></div>
+
+          <!-- Catatan -->
+          <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-4">
+            <i class="ki-outline ki-information fs-2tx text-warning me-4"></i>
+            <div class="d-flex flex-stack flex-grow-1">
+              <div class="fw-semibold">
+                <h4 class="text-gray-900 fw-bold">Catatan Penting</h4>
+                <div class="fs-6 text-gray-700">
+                  • Paket/kelompok ini akan tersimpan sebagai header grouping di RKA<br>
+                  • Rincian belanja yang dibuat nanti akan terhubung ke paket ini<br>
+                  • Gunakan nama yang jelas dan mudah diidentifikasi
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+        <button type="button" class="btn btn-success" id="btn_save_paket">
+          <span class="indicator-label">
+            <i class="ki-outline ki-check fs-3"></i>
+            Simpan Paket
+          </span>
+          <span class="indicator-progress" style="display: none;">
+            Menyimpan... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Update info saat modal paket dibuka
+$('#modal_add_paket').on('shown.bs.modal', function () {
+  // Ambil info dari form rincian
+  const jenisBelanja = $('#select_jenis_bl option:selected').text();
+  const rekening = $('#select_akun_rekening option:selected').text();
+  const tipePaket = $('#select_tipe_paket option:selected').text();
+  
+  // Update display info
+  $('#info_jenis_belanja').html('<strong>Objek Belanja:</strong> ' + jenisBelanja);
+  $('#info_rekening').html('<strong>Rekening:</strong> ' + rekening);
+});
+</script>
+
 <style>
 @media print {
   .app-toolbar, .card-toolbar, .btn-edit, .btn-delete, .modal {
@@ -388,7 +496,6 @@
   }
 }
 
-/* Styling untuk Select2 di dalam modal */
 .select2-container {
   width: 100% !important;
 }
@@ -414,6 +521,7 @@
 .select2-dropdown {
   border: 1px solid #e4e6ef;
   border-radius: 0.475rem;
+  z-index: 10000 !important;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
@@ -425,7 +533,20 @@
   border-radius: 0.475rem;
   padding: 0.65rem 1rem;
 }
+
+#modal_add_paket {
+  z-index: 1060 !important;
+}
+
+#modal_add_paket .modal-backdrop {
+  z-index: 1055 !important;
+}
+
+.select2-dropdown-above-modal {
+  z-index: 10001 !important;
+}
 </style>
+@endsection
 
 @section('scripts')
 <script>
@@ -433,20 +554,17 @@ $(document).ready(function() {
   console.log('=== PAGE LOADED ===');
 
   // ============================================================
-  // INITIALIZE SELECT2 SAAT MODAL DIBUKA
+  // INITIALIZE SELECT2
   // ============================================================
   $('#modal_add_rincian').on('shown.bs.modal', function () {
-    console.log('Modal opened, initializing Select2...');
+    console.log('Modal Rincian opened, initializing Select2...');
     
-    // Destroy jika sudah ada
-    if ($('#select_jenis_bl').hasClass('select2-hidden-accessible')) {
-      $('#select_jenis_bl').select2('destroy');
-    }
-    if ($('#select_akun_rekening').hasClass('select2-hidden-accessible')) {
-      $('#select_akun_rekening').select2('destroy');
-    }
+    ['#select_jenis_bl', '#select_akun_rekening', '#select_tipe_paket', '#select_uraian_paket'].forEach(function(selector) {
+      if ($(selector).hasClass('select2-hidden-accessible')) {
+        $(selector).select2('destroy');
+      }
+    });
 
-    // Initialize Select2 untuk Jenis Belanja
     $('#select_jenis_bl').select2({
       dropdownParent: $('#modal_add_rincian'),
       placeholder: 'Pilih Objek Belanja',
@@ -454,7 +572,6 @@ $(document).ready(function() {
       width: '100%'
     });
 
-    // Initialize Select2 untuk Akun Rekening
     $('#select_akun_rekening').select2({
       dropdownParent: $('#modal_add_rincian'),
       placeholder: 'Pilih rekening belanja...',
@@ -462,7 +579,19 @@ $(document).ready(function() {
       width: '100%'
     });
 
-    console.log('Select2 initialized successfully');
+    $('#select_tipe_paket').select2({
+      dropdownParent: $('#modal_add_rincian'),
+      placeholder: 'Pilih Paket/Kelompok...',
+      allowClear: true,
+      width: '100%'
+    });
+
+    $('#select_uraian_paket').select2({
+      dropdownParent: $('#modal_add_rincian'),
+      placeholder: 'Pilih Paket Belanja...',
+      allowClear: true,
+      width: '100%'
+    });
   });
 
   // ============================================================
@@ -474,9 +603,7 @@ $(document).ready(function() {
     
     console.log('=== JENIS BELANJA CHANGED ===');
     console.log('Jenis Belanja:', jenisBelanja);
-    console.log('Tahun Anggaran:', tahunAnggaran);
     
-    // Reset akun rekening
     if (!jenisBelanja) {
       $('#wrapper_akun_rekening').hide();
       $('#select_akun_rekening')
@@ -485,17 +612,11 @@ $(document).ready(function() {
       return;
     }
 
-    // Show loading state
     $('#select_akun_rekening')
       .prop('disabled', true)
       .html('<option value="">⏳ Memuat data rekening...</option>');
     $('#wrapper_akun_rekening').show();
 
-    console.log('Sending AJAX to:', '{{ route("rincian.get-akun") }}');
-
-    // ============================================================
-    // AJAX REQUEST KE SERVER
-    // ============================================================
     $.ajax({
       url: '{{ route("rincian.get-akun") }}',
       type: 'GET',
@@ -504,41 +625,26 @@ $(document).ready(function() {
         tahun_anggaran: tahunAnggaran
       },
       dataType: 'json',
-      beforeSend: function() {
-        console.log('AJAX beforeSend...');
-      },
       success: function(response) {
-        console.log('=== AJAX SUCCESS ===');
-        console.log('Response:', response);
+        console.log('AJAX SUCCESS:', response);
         
         if (response.success) {
-          // Clear dan reset select
           $('#select_akun_rekening').empty();
-          
-          // Tambahkan option default
-          $('#select_akun_rekening').append(
-            '<option value="">Pilih rekening belanja...</option>'
-          );
+          $('#select_akun_rekening').append('<option value="">Pilih rekening belanja...</option>');
           
           if (response.data && response.data.length > 0) {
-            console.log('Populating', response.data.length, 'akun...');
-            
-            // Populate options
             $.each(response.data, function(index, akun) {
               const option = $('<option></option>')
                 .val(akun.id)
                 .text(akun.text)
                 .attr('data-kode', akun.kode_akun)
-                .attr('data-nama', akun.nama_akun)
-                .attr('data-level', akun.level);
+                .attr('data-nama', akun.nama_akun);
               
               $('#select_akun_rekening').append(option);
             });
             
-            // Enable select dan trigger change untuk update Select2
             $('#select_akun_rekening').prop('disabled', false);
             
-            // Trigger Select2 to refresh
             if ($('#select_akun_rekening').hasClass('select2-hidden-accessible')) {
               $('#select_akun_rekening').select2('destroy');
               $('#select_akun_rekening').select2({
@@ -551,36 +657,15 @@ $(document).ready(function() {
             
             toastr.success(`✓ ${response.data.length} rekening tersedia`, 'Berhasil');
           } else {
-            $('#select_akun_rekening')
-              .html('<option value="">❌ Tidak ada data rekening</option>');
+            $('#select_akun_rekening').html('<option value="">❌ Tidak ada data rekening</option>');
             toastr.warning('Tidak ada rekening untuk objek belanja ini', 'Perhatian');
           }
-        } else {
-          console.error('Response not success:', response);
-          $('#select_akun_rekening')
-            .html('<option value="">❌ Error memuat data</option>');
-          toastr.error(response.message || 'Gagal memuat data', 'Error');
         }
       },
-      error: function(xhr, status, error) {
-        console.error('=== AJAX ERROR ===');
-        console.error('Status:', xhr.status);
-        console.error('Status Text:', status);
-        console.error('Error:', error);
-        console.error('Response:', xhr.responseText);
-        
-        let errorMsg = 'Gagal memuat data rekening';
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-          errorMsg = xhr.responseJSON.message;
-        }
-        
-        $('#select_akun_rekening')
-          .html('<option value="">❌ Error: ' + error + '</option>');
-        
-        toastr.error(errorMsg, 'Error AJAX');
-      },
-      complete: function() {
-        console.log('AJAX Complete');
+      error: function(xhr) {
+        console.error('AJAX ERROR:', xhr);
+        $('#select_akun_rekening').html('<option value="">❌ Error memuat data</option>');
+        toastr.error('Gagal memuat data rekening', 'Error');
       }
     });
   });
@@ -596,11 +681,229 @@ $(document).ready(function() {
     $('#kode_rekening').val(kodeAkun || '');
     $('#nama_rekening').val(namaAkun || '');
     
-    console.log('Rekening selected:', {
-      id: $(this).val(),
-      kode: kodeAkun,
-      nama: namaAkun
+    console.log('Rekening selected:', { id: $(this).val(), kode: kodeAkun, nama: namaAkun });
+    
+    // RELOAD paket list jika tipe paket sudah dipilih
+    const tipePaket = $('#select_tipe_paket').val();
+    if (tipePaket) {
+      loadPaketList();
+    }
+  });
+
+  // ============================================================
+  // EVENT: KETIKA TIPE PAKET DIPILIH
+  // ============================================================
+  $('#select_tipe_paket').on('change', function() {
+    const tipePaket = $(this).val();
+    
+    console.log('=== TIPE PAKET CHANGED ===');
+    console.log('Tipe Paket:', tipePaket);
+    
+    if (!tipePaket) {
+      $('#wrapper_uraian_paket').hide();
+      $('#select_uraian_paket')
+        .prop('disabled', true)
+        .html('<option value="">Pilih Paket Belanja...</option>');
+      return;
+    }
+
+    loadPaketList();
+  });
+
+  // ============================================================
+  // FUNCTION: LOAD PAKET LIST
+  // ============================================================
+  function loadPaketList() {
+    const tipePaket = $('#select_tipe_paket').val();
+    const idRinciSubBl = $('input[name="id_rinci_sub_bl"]').val();
+    const jenisBelanja = $('#select_jenis_bl').val();
+    
+    if (!tipePaket || !idRinciSubBl) {
+      return;
+    }
+
+    $('#select_uraian_paket')
+      .prop('disabled', true)
+      .html('<option value="">⏳ Memuat data paket...</option>');
+    $('#wrapper_uraian_paket').show();
+
+    $.ajax({
+      url: '{{ route("paket.list") }}',
+      type: 'GET',
+      data: {
+        id_rinci_sub_bl: idRinciSubBl,
+        tipe_paket: tipePaket,
+        jenis_bl: jenisBelanja
+      },
+      success: function(response) {
+        console.log('Load Paket Response:', response);
+        
+        $('#select_uraian_paket').empty();
+        $('#select_uraian_paket').append('<option value="">Pilih Paket Belanja...</option>');
+        
+        if (response.success && response.data && response.data.length > 0) {
+          $.each(response.data, function(index, paket) {
+            $('#select_uraian_paket').append(
+              $('<option></option>')
+                .val(paket.id)
+                .text(paket.uraian_paket)
+            );
+          });
+          
+          toastr.success(`✓ ${response.data.length} paket tersedia`, 'Berhasil');
+        } else {
+          toastr.info('Belum ada paket, silakan tambahkan', 'Info');
+        }
+        
+        $('#select_uraian_paket').prop('disabled', false);
+        
+        if ($('#select_uraian_paket').hasClass('select2-hidden-accessible')) {
+          $('#select_uraian_paket').select2('destroy');
+          $('#select_uraian_paket').select2({
+            dropdownParent: $('#modal_add_rincian'),
+            placeholder: 'Pilih Paket Belanja...',
+            allowClear: true,
+            width: '100%'
+          });
+        }
+      },
+      error: function(xhr) {
+        console.error('Load Paket Error:', xhr);
+        $('#select_uraian_paket').html('<option value="">❌ Error memuat data</option>');
+        $('#select_uraian_paket').prop('disabled', false);
+        toastr.error('Gagal memuat data paket', 'Error');
+      }
     });
+  }
+
+  // ============================================================
+  // BUTTON: OPEN MODAL PAKET
+  // ============================================================
+  $('#btn_open_modal_paket').on('click', function() {
+    const tipePaket = $('#select_tipe_paket').val();
+    const jenisBelanja = $('#select_jenis_bl').val();
+    const idAkun = $('#select_akun_rekening').val();
+    
+    // Validasi
+    if (!jenisBelanja) {
+      toastr.error('Pilih objek belanja terlebih dahulu', 'Validasi');
+      return;
+    }
+    
+    if (!idAkun) {
+      toastr.error('Pilih rekening belanja terlebih dahulu', 'Validasi');
+      return;
+    }
+    
+    if (!tipePaket) {
+      toastr.error('Pilih tipe paket terlebih dahulu', 'Validasi');
+      return;
+    }
+
+    console.log('Opening modal paket with:', { tipePaket, jenisBelanja, idAkun });
+    
+    // Set hidden fields
+    $('#tipe_paket_new').val(tipePaket);
+    $('#jenis_bl_new').val(jenisBelanja);
+    $('#id_akun_new').val(idAkun);
+    
+    $('#modal_add_rincian').css('z-index', 1050);
+    $('#modal_add_paket').modal('show');
+  });
+
+  // ============================================================
+  // MODAL PAKET SHOWN
+  // ============================================================
+  $('#modal_add_paket').on('shown.bs.modal', function () {
+    console.log('Modal Paket opened');
+    $('#modal_add_paket').css('z-index', 1060);
+    $('.modal-backdrop').not(':first').css('z-index', 1055);
+    
+    // Update info display
+    const jenisBelanja = $('#select_jenis_bl option:selected').text();
+    const rekening = $('#select_akun_rekening option:selected').text();
+    
+    $('#info_jenis_belanja').html('<strong>Objek Belanja:</strong> ' + jenisBelanja);
+    $('#info_rekening').html('<strong>Rekening:</strong> ' + rekening);
+  });
+
+  // ============================================================
+  // SAVE PAKET BELANJA
+  // ============================================================
+  $('#btn_save_paket').on('click', function() {
+    const form = $('#form_add_paket');
+    const btn = $(this);
+    
+    if (!form[0].checkValidity()) {
+      form[0].reportValidity();
+      return;
+    }
+
+    const tipePaket = $('#tipe_paket_new').val();
+    const jenisBelanja = $('#jenis_bl_new').val();
+    const idAkun = $('#id_akun_new').val();
+    const uraianPaket = $('textarea[name="uraian_paket"]').val();
+
+    if (!tipePaket || !jenisBelanja || !idAkun || !uraianPaket) {
+      toastr.error('Lengkapi semua field', 'Validasi');
+      return;
+    }
+
+    btn.find('.indicator-label').hide();
+    btn.find('.indicator-progress').show();
+    btn.prop('disabled', true);
+
+    const formData = {
+      id_rinci_sub_bl: $('input[name="id_rinci_sub_bl"]').val(),
+      tipe_paket: tipePaket,
+      jenis_bl: jenisBelanja,
+      id_akun: idAkun,
+      uraian_paket: uraianPaket
+    };
+
+    console.log('Saving paket:', formData);
+
+    $.ajax({
+      url: '{{ route("paket.store") }}',
+      type: 'POST',
+      data: formData,
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      },
+      success: function(response) {
+        console.log('Save paket response:', response);
+        if (response.success) {
+          toastr.success(response.message, 'Berhasil');
+          
+          const newOption = new Option(response.data.uraian_paket, response.data.id, true, true);
+          $('#select_uraian_paket').append(newOption).trigger('change');
+          
+          $('#modal_add_paket').modal('hide');
+          $('#form_add_paket')[0].reset();
+        } else {
+          toastr.error(response.message, 'Error');
+        }
+      },
+      error: function(xhr) {
+        console.error('Save paket error:', xhr);
+        const message = xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan';
+        toastr.error(message, 'Error');
+      },
+      complete: function() {
+        btn.find('.indicator-label').show();
+        btn.find('.indicator-progress').hide();
+        btn.prop('disabled', false);
+      }
+    });
+  });
+
+  // ============================================================
+  // RESET MODAL PAKET
+  // ============================================================
+  $('#modal_add_paket').on('hidden.bs.modal', function() {
+    console.log('Modal paket hidden, resetting...');
+    $('#form_add_paket')[0].reset();
+    $('#modal_add_rincian').css('z-index', '');
   });
 
   // ============================================================
@@ -632,13 +935,11 @@ $(document).ready(function() {
     const form = $('#form_add_rincian');
     const btn = $(this);
     
-    // Validation
     if (!form[0].checkValidity()) {
       form[0].reportValidity();
       return;
     }
 
-    // Additional validation
     if (!$('#select_jenis_bl').val()) {
       toastr.error('Pilih objek belanja terlebih dahulu', 'Validasi');
       return;
@@ -649,12 +950,20 @@ $(document).ready(function() {
       return;
     }
 
-    // Show loading
+    if (!$('#select_tipe_paket').val()) {
+      toastr.error('Pilih tipe paket terlebih dahulu', 'Validasi');
+      return;
+    }
+
+    if (!$('#select_uraian_paket').val()) {
+      toastr.error('Pilih uraian paket terlebih dahulu', 'Validasi');
+      return;
+    }
+
     btn.find('.indicator-label').hide();
     btn.find('.indicator-progress').show();
     btn.prop('disabled', true);
 
-    // Prepare data
     const volumeVal = parseFloat($('input[name="volume"]').val());
     const hargaVal = parseFloat($('input[name="harga_satuan"]').val().replace(/[^\d]/g, ''));
     
@@ -664,6 +973,8 @@ $(document).ready(function() {
       id_akun: $('#select_akun_rekening').val(),
       kode_rekening: $('#kode_rekening').val(),
       nama_rekening: $('#nama_rekening').val(),
+      tipe_paket: $('#select_tipe_paket').val(),
+      id_paket_belanja: $('#select_uraian_paket').val(),
       uraian: $('textarea[name="uraian"]').val(),
       volume: volumeVal,
       satuan: $('input[name="satuan"]').val(),
@@ -672,7 +983,6 @@ $(document).ready(function() {
 
     console.log('Saving rincian:', formData);
 
-    // Ajax save
     $.ajax({
       url: '{{ route("rincian.store") }}',
       type: 'POST',
@@ -686,7 +996,6 @@ $(document).ready(function() {
           toastr.success(response.message, 'Berhasil');
           $('#modal_add_rincian').modal('hide');
           
-          // Reload page after 1 second
           setTimeout(function() {
             location.reload();
           }, 1000);
@@ -708,27 +1017,24 @@ $(document).ready(function() {
   });
 
   // ============================================================
-  // RESET MODAL SAAT DITUTUP
+  // RESET MODAL RINCIAN
   // ============================================================
   $('#modal_add_rincian').on('hidden.bs.modal', function() {
-    console.log('Modal hidden, resetting...');
-    
+    console.log('Modal rincian hidden, resetting...');
     $('#form_add_rincian')[0].reset();
     
-    // Reset Select2
-    if ($('#select_jenis_bl').hasClass('select2-hidden-accessible')) {
-      $('#select_jenis_bl').val(null).trigger('change');
-    }
-    if ($('#select_akun_rekening').hasClass('select2-hidden-accessible')) {
-      $('#select_akun_rekening').val(null).trigger('change');
-    }
+    ['#select_jenis_bl', '#select_akun_rekening', '#select_tipe_paket', '#select_uraian_paket'].forEach(function(selector) {
+      if ($(selector).hasClass('select2-hidden-accessible')) {
+        $(selector).val(null).trigger('change');
+      }
+    });
     
     $('#wrapper_akun_rekening').hide();
+    $('#wrapper_uraian_paket').hide();
     $('#total_display').text('Rp 0');
     $('#kode_rekening, #nama_rekening').val('');
   });
+
 });
 </script>
-
-
 @endsection

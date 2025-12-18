@@ -283,7 +283,7 @@
                 </select>
                 @error('id_sub_kegiatan')
                 <div class="invalid-feedback">{{ $message }}</div>
-                @enderror>
+                @enderror
                 <div class="form-text">
                   Total: <span id="total_sub_kegiatan">0</span> sub kegiatan
                 </div>

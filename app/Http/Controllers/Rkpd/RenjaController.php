@@ -782,61 +782,61 @@ class RenjaController extends Controller
         }
     }
 
-    public function showRincian($id)
-    {
-        try {
-            // Ambil data sub kegiatan
-            $subKegiatan = DB::table('data_sub_keg_bl as dskb')
-                ->select(
-                    'dskb.*',
-                    'du.nama_skpd as nama_unit'
-                )
-                ->leftJoin('data_unit as du', function($join) {
-                    $join->on('dskb.id_skpd', '=', 'du.id_skpd')
-                        ->where('du.tahun_anggaran', '=', 2025);
-                })
-                ->where('dskb.id', $id)
-                ->where('dskb.tahun_anggaran', 2025)
-                ->where('dskb.active', 1)
-                ->first();
+    // public function showRincian($id)
+    // {
+    //     try {
+    //         // Ambil data sub kegiatan
+    //         $subKegiatan = DB::table('data_sub_keg_bl as dskb')
+    //             ->select(
+    //                 'dskb.*',
+    //                 'du.nama_skpd as nama_unit'
+    //             )
+    //             ->leftJoin('data_unit as du', function($join) {
+    //                 $join->on('dskb.id_skpd', '=', 'du.id_skpd')
+    //                     ->where('du.tahun_anggaran', '=', 2025);
+    //             })
+    //             ->where('dskb.id', $id)
+    //             ->where('dskb.tahun_anggaran', 2025)
+    //             ->where('dskb.active', 1)
+    //             ->first();
 
-            if (!$subKegiatan) {
-                return redirect()->route('rkpd.renja.index')
-                    ->with('error', 'Data sub kegiatan tidak ditemukan');
-            }
+    //         if (!$subKegiatan) {
+    //             return redirect()->route('rkpd.renja.index')
+    //                 ->with('error', 'Data sub kegiatan tidak ditemukan');
+    //         }
 
-            // Ambil data sumber dana
-            $sumberDana = DB::table('data_dana_sub_keg')
-                ->where('idsubbl', $id)
-                ->where('tahun_anggaran', 2025)
-                ->where('active', 1)
-                ->get();
+    //         // Ambil data sumber dana
+    //         $sumberDana = DB::table('data_dana_sub_keg')
+    //             ->where('idsubbl', $id)
+    //             ->where('tahun_anggaran', 2025)
+    //             ->where('active', 1)
+    //             ->get();
 
-            // Ambil data indikator
-            $indikator = DB::table('data_sub_keg_indikator')
-                ->where('idsubbl', $id)
-                ->where('tahun_anggaran', 2025)
-                ->where('active', 1)
-                ->get();
+    //         // Ambil data indikator
+    //         $indikator = DB::table('data_sub_keg_indikator')
+    //             ->where('idsubbl', $id)
+    //             ->where('tahun_anggaran', 2025)
+    //             ->where('active', 1)
+    //             ->get();
 
-            // Sementara kosongkan rincian belanja jika tabel belum ada
-            $rincianBelanja = collect([]);
-            $totalPerObjek = collect([]);
+    //         // Sementara kosongkan rincian belanja jika tabel belum ada
+    //         $rincianBelanja = collect([]);
+    //         $totalPerObjek = collect([]);
 
-            return view('rkpd.renja.rincian', compact(
-                'subKegiatan',
-                'sumberDana',
-                'indikator',
-                'rincianBelanja',
-                'totalPerObjek'
-            ));
+    //         return view('rkpd.renja.rincian', compact(
+    //             'subKegiatan',
+    //             'sumberDana',
+    //             'indikator',
+    //             'rincianBelanja',
+    //             'totalPerObjek'
+    //         ));
 
-        } catch (\Exception $e) {
-            Log::error('Error showing rincian: ' . $e->getMessage());
-            return redirect()->route('rkpd.renja.index')
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
+    //     } catch (\Exception $e) {
+    //         Log::error('Error showing rincian: ' . $e->getMessage());
+    //         return redirect()->route('rkpd.renja.index')
+    //             ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    //     }
+    // }
 
     /**
      * Get akun rekening berdasarkan jenis belanja
@@ -967,9 +967,222 @@ class RenjaController extends Controller
         }
     }
     
-    /**
-     * Store rincian belanja
-     */
+    public function getPaketBelanjaList(Request $request)
+    {
+        try {
+            $idRinciSubBl = $request->input('id_rinci_sub_bl');
+            $tipePaket = $request->input('tipe_paket');
+            $jenisBl = $request->input('jenis_bl'); // Opsional: filter by jenis belanja
+            
+            Log::info('GET PAKET BELANJA LIST FROM RKA', [
+                'id_rinci_sub_bl' => $idRinciSubBl,
+                'tipe_paket' => $tipePaket,
+                'jenis_bl' => $jenisBl
+            ]);
+            
+            if (!$idRinciSubBl || !$tipePaket) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parameter tidak lengkap',
+                    'data' => []
+                ], 400);
+            }
+            
+            // Query record yang merupakan PAKET (bukan rincian detail)
+            // Paket = record dengan subtitle_teks berisi dan is_paket = tipe_paket
+            $query = DB::table('data_rka')
+                ->select(
+                    'id',
+                    'subtitle_teks as uraian_paket',
+                    'is_paket',
+                    'kode_akun',
+                    'nama_akun',
+                    'jenis_bl',
+                    'createddate',
+                    'createdtime'
+                )
+                ->where('id_rinci_sub_bl', $idRinciSubBl)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->where('is_paket', $tipePaket) // 1=Pemaketan, 2=Pengelompokan
+                ->whereNotNull('subtitle_teks')
+                ->where('subtitle_teks', '!=', '');
+            
+            // Filter by jenis belanja jika ada
+            if ($jenisBl) {
+                $query->where('jenis_bl', $jenisBl);
+            }
+            
+            $paketList = $query
+                ->orderBy('id', 'desc')
+                ->distinct()
+                ->get()
+                ->unique('subtitle_teks') // Hindari duplikat nama paket
+                ->values();
+            
+            Log::info('PAKET LIST FROM RKA RESULT', [
+                'count' => $paketList->count(),
+                'data' => $paketList->toArray()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data paket berhasil dimuat',
+                'data' => $paketList,
+                'count' => $paketList->count()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('ERROR GET PAKET FROM RKA', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
+
+    public function storePaketBelanja(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_rinci_sub_bl' => 'required|integer',
+                'tipe_paket' => 'required|in:1,2',
+                'uraian_paket' => 'required|string|max:1000',
+                'jenis_bl' => 'required|string', // Perlu jenis belanja untuk kategorisasi
+                'id_akun' => 'required|integer|exists:akun,id'
+            ]);
+            
+            DB::beginTransaction();
+            
+            // Ambil info sub kegiatan
+            $subKegiatan = DB::table('data_sub_keg_bl')
+                ->where('id', $request->id_rinci_sub_bl)
+                ->first();
+            
+            if (!$subKegiatan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sub kegiatan tidak ditemukan'
+                ], 404);
+            }
+            
+            // Ambil info akun
+            $akun = DB::table('akun')
+                ->where('id', $request->id_akun)
+                ->first();
+            
+            if (!$akun) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akun tidak ditemukan'
+                ], 404);
+            }
+            
+            // Ambil sumber dana (pertama)
+            $sumberDana = DB::table('data_dana_sub_keg')
+                ->where('idsubbl', $request->id_rinci_sub_bl)
+                ->where('active', 1)
+                ->first();
+            
+            // Insert sebagai RECORD PAKET di data_rka
+            // Record ini hanya sebagai "header/kelompok"
+            $idPaket = DB::table('data_rka')->insertGetId([
+                // Identitas
+                'id_rinci_sub_bl' => $request->id_rinci_sub_bl,
+                'kode_sbl' => $subKegiatan->kode_sbl,
+                'kode_bl' => $subKegiatan->kode_bl,
+                'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? 2025,
+                
+                // Jenis & Akun
+                'jenis_bl' => $request->jenis_bl,
+                'kode_akun' => $akun->kode_akun,
+                'nama_akun' => $akun->nama_akun,
+                
+                // PENANDA PAKET/KELOMPOK
+                'is_paket' => $request->tipe_paket, // 1 atau 2
+                'subtitle_teks' => $request->uraian_paket, // Nama paket/kelompok
+                'idsubtitle' => null, // Paket tidak punya parent
+                
+                // Uraian
+                'ket_bl_teks' => '--- PAKET/KELOMPOK ---',
+                'spek' => $request->uraian_paket,
+                
+                // Data dummy untuk paket (bukan rincian real)
+                'volume' => 0,
+                'satuan' => 'Paket',
+                'harga_satuan' => 0,
+                'total_harga' => 0,
+                'rincian' => 0,
+                'rincian_murni' => 0,
+                
+                // Sumber dana
+                'id_dana' => $sumberDana->iddana ?? null,
+                'nama_dana' => $sumberDana->namadana ?? null,
+                'kode_dana' => $sumberDana->kodedana ?? null,
+                
+                // Audit
+                'created_user' => auth()->id() ?? null,
+                'createddate' => date('Y-m-d'),
+                'createdtime' => date('H:i:s'),
+                'active' => 1,
+                'is_locked' => 0,
+                'update_at' => now(),
+                
+                // Fields lain default
+                'id_daerah' => 604,
+                'id_standar_nfs' => 0,
+                'idbl' => null,
+                'idsubbl' => $request->id_rinci_sub_bl,
+                'harga_satuan_murni' => 0,
+                'volume_murni' => 0,
+                'totalpajak' => 0,
+                'pajak' => 0,
+                'pajak_murni' => 0
+            ]);
+            
+            // Ambil record yang baru dibuat
+            $paketBaru = DB::table('data_rka')
+                ->where('id', $idPaket)
+                ->first();
+            
+            DB::commit();
+            
+            Log::info('PAKET CREATED IN RKA', [
+                'id' => $idPaket,
+                'subtitle_teks' => $request->uraian_paket,
+                'is_paket' => $request->tipe_paket
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Paket belanja berhasil ditambahkan',
+                'data' => [
+                    'id' => $paketBaru->id,
+                    'uraian_paket' => $paketBaru->subtitle_teks,
+                    'is_paket' => $paketBaru->is_paket
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('ERROR STORE PAKET TO RKA', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function storerincian(Request $request)
     {
         try {
@@ -977,11 +1190,17 @@ class RenjaController extends Controller
                 'id_rinci_sub_bl' => 'required',
                 'jenis_bl' => 'required',
                 'id_akun' => 'required|exists:akun,id',
+                'kode_rekening' => 'required',
+                'nama_rekening' => 'required',
+                'tipe_paket' => 'required',
+                'id_paket_belanja' => 'nullable|integer', // ID record paket dari data_rka
                 'uraian' => 'required',
                 'volume' => 'required|numeric',
                 'satuan' => 'required',
                 'harga_satuan' => 'required|numeric'
             ]);
+
+            DB::beginTransaction();
 
             // Get info sub kegiatan
             $subKegiatan = DB::table('data_sub_keg_bl')
@@ -995,42 +1214,127 @@ class RenjaController extends Controller
                 ], 404);
             }
 
-            $total = $request->volume * $request->harga_satuan;
+            // Get info akun
+            $akun = DB::table('akun')
+                ->where('id', $request->id_akun)
+                ->first();
 
-            $data = [
+            if (!$akun) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akun tidak ditemukan'
+                ], 404);
+            }
+
+            // Get info sumber dana
+            $sumberDana = DB::table('data_dana_sub_keg')
+                ->where('idsubbl', $request->id_rinci_sub_bl)
+                ->where('active', 1)
+                ->first();
+
+            // Get nama paket jika ada
+            $namaPaket = null;
+            if ($request->id_paket_belanja) {
+                $paket = DB::table('data_rka')
+                    ->where('id', $request->id_paket_belanja)
+                    ->first();
+                $namaPaket = $paket->subtitle_teks ?? null;
+            }
+
+            // Calculate total
+            $volume = floatval($request->volume);
+            $hargaSatuan = floatval($request->harga_satuan);
+            $totalHarga = $volume * $hargaSatuan;
+
+            // Insert RINCIAN DETAIL ke data_rka
+            $idRka = DB::table('data_rka')->insertGetId([
+                // Identitas
                 'id_rinci_sub_bl' => $request->id_rinci_sub_bl,
                 'kode_sbl' => $subKegiatan->kode_sbl,
+                'kode_bl' => $subKegiatan->kode_bl,
+                'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? 2025,
+                
+                // Jenis & Akun
                 'jenis_bl' => $request->jenis_bl,
-                'id_akun' => $request->id_akun,
-                'kode_rekening' => $request->kode_rekening,
-                'nama_rekening' => $request->nama_rekening,
-                'uraian' => $request->uraian,
-                'volume' => $request->volume,
+                'kode_akun' => $akun->kode_akun,
+                'nama_akun' => $akun->nama_akun,
+                
+                // LINK KE PAKET
+                'is_paket' => $request->tipe_paket, // Untuk grouping
+                'idsubtitle' => $request->id_paket_belanja, // ID record paket
+                'subtitle_teks' => $namaPaket, // Nama paket (copy untuk convenience)
+                
+                // Uraian & Spesifikasi
+                'ket_bl_teks' => $request->uraian,
+                'spek' => $request->uraian,
+                
+                // Volume & Harga
+                'volume' => $volume,
+                'volume_murni' => $volume,
                 'satuan' => $request->satuan,
-                'harga_satuan' => $request->harga_satuan,
-                'total' => $total,
+                'harga_satuan' => $hargaSatuan,
+                'harga_satuan_murni' => $hargaSatuan,
+                'total_harga' => $totalHarga,
+                'rincian' => $totalHarga,
+                'rincian_murni' => $totalHarga,
+                
+                // Volume detail
+                'volum1' => $volume,
+                'sat1' => $request->satuan,
+                'koefisien' => $volume,
+                'koefisien_murni' => $volume,
+                
+                // Sumber Dana
+                'id_dana' => $sumberDana->iddana ?? null,
+                'nama_dana' => $sumberDana->namadana ?? null,
+                'kode_dana' => $sumberDana->kodedana ?? null,
+                
+                // Audit
+                'created_user' => auth()->id() ?? null,
+                'createddate' => date('Y-m-d'),
+                'createdtime' => date('H:i:s'),
+                'updated_user' => auth()->id() ?? null,
+                'updateddate' => date('Y-m-d'),
+                'updatedtime' => date('H:i:s'),
+                
+                // Status
                 'active' => 1,
-                'tahun_anggaran' => $subKegiatan->tahun_anggaran,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
+                'is_locked' => 0,
+                'akun_locked' => 0,
+                'ssh_locked' => 0,
+                
+                // Fields lain
+                'id_daerah' => 604,
+                'id_standar_nfs' => 0,
+                'idbl' => null,
+                'idsubbl' => $request->id_rinci_sub_bl,
+                'totalpajak' => 0,
+                'pajak' => 0,
+                'pajak_murni' => 0,
+                'update_at' => now()
+            ]);
 
-            DB::table('data_rinci_sub_keg_bl')->insert($data);
+            DB::commit();
 
-            Log::info('Rincian belanja created', [
-                'id_sub_bl' => $request->id_rinci_sub_bl,
-                'jenis_bl' => $request->jenis_bl,
-                'total' => $total
+            Log::info('RINCIAN CREATED IN RKA', [
+                'id_rka' => $idRka,
+                'id_paket' => $request->id_paket_belanja,
+                'total' => $totalHarga
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Rincian belanja berhasil ditambahkan',
-                'data' => $data
+                'data' => [
+                    'id' => $idRka,
+                    'total' => $totalHarga
+                ]
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error storing rincian: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('ERROR STORE RINCIAN TO RKA: ' . $e->getMessage());
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
@@ -1038,90 +1342,94 @@ class RenjaController extends Controller
         }
     }
 
-    /**
-     * Update rincian belanja
-     */
-    public function updateRincian(Request $request, $id)
+    public function showRincian($id)
     {
         try {
-            $request->validate([
-                'id_akun' => 'required|exists:akun,id',
-                'uraian' => 'required',
-                'volume' => 'required|numeric',
-                'satuan' => 'required',
-                'harga_satuan' => 'required|numeric'
-            ]);
+            // Ambil data sub kegiatan
+            $subKegiatan = DB::table('data_sub_keg_bl as dskb')
+                ->select('dskb.*', 'du.nama_skpd as nama_unit')
+                ->leftJoin('data_unit as du', function($join) {
+                    $join->on('dskb.id_skpd', '=', 'du.id_skpd')
+                        ->where('du.tahun_anggaran', '=', 2025);
+                })
+                ->where('dskb.id', $id)
+                ->where('dskb.tahun_anggaran', 2025)
+                ->where('dskb.active', 1)
+                ->first();
 
-            $total = $request->volume * $request->harga_satuan;
-
-            $updated = DB::table('data_rinci_sub_keg_bl')
-                ->where('id', $id)
-                ->update([
-                    'id_akun' => $request->id_akun,
-                    'kode_rekening' => $request->kode_rekening,
-                    'nama_rekening' => $request->nama_rekening,
-                    'uraian' => $request->uraian,
-                    'volume' => $request->volume,
-                    'satuan' => $request->satuan,
-                    'harga_satuan' => $request->harga_satuan,
-                    'total' => $total,
-                    'updated_at' => now()
-                ]);
-
-            if ($updated) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Rincian belanja berhasil diupdate'
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data tidak ditemukan'
-                ], 404);
+            if (!$subKegiatan) {
+                return redirect()->route('rkpd.renja.index')
+                    ->with('error', 'Data sub kegiatan tidak ditemukan');
             }
 
+            // Ambil data sumber dana
+            $sumberDana = DB::table('data_dana_sub_keg')
+                ->where('idsubbl', $id)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->get();
+
+            // Ambil data indikator
+            $indikator = DB::table('data_sub_keg_indikator')
+                ->where('idsubbl', $id)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->get();
+
+            // Ambil semua rincian belanja dari data_rka
+            // Termasuk record paket (is_paket > 0) dan rincian detail
+            $rincianBelanja = DB::table('data_rka')
+                ->where('id_rinci_sub_bl', $id)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->orderBy('kode_akun')
+                ->orderBy('is_paket')
+                ->orderBy('idsubtitle')
+                ->orderBy('id')
+                ->get();
+
+            // Group by kode_akun untuk tampilan per objek belanja
+            $totalPerObjek = $rincianBelanja
+                ->groupBy('kode_akun')
+                ->map(function($items, $kodeAkun) {
+                    $firstItem = $items->first();
+                    
+                    // Pisahkan record paket dan rincian detail
+                    $rincianDetail = $items->filter(function($item) {
+                        // Rincian = yang punya idsubtitle (terhubung ke paket)
+                        // ATAU yang bukan record paket header
+                        return $item->idsubtitle !== null || 
+                            ($item->subtitle_teks === null || $item->subtitle_teks === '');
+                    });
+                    
+                    return [
+                        'kode_rekening' => $kodeAkun,
+                        'nama_rekening' => $firstItem->nama_akun,
+                        'total' => $rincianDetail->sum(function($item) {
+                            return ($item->volume ?? 0) * ($item->harga_satuan ?? 0);
+                        }),
+                        'items' => $items->map(function($item) {
+                            $item->uraian = $item->ket_bl_teks ?? $item->spek;
+                            return $item;
+                        })
+                    ];
+                });
+
+            return view('rkpd.renja.rincian', compact(
+                'subKegiatan',
+                'sumberDana',
+                'indikator',
+                'rincianBelanja',
+                'totalPerObjek'
+            ));
+
         } catch (\Exception $e) {
-            Log::error('Error updating rincian: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
+            Log::error('Error showing rincian: ' . $e->getMessage());
+            return redirect()->route('rkpd.renja.index')
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Delete rincian belanja (soft delete)
-     */
-    public function destroyRincian($id)
-    {
-        try {
-            $deleted = DB::table('data_rinci_sub_keg_bl')
-                ->where('id', $id)
-                ->update([
-                    'active' => 0,
-                    'updated_at' => now()
-                ]);
-
-            if ($deleted) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Rincian belanja berhasil dihapus'
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data tidak ditemukan'
-                ], 404);
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Error deleting rincian: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     
 
