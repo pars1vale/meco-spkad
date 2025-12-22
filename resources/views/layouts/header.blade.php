@@ -32,7 +32,7 @@
         <!--begin::Menu wrapper-->
         <div class="cursor-pointer symbol symbol-circle symbol-30px symbol-lg-45px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
           data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-          {{-- <img src="{{ asset('assets/media/avatars/300-2.jpg') }}" alt="user" /> --}}
+          <img src="{{ asset('assets/media/avatars/300-2.jpg') }}" alt="user" />
           <img src="https://avatar.iran.liara.run/public" alt="user" />
         </div>
         <!--begin::User account menu-->

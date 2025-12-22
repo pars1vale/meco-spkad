@@ -204,7 +204,7 @@
         </div>
       </div>
       <div class="card-body">
-        @if($rincianBelanja->count() > 0)
+        @if(count($dataTerkelompok) > 0)
           <div class="table-responsive">
             <table class="table table-bordered table-hover align-middle gy-4">
               <thead class="bg-light">
@@ -221,43 +221,67 @@
               </thead>
               <tbody>
                 @php $no = 1; @endphp
-                @foreach($totalPerObjek as $objekId => $objek)
-                  <tr class="bg-light-primary">
-                    <td class="fw-bold">{{ $no++ }}</td>
-                    <td class="fw-bold">{{ $objek['kode_rekening'] }}</td>
-                    <td class="fw-bold" colspan="4">{{ $objek['nama_rekening'] }}</td>
-                    <td class="text-end fw-bold text-primary">Rp {{ number_format($objek['total'], 0, ',', '.') }}</td>
+                
+                @foreach($dataTerkelompok as $hashtag => $dataHashtag)
+                  {{-- LEVEL 1: HASHTAG [#] - Paket/Kelompok --}}
+                  <tr class="bg-light-info">
+                    <td class="fw-bolder text-info">#</td>
+                    <td colspan="5" class="fw-bolder text-info fs-6">{{ $dataHashtag['title'] }}</td>
+                    <td class="text-end fw-bolder text-info fs-6">Rp {{ number_format($dataHashtag['total'], 0, ',', '.') }}</td>
                     <td></td>
                   </tr>
-                  
-                  @foreach($objek['items'] as $index => $item)
-                  <tr>
-                    <td class="text-center">{{ $no++ }}</td>
-                    <td class="ps-5">{{ $item->kode_komponen ?? '-' }}</td>
-                    <td>{{ $item->uraian }}</td>
-                    <td class="text-center">{{ number_format($item->volume ?? 0, 2, ',', '.') }}</td>
-                    <td class="text-center">{{ $item->satuan }}</td>
-                    <td class="text-end">Rp {{ number_format($item->harga_satuan ?? 0, 0, ',', '.') }}</td>
-                    <td class="text-end fw-bold">Rp {{ number_format(($item->volume ?? 0) * ($item->harga_satuan ?? 0), 0, ',', '.') }}</td>
-                    <td class="text-center">
-                      <button class="btn btn-icon btn-sm btn-light-primary btn-edit" data-id="{{ $item->id }}">
-                        <i class="ki-outline ki-pencil fs-4"></i>
-                      </button>
-                      <button class="btn btn-icon btn-sm btn-light-danger btn-delete" data-id="{{ $item->id }}">
-                        <i class="ki-outline ki-trash fs-4"></i>
-                      </button>
-                    </td>
-                  </tr>
+
+                  @foreach($dataHashtag['mintag'] as $mintag => $dataMintag)
+                    {{-- LEVEL 2: MINTAG [-] - Kategori Belanja --}}
+                    <tr class="bg-light-warning">
+                      <td></td>
+                      <td class="fw-bold text-warning">-</td>
+                      <td colspan="4" class="fw-bold text-warning">{{ $dataMintag['title'] }}</td>
+                      <td class="text-end fw-bold text-warning">Rp {{ number_format($dataMintag['total'], 0, ',', '.') }}</td>
+                      <td></td>
+                    </tr>
+
+                    @foreach($dataMintag['rekening'] as $kodeRekening => $dataRekening)
+                      {{-- LEVEL 3: KODE REKENING --}}
+                      <tr class="bg-light-primary">
+                        <td class="fw-bold">{{ $no++ }}</td>
+                        <td class="fw-bold">{{ $dataRekening['kode_akun'] }}</td>
+                        <td class="fw-bold" colspan="4">{{ $dataRekening['nama_akun'] }}</td>
+                        <td class="text-end fw-bold text-primary">Rp {{ number_format($dataRekening['total'], 0, ',', '.') }}</td>
+                        <td></td>
+                      </tr>
+
+                      @foreach($dataRekening['items'] as $item)
+                        {{-- LEVEL 4: RINCIAN DETAIL --}}
+                        <tr>
+                          <td class="text-center text-muted">{{ $no++ }}</td>
+                          <td class="ps-5 text-muted">-</td>
+                          <td>{{ $item['nama_komponen'] }}</td>
+                          <td class="text-center">{{ number_format($item['volume'] ?? 0, 2, ',', '.') }}</td>
+                          <td class="text-center">{{ $item['satuan'] }}</td>
+                          <td class="text-end">Rp {{ number_format($item['harga_satuan'] ?? 0, 0, ',', '.') }}</td>
+                          <td class="text-end fw-bold">Rp {{ number_format($item['total_harga'], 0, ',', '.') }}</td>
+                          <td class="text-center">
+                            <button class="btn btn-icon btn-sm btn-light-primary btn-edit" data-id="{{ $item['id'] }}">
+                              <i class="ki-outline ki-pencil fs-4"></i>
+                            </button>
+                            <button class="btn btn-icon btn-sm btn-light-danger btn-delete" data-id="{{ $item['id'] }}">
+                              <i class="ki-outline ki-trash fs-4"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      @endforeach
+
+                    @endforeach
                   @endforeach
                 @endforeach
+
               </tbody>
               <tfoot>
                 <tr class="bg-light">
                   <td colspan="6" class="text-end fw-bold fs-5">TOTAL KESELURUHAN:</td>
                   <td class="text-end fw-bold fs-4 text-primary">
-                    Rp {{ number_format($rincianBelanja->sum(function($item) {
-                      return ($item->volume ?? 0) * ($item->harga_satuan ?? 0);
-                    }), 0, ',', '.') }}
+                    Rp {{ number_format($totalKeseluruhan, 0, ',', '.') }}
                   </td>
                   <td></td>
                 </tr>
@@ -470,20 +494,6 @@
     </div>
   </div>
 </div>
-
-<script>
-// Update info saat modal paket dibuka
-$('#modal_add_paket').on('shown.bs.modal', function () {
-  // Ambil info dari form rincian
-  const jenisBelanja = $('#select_jenis_bl option:selected').text();
-  const rekening = $('#select_akun_rekening option:selected').text();
-  const tipePaket = $('#select_tipe_paket option:selected').text();
-  
-  // Update display info
-  $('#info_jenis_belanja').html('<strong>Objek Belanja:</strong> ' + jenisBelanja);
-  $('#info_rekening').html('<strong>Rekening:</strong> ' + rekening);
-});
-</script>
 
 <style>
 @media print {
