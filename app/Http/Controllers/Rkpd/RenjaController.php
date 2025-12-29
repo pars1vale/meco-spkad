@@ -758,12 +758,10 @@ class RenjaController extends Controller
         try {
             $idRinciSubBl = $request->input('id_rinci_sub_bl');
             $tipePaket = $request->input('tipe_paket');
-            $jenisBl = $request->input('jenis_bl'); // Opsional: filter by jenis belanja
             
-            Log::info('GET PAKET BELANJA LIST FROM RKA', [
+            Log::info('GET PAKET REQUEST', [
                 'id_rinci_sub_bl' => $idRinciSubBl,
-                'tipe_paket' => $tipePaket,
-                'jenis_bl' => $jenisBl
+                'tipe_paket' => $tipePaket
             ]);
             
             if (!$idRinciSubBl || !$tipePaket) {
@@ -774,52 +772,75 @@ class RenjaController extends Controller
                 ], 400);
             }
             
-            // Query record yang merupakan PAKET (bukan rincian detail)
-            // Paket = record dengan subtitle_teks berisi dan is_paket = tipe_paket
-            $query = DB::table('data_rka')
+            $subKegiatan = DB::table('data_sub_keg_bl')
+                ->where('id', $idRinciSubBl)
+                ->first();
+            
+            if (!$subKegiatan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sub kegiatan tidak ditemukan',
+                    'data' => []
+                ], 404);
+            }
+            
+            $paketList = DB::table('data_rka')
                 ->select(
                     'id',
                     'subtitle_teks as uraian_paket',
                     'is_paket',
                     'kode_akun',
                     'nama_akun',
-                    'jenis_bl',
-                    'createddate',
-                    'createdtime'
+                    'jenis_bl'
                 )
-                ->where('id_rinci_sub_bl', $idRinciSubBl)
-                ->where('tahun_anggaran', 2025)
-                ->where('active', 1)
-                ->where('is_paket', $tipePaket) // 1=Pemaketan, 2=Pengelompokan
-                ->whereNotNull('subtitle_teks')
-                ->where('subtitle_teks', '!=', '');
+                ->whereIn('id', function($query) use ($subKegiatan, $tipePaket) {
+                    $query->select(DB::raw('MIN(id)'))
+                        ->from('data_rka')
+                        ->where('kode_sbl', $subKegiatan->kode_sbl)
+                        ->where('tahun_anggaran', 2025)
+                        ->where('active', 1)
+                        ->where('is_paket', $tipePaket)
+                        ->whereNotNull('subtitle_teks')
+                        ->where('subtitle_teks', '!=', '')
+                        ->groupBy('subtitle_teks');
+                })
+                ->orderBy('subtitle_teks', 'ASC')
+                ->get();
             
-            // Filter by jenis belanja jika ada
-            if ($jenisBl) {
-                $query->where('jenis_bl', $jenisBl);
-            }
+            // ==========================================
+            // FORMAT DATA: HAPUS [#] UNTUK TAMPILAN
+            // ==========================================
+            $formattedData = $paketList->map(function($item) {
+                // Hapus [#] dan whitespace di awal
+                $displayText = preg_replace('/^\[\#\]\s*/', '', $item->uraian_paket);
+                
+                return [
+                    'id' => $item->id,
+                    'uraian_paket' => $displayText, // ← Tanpa [#]
+                    'uraian_paket_full' => $item->uraian_paket, // ← Dengan [#] (opsional, untuk reference)
+                    'is_paket' => $item->is_paket,
+                    'kode_akun' => $item->kode_akun,
+                    'nama_akun' => $item->nama_akun,
+                    'jenis_bl' => $item->jenis_bl
+                ];
+            });
             
-            $paketList = $query
-                ->orderBy('id', 'desc')
-                ->distinct()
-                ->get()
-                ->unique('subtitle_teks') // Hindari duplikat nama paket
-                ->values();
-            
-            Log::info('PAKET LIST FROM RKA RESULT', [
-                'count' => $paketList->count(),
-                'data' => $paketList->toArray()
+            Log::info('PAKET FOUND', [
+                'kode_sbl' => $subKegiatan->kode_sbl,
+                'tipe_paket' => $tipePaket,
+                'count' => $formattedData->count(),
+                'data_sample' => $formattedData->take(2)->toArray()
             ]);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Data paket berhasil dimuat',
-                'data' => $paketList,
-                'count' => $paketList->count()
+                'data' => $formattedData,
+                'count' => $formattedData->count()
             ]);
             
         } catch (\Exception $e) {
-            Log::error('ERROR GET PAKET FROM RKA', [
+            Log::error('ERROR GET PAKET', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -943,13 +964,15 @@ class RenjaController extends Controller
                 'subtitle_teks' => $request->uraian_paket,
                 'is_paket' => $request->tipe_paket
             ]);
+
+            $uraianPaketDisplay = preg_replace('/^\[\#\]\s*/', '', $paketBaru->subtitle_teks);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Paket belanja berhasil ditambahkan',
                 'data' => [
                     'id' => $paketBaru->id,
-                    'uraian_paket' => $paketBaru->subtitle_teks,
+                    'uraian_paket' => $uraianPaketDisplay,  // ← TANPA [#]
                     'is_paket' => $paketBaru->is_paket
                 ]
             ]);
@@ -979,11 +1002,26 @@ class RenjaController extends Controller
                 'kode_rekening' => 'required',
                 'nama_rekening' => 'required',
                 'tipe_paket' => 'required',
-                'id_paket_belanja' => 'nullable|integer', // ID record paket dari data_rka
+                'id_paket_belanja' => 'nullable|integer',
                 'uraian' => 'required',
+                
+                // Koefisien array
+                'koefisien' => 'nullable|array',
+                'koefisien.*' => 'nullable|numeric',
+                'satuan_koefisien' => 'nullable|array',
+                'satuan_koefisien.*' => 'nullable|string',
+                
+                // Volume & satuan utama
                 'volume' => 'required|numeric',
                 'satuan' => 'required',
-                'harga_satuan' => 'required|numeric'
+                'harga_satuan' => 'required|numeric',
+                
+                // Fields tambahan (OPTIONAL)
+                'id_standar_harga' => 'nullable|integer', // ← UBAH JADI NULLABLE
+                'jenis_standar_harga' => 'nullable|string',
+                'tkdn' => 'nullable|string',
+                'spesifikasi_komponen' => 'nullable|string',
+                'keterangan' => 'nullable|string'
             ]);
 
             DB::beginTransaction();
@@ -1020,41 +1058,84 @@ class RenjaController extends Controller
 
             // Get nama paket jika ada
             $namaPaket = null;
+            $ketBlTeks = null;
             if ($request->id_paket_belanja) {
                 $paket = DB::table('data_rka')
                     ->where('id', $request->id_paket_belanja)
                     ->first();
                 $namaPaket = $paket->subtitle_teks ?? null;
+                $ketBlTeks = $paket->ket_bl_teks ?? null;
             }
+
+            // ================================================
+            // HITUNG KOEFISIEN TOTAL & VOLUME DETAIL
+            // ================================================
+            $koefisienArray = $request->koefisien ?? [];
+            $satuanKoefArray = $request->satuan_koefisien ?? [];
+            
+            // Hitung koefisien total
+            $koefisienTotal = 1;
+            foreach ($koefisienArray as $koef) {
+                if ($koef && is_numeric($koef)) {
+                    $koefisienTotal *= floatval($koef);
+                }
+            }
+            
+            // Volume detail
+            $volum1 = isset($koefisienArray[0]) ? floatval($koefisienArray[0]) : 0;
+            $volum2 = isset($koefisienArray[1]) ? floatval($koefisienArray[1]) : 0;
+            $volum3 = isset($koefisienArray[2]) ? floatval($koefisienArray[2]) : 0;
+            $volum4 = isset($koefisienArray[3]) ? floatval($koefisienArray[3]) : 0;
+            
+            // Satuan detail
+            $sat1 = $satuanKoefArray[0] ?? '';
+            $sat2 = $satuanKoefArray[1] ?? '';
+            $sat3 = $satuanKoefArray[2] ?? '';
+            $sat4 = $satuanKoefArray[3] ?? '';
 
             // Calculate total
             $volume = floatval($request->volume);
             $hargaSatuan = floatval($request->harga_satuan);
             $totalHarga = $volume * $hargaSatuan;
 
-            // Insert RINCIAN DETAIL ke data_rka
-            $idRka = DB::table('data_rka')->insertGetId([
-                // Identitas
+            // ================================================
+            // AMBIL DATA SSH JIKA ADA
+            // ================================================
+            $sshData = null;
+            if ($request->id_standar_harga) {
+                $sshData = DB::table('data_ssh')
+                    ->where('id_standar_harga', $request->id_standar_harga)
+                    ->first();
+            }
+
+            // ================================================
+            // INSERT RINCIAN DETAIL KE DATA_RKA
+            // ================================================
+            $insertData = [
+                // ===== IDENTITAS =====
                 'id_rinci_sub_bl' => $request->id_rinci_sub_bl,
                 'kode_sbl' => $subKegiatan->kode_sbl,
                 'kode_bl' => $subKegiatan->kode_bl,
                 'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? 2025,
                 
-                // Jenis & Akun
+                // ===== JENIS & AKUN =====
                 'jenis_bl' => $request->jenis_bl,
                 'kode_akun' => $akun->kode_akun,
                 'nama_akun' => $akun->nama_akun,
                 
-                // LINK KE PAKET
-                'is_paket' => $request->tipe_paket, // Untuk grouping
-                'idsubtitle' => $request->id_paket_belanja, // ID record paket
-                'subtitle_teks' => $namaPaket, // Nama paket (copy untuk convenience)
+                // ===== LINK KE PAKET =====
+                'is_paket' => $request->tipe_paket,
+                'idsubtitle' => $request->id_paket_belanja,
+                'subtitle_teks' => $namaPaket,
                 
-                // Uraian & Spesifikasi
-                'ket_bl_teks' => $request->uraian,
+                // ===== URAIAN & SPESIFIKASI =====
+                'ket_bl_teks' => $ketBlTeks ?? $request->uraian,
                 'spek' => $request->uraian,
+                'nama_komponen' => $request->uraian,
+                'spek_komponen' => $request->spesifikasi_komponen,
+                'substeks' => $request->keterangan,
                 
-                // Volume & Harga
+                // ===== VOLUME & HARGA UTAMA =====
                 'volume' => $volume,
                 'volume_murni' => $volume,
                 'satuan' => $request->satuan,
@@ -1064,18 +1145,26 @@ class RenjaController extends Controller
                 'rincian' => $totalHarga,
                 'rincian_murni' => $totalHarga,
                 
-                // Volume detail
-                'volum1' => $volume,
-                'sat1' => $request->satuan,
-                'koefisien' => $volume,
-                'koefisien_murni' => $volume,
+                // ===== KOEFISIEN =====
+                'koefisien' => $koefisienTotal,
+                'koefisien_murni' => $koefisienTotal,
                 
-                // Sumber Dana
+                // ===== VOLUME DETAIL =====
+                'volum1' => $volum1,
+                'volum2' => $volum2,
+                'volum3' => $volum3,
+                'volum4' => $volum4,
+                'sat1' => $sat1,
+                'sat2' => $sat2,
+                'sat3' => $sat3,
+                'sat4' => $sat4,
+                
+                // ===== SUMBER DANA =====
                 'id_dana' => $sumberDana->iddana ?? null,
                 'nama_dana' => $sumberDana->namadana ?? null,
                 'kode_dana' => $sumberDana->kodedana ?? null,
                 
-                // Audit
+                // ===== AUDIT =====
                 'created_user' => auth()->id() ?? null,
                 'createddate' => date('Y-m-d'),
                 'createdtime' => date('H:i:s'),
@@ -1083,13 +1172,13 @@ class RenjaController extends Controller
                 'updateddate' => date('Y-m-d'),
                 'updatedtime' => date('H:i:s'),
                 
-                // Status
+                // ===== STATUS =====
                 'active' => 1,
                 'is_locked' => 0,
                 'akun_locked' => 0,
                 'ssh_locked' => 0,
                 
-                // Fields lain
+                // ===== FIELDS LAIN =====
                 'id_daerah' => 604,
                 'id_standar_nfs' => 0,
                 'idbl' => null,
@@ -1098,13 +1187,42 @@ class RenjaController extends Controller
                 'pajak' => 0,
                 'pajak_murni' => 0,
                 'update_at' => now()
-            ]);
+            ];
+
+            // ================================================
+            // TAMBAHKAN DATA SSH JIKA ADA DAN KOLOM EXISTS
+            // ================================================
+            if ($sshData) {
+                // Cek apakah kolom id_standar_harga exist
+                $columns = DB::select("SHOW COLUMNS FROM data_rka LIKE 'id_standar_harga'");
+                
+                if (count($columns) > 0) {
+                    $insertData['id_standar_harga'] = $request->id_standar_harga;
+                }
+                
+                // Simpan info SSH di field lain yang exist
+                $insertData['spek_komponen'] = $sshData->spek ?? $request->spesifikasi_komponen;
+                
+                // Jika ada kolom tkdn
+                $tkdnColumns = DB::select("SHOW COLUMNS FROM data_rka LIKE 'tkdn'");
+                if (count($tkdnColumns) > 0) {
+                    $insertData['tkdn'] = $request->tkdn;
+                }
+                
+                // Jika ada kolom jenis_standar_harga
+                $jenisColumns = DB::select("SHOW COLUMNS FROM data_rka LIKE 'jenis_standar_harga'");
+                if (count($jenisColumns) > 0) {
+                    $insertData['jenis_standar_harga'] = $request->jenis_standar_harga;
+                }
+            }
+
+            $idRka = DB::table('data_rka')->insertGetId($insertData);
 
             DB::commit();
 
-            Log::info('RINCIAN CREATED IN RKA', [
+            Log::info('RINCIAN CREATED', [
                 'id_rka' => $idRka,
-                'id_paket' => $request->id_paket_belanja,
+                'id_ssh' => $request->id_standar_harga,
                 'total' => $totalHarga
             ]);
 
@@ -1113,13 +1231,14 @@ class RenjaController extends Controller
                 'message' => 'Rincian belanja berhasil ditambahkan',
                 'data' => [
                     'id' => $idRka,
-                    'total' => $totalHarga
+                    'total' => $totalHarga,
+                    'koefisien' => $koefisienTotal
                 ]
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('ERROR STORE RINCIAN TO RKA: ' . $e->getMessage());
+            Log::error('ERROR STORE RINCIAN: ' . $e->getMessage());
             
             return response()->json([
                 'success' => false,
@@ -1127,7 +1246,6 @@ class RenjaController extends Controller
             ], 500);
         }
     }
-
 
     public function showRincian($id)
     {
@@ -1184,11 +1302,10 @@ class RenjaController extends Controller
                 ->where('kode_sbl', $subKegiatan->kode_sbl)
                 ->where('tahun_anggaran', 2025)
                 ->where('active', 1)
-                ->orderBy('id')
                 ->orderBy('subtitle_teks')
                 ->orderBy('ket_bl_teks')
                 ->orderBy('kode_akun')
-                
+                ->orderBy('id')
                 ->get();
 
             Log::info('Total RKA records:', [
@@ -1309,6 +1426,127 @@ class RenjaController extends Controller
             
             return redirect()->route('rkpd.renja.index')
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function getSshData(Request $request)
+    {
+        try {
+            $idStandarHarga = $request->input('id_standar_harga');
+            
+            if (!$idStandarHarga) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID standar harga tidak valid'
+                ], 400);
+            }
+
+            $sshData = DB::table('data_ssh')
+                ->where('id_standar_harga', $idStandarHarga)
+                ->where('tahun', 2025)
+                ->where('id_daerah', 604)
+                ->first();
+
+            if (!$sshData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data SSH tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $sshData->id_standar_harga,
+                    'kode' => $sshData->kode_standar_harga,
+                    'nama' => $sshData->nama_standar_harga,
+                    'satuan' => $sshData->satuan,
+                    'spek' => $sshData->spek,
+                    'harga' => $sshData->harga,
+                    'tkdn' => $sshData->nilai_tkdn,
+                    'tipe' => $sshData->tipe_standar_harga
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting SSH data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function searchKomponen(Request $request)
+    {
+        try {
+            $jenisStandarHarga = $request->input('jenis_standar_harga');
+            $search = $request->input('q', '');
+            
+            Log::info('SEARCH KOMPONEN', [
+                'jenis' => $jenisStandarHarga,
+                'search' => $search
+            ]);
+
+            // Mapping jenis standar harga ke tipe_standar_harga
+            $tipeMapping = [
+                '1' => 'SSH',  // Standar Satuan Harga
+                '2' => 'SBU',  // Standar Biaya Umum
+                '3' => 'HSPK', // Harga Satuan Pokok Kegiatan
+                '4' => 'ASB'   // Analisa Standar Belanja
+            ];
+
+            $query = DB::table('data_ssh')
+                ->select(
+                    'id_standar_harga as id',
+                    'kode_standar_harga',
+                    'nama_standar_harga',
+                    'satuan',
+                    'spek',
+                    'harga',
+                    'nilai_tkdn',
+                    'tipe_standar_harga',
+                    DB::raw("CONCAT(kode_standar_harga, ' - ', nama_standar_harga) as text")
+                )
+                ->where('tahun', 2025)
+                ->where('id_daerah', 604);
+
+            // Filter berdasarkan tipe jika dipilih
+            if ($jenisStandarHarga && isset($tipeMapping[$jenisStandarHarga])) {
+                $query->where('tipe_standar_harga', $tipeMapping[$jenisStandarHarga]);
+            }
+
+            // Search
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nama_standar_harga', 'LIKE', "%{$search}%")
+                    ->orWhere('kode_standar_harga', 'LIKE', "%{$search}%")
+                    ->orWhere('spek', 'LIKE', "%{$search}%");
+                });
+            }
+
+            $results = $query
+                ->orderBy('nama_standar_harga')
+                ->limit(50)
+                ->get();
+
+            Log::info('SEARCH RESULT', [
+                'count' => $results->count(),
+                'tipe_filter' => $tipeMapping[$jenisStandarHarga] ?? 'ALL'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'results' => $results,
+                'count' => $results->count()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error searching komponen: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
