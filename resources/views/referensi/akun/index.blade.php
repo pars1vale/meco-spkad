@@ -25,6 +25,8 @@
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
+
+      <!-- Session Messages -->
       <div id="session-messages" style="display: none;">
         @if (session('success'))
           <div data-type="success" data-message="{{ session('success') }}"></div>
@@ -59,7 +61,6 @@
         </div>
 
         <div class="card-body pt-0">
-          <!--begin::Datatable-->
           <div class="table-responsive">
             <table id="kt_akun_table" class="table align-middle table-row-dashed fs-6 gy-5">
               <thead>
@@ -75,27 +76,25 @@
                   <th class="min-w-100px">Pendapatan</th>
                   <th class="min-w-100px">Belanja</th>
                   <th class="min-w-100px">Pembiayaan</th>
-                  <th class="text-end min-w-100px">Aksi</th>
+                  <th class="text-end min-w-150px">Aksi</th>
                 </tr>
               </thead>
               <tbody class="fw-semibold text-gray-600">
-                <!-- Data akan dimuat via Ajax -->
               </tbody>
             </table>
           </div>
-          <!--end::Datatable-->
         </div>
       </div>
     </div>
   </div>
 
   @include('referensi.akun.partials.modal-create')
+  @include('referensi.akun.partials.modal-view')
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       var dt;
 
-      // 1. Inisialisasi DataTable dengan Server-Side Processing
       var initDatatable = function() {
         dt = $("#kt_akun_table").DataTable({
           searchDelay: 500,
@@ -105,7 +104,7 @@
           responsive: false,
           order: [
             [1, 'asc']
-          ], // Sort by kode_akun
+          ],
           stateSave: false,
           ajax: {
             url: "{{ route('referensi.akun.getData') }}",
@@ -115,10 +114,9 @@
               data: 'id',
               orderable: false,
               render: function(data) {
-                return `
-                  <div class="form-check form-check-sm form-check-custom form-check-solid">
-                    <input class="form-check-input row-checkbox" type="checkbox" value="${data}" />
-                  </div>`;
+                return `<div class="form-check form-check-sm form-check-custom form-check-solid">
+                  <input class="form-check-input row-checkbox" type="checkbox" value="${data}" />
+                </div>`;
               }
             },
             {
@@ -137,7 +135,7 @@
             {
               data: 'belanja',
               render: function(data, type, row) {
-                const badgeClass = row.is_belanja ? 'success' : 'secondary';
+                const badgeClass = row.is_bl ? 'success' : 'secondary';
                 return `<span class="badge badge-light-${badgeClass}">${data}</span>`;
               }
             },
@@ -149,19 +147,22 @@
               }
             },
             {
-              data: 'actions',
+              data: 'id',
               orderable: false,
               className: 'text-end',
               render: function(data, type, row) {
                 return `
-                  <div class="d-flex justify-content-end">
+                  <div class="d-flex justify-content-end gap-1">
+                    <button type="button" class="btn btn-icon btn-bg-light btn-active-color-info btn-sm view-btn" 
+                      data-id="${data}" title="Lihat Detail">
+                      <i class="ki-outline ki-eye fs-2"></i>
+                    </button>
                     <a href="{{ url('referensi/akun') }}/${data}/edit" 
-                       class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" 
-                       title="Edit Akun">
+                       class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="Edit">
                       <i class="ki-outline ki-pencil fs-2"></i>
                     </a>
                     <button type="button" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" 
-                      data-id="${data}" data-name="${row.nama_akun}" title="Hapus Akun">
+                      data-id="${data}" data-name="${row.nama_akun}" title="Hapus">
                       <i class="ki-outline ki-trash fs-2"></i>
                     </button>
                   </div>
@@ -180,10 +181,8 @@
             }
           ],
           dom: "<'row'<'col-sm-12'tr>>" +
-            "<'row mt-4'" +
-            "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
-            "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
-            ">",
+            "<'row mt-4'<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
+            "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>>",
           language: {
             paginate: {
               previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
@@ -191,40 +190,37 @@
             },
             processing: '<span class="spinner-border spinner-border-sm align-middle ms-2"></span> Loading...'
           },
-          drawCallback: function(settings) {
-            // CRITICAL: Re-attach event listeners after draw
+          drawCallback: function() {
             attachCheckboxListeners();
+            // View listeners sudah ada di modal-view.blade.php
+            if (typeof window.attachViewListeners === 'function') {
+              window.attachViewListeners();
+            }
             attachDeleteListeners();
           }
         });
       };
 
-      // 2. Attach checkbox listeners (DIPANGGIL SETIAP DRAW)
       var attachCheckboxListeners = function() {
         const container = document.querySelector('#kt_akun_table');
         const masterCheckbox = document.getElementById('master_checkbox');
         const rowCheckboxes = container.querySelectorAll('.row-checkbox');
 
-        // Master checkbox click
         if (masterCheckbox) {
           masterCheckbox.onclick = function() {
-            rowCheckboxes.forEach(checkbox => {
-              checkbox.checked = this.checked;
-            });
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
             toggleToolbars();
           };
         }
 
-        // Individual checkbox click
-        rowCheckboxes.forEach(checkbox => {
-          checkbox.onclick = function() {
+        rowCheckboxes.forEach(cb => {
+          cb.onclick = function() {
             updateMasterCheckbox();
             toggleToolbars();
           };
         });
       };
 
-      // 3. Update master checkbox state
       var updateMasterCheckbox = function() {
         const container = document.querySelector('#kt_akun_table');
         const masterCheckbox = document.getElementById('master_checkbox');
@@ -237,7 +233,6 @@
         }
       };
 
-      // 4. Toggle toolbars
       var toggleToolbars = function() {
         const container = document.querySelector('#kt_akun_table');
         const toolbarBase = document.querySelector('[data-kt-customer-table-toolbar="base"]');
@@ -255,7 +250,6 @@
         }
       };
 
-      // 5. Search Datatable
       var handleSearchDatatable = function() {
         const filterSearch = document.querySelector('[data-kt-docs-table-filter="search"]');
         filterSearch.addEventListener('keyup', function(e) {
@@ -263,7 +257,6 @@
         });
       };
 
-      // 6. Attach delete listeners (DIPANGGIL SETIAP DRAW)
       var attachDeleteListeners = function() {
         const deleteButtons = document.querySelectorAll('.delete-btn');
 
@@ -290,19 +283,10 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `{{ url('referensi/akun') }}/${id}`;
-
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                form.appendChild(csrfToken);
-
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'DELETE';
-                form.appendChild(methodField);
-
+                form.innerHTML = `
+                  @csrf
+                  @method('DELETE')
+                `;
                 document.body.appendChild(form);
                 form.submit();
               }
@@ -311,7 +295,6 @@
         });
       };
 
-      // 7. Bulk delete handler
       var handleBulkDelete = function() {
         const bulkDeleteBtn = document.getElementById('bulk_delete_btn');
 
@@ -349,24 +332,15 @@
             }).then((result) => {
               if (result.isConfirmed) {
                 const ids = Array.from(checkedBoxes).map(cb => cb.value);
-
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '{{ route('referensi.akun.bulk-delete') }}';
 
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                form.appendChild(csrfToken);
-
+                let formContent = '@csrf';
                 ids.forEach(id => {
-                  const input = document.createElement('input');
-                  input.type = 'hidden';
-                  input.name = 'ids[]';
-                  input.value = id;
-                  form.appendChild(input);
+                  formContent += `<input type="hidden" name="ids[]" value="${id}">`;
                 });
+                form.innerHTML = formContent;
 
                 document.body.appendChild(form);
                 form.submit();
@@ -376,33 +350,20 @@
         }
       };
 
-      // Initialize
       initDatatable();
       handleSearchDatatable();
       handleBulkDelete();
 
-      // Session messages with Toastr
       const sessionMessages = document.querySelectorAll('#session-messages div');
       sessionMessages.forEach(msg => {
         const type = msg.dataset.type;
         const message = msg.dataset.message;
 
         toastr.options = {
-          "closeButton": true,
-          "debug": false,
-          "newestOnTop": false,
-          "progressBar": true,
-          "positionClass": "toastr-top-right",
-          "preventDuplicates": false,
-          "onclick": null,
-          "showDuration": "300",
-          "hideDuration": "1000",
-          "timeOut": "5000",
-          "extendedTimeOut": "1000",
-          "showEasing": "swing",
-          "hideEasing": "linear",
-          "showMethod": "fadeIn",
-          "hideMethod": "fadeOut"
+          closeButton: true,
+          progressBar: true,
+          positionClass: "toastr-top-right",
+          timeOut: 5000
         };
 
         if (type === 'error') toastr.error(message, "GAGAL");
