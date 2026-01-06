@@ -530,10 +530,20 @@
                 <div class="form-text">Otomatis dari SSH (bisa diubah manual)</div>
               </div>
 
-              <!-- Keterangan -->
-              <div class="mb-5">
-                <label class="form-label fw-bold">Keterangan</label>
-                <textarea class="form-control form-control-solid" name="keterangan" rows="2" placeholder="Keterangan tambahan (opsional)..."></textarea>
+              <!-- KATEGORI BELANJA (MINTAG) - DINAMIS & WAJIB -->
+              <div id="wrapper_kategori_belanja" style="display: none;">
+                <label class="required form-label fw-bold">Kategori Belanja</label>
+                <div class="input-group mb-3">
+                  <select class="form-select form-select-solid" id="select_kategori_belanja" name="kategori_belanja" required
+                    disabled>
+                    <option value="">Pilih Kategori Belanja...</option>
+                  </select>
+                  <button class="btn btn-primary" type="button" id="btn_open_modal_mintag">
+                    <i class="ki-outline ki-add-files fs-4"></i>
+                    Tambah Kategori
+                  </button>
+                </div>
+                <div class="form-text">Kategori belanja untuk pengelompokan rincian (wajib diisi)</div>
               </div>
             </div>
           </div>
@@ -645,6 +655,76 @@
   </div>
 </div>
 
+<!-- Modal Tambah Mintag (Nested Modal) -->
+<div class="modal fade" id="modal_add_mintag" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered mw-650px">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="fw-bold">Tambah Kategori Belanja</h2>
+        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+          <i class="ki-outline ki-cross fs-1"></i>
+        </div>
+      </div>
+      <div class="modal-body">
+        <form id="form_add_mintag">
+          <input type="hidden" name="id_paket_belanja_mintag" id="id_paket_belanja_mintag">
+          
+          <!-- Informasi Context -->
+          <div class="alert alert-info d-flex align-items-center p-4 mb-5">
+            <i class="ki-outline ki-information-5 fs-2x text-info me-4"></i>
+            <div>
+              <div class="text-info fw-bold">Kategori untuk paket:</div>
+              <div id="info_paket_mintag" class="text-gray-800 mt-1"></div>
+            </div>
+          </div>
+          
+          <!-- Nama Kategori -->
+          <div class="mb-5">
+            <label class="required form-label fw-bold fs-6">Nama Kategori Belanja</label>
+            <textarea class="form-control form-control-solid" name="nama_mintag" rows="3" placeholder="Contoh: Belanja Meubeler, Jasa Perencanaan Kegiatan Kontraktual, dll" required></textarea>
+            <div class="form-text">
+              Kategori ini akan digunakan untuk mengelompokkan rincian belanja
+            </div>
+          </div>
+
+          <!-- Contoh Kategori Umum -->
+          <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed p-4">
+            <i class="ki-outline ki-information fs-2tx text-primary me-4"></i>
+            <div class="d-flex flex-stack flex-grow-1">
+              <div class="fw-semibold">
+                <h4 class="text-gray-900 fw-bold">Contoh Kategori Umum</h4>
+                <div class="fs-6 text-gray-700">
+                  • Belanja Meubeler<br>
+                  • Pembangunan Ruang Guru<br>
+                  • Jasa Perencanaan Kegiatan Kontraktual<br>
+                  • Jasa Konsultan Pengawas Kegiatan Kontraktual<br>
+                  • Belanja Modal Peralatan<br>
+                  • Belanja Perjalanan Dinas<br>
+                  • Belanja Pemeliharaan Gedung<br>
+                  • Belanja Pengadaan Alat Tulis Kantor
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+        <button type="button" class="btn btn-success" id="btn_save_mintag">
+          <span class="indicator-label">
+            <i class="ki-outline ki-check fs-3"></i>
+            Simpan Kategori
+          </span>
+          <span class="indicator-progress" style="display: none;">
+            Menyimpan... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
 @media print {
   .app-toolbar, .card-toolbar, .btn-edit, .btn-delete, .modal {
@@ -704,6 +784,14 @@
 
 .modal-dialog-scrollable .modal-body {
   overflow-y: auto;
+}
+
+#modal_add_mintag {
+  z-index: 1070 !important;
+}
+
+#modal_add_mintag .modal-backdrop {
+  z-index: 1065 !important;
 }
 </style>
 @endsection
@@ -1217,126 +1305,139 @@ $(document).on('input', '#input_harga_satuan', function() {
   // ============================================================
   // SAVE RINCIAN BELANJA
   // ============================================================
-  $('#btn_save_rincian').on('click', function() {
-    const form = $('#form_add_rincian');
-    const btn = $(this);
-    
-    // Validasi form
-    if (!form[0].checkValidity()) {
-      form[0].reportValidity();
-      return;
-    }
+ // ============================================================
+// SAVE RINCIAN BELANJA (UPDATE - DENGAN VALIDASI KATEGORI)
+// ============================================================
+$('#btn_save_rincian').on('click', function() {
+  const form = $('#form_add_rincian');
+  const btn = $(this);
+  
+  // Validasi form
+  if (!form[0].checkValidity()) {
+    form[0].reportValidity();
+    return;
+  }
 
-    // Validasi dropdown
-    if (!$('#select_jenis_bl').val()) {
-      toastr.error('Pilih objek belanja terlebih dahulu', 'Validasi');
-      return;
-    }
-    if (!$('#select_akun_rekening').val()) {
-      toastr.error('Pilih rekening belanja terlebih dahulu', 'Validasi');
-      return;
-    }
-    if (!$('#select_tipe_paket').val()) {
-      toastr.error('Pilih tipe paket terlebih dahulu', 'Validasi');
-      return;
-    }
-    if (!$('#select_uraian_paket').val()) {
-      toastr.error('Pilih uraian paket terlebih dahulu', 'Validasi');
-      return;
-    }
+  // Validasi dropdown
+  if (!$('#select_jenis_bl').val()) {
+    toastr.error('Pilih objek belanja terlebih dahulu', 'Validasi');
+    return;
+  }
+  if (!$('#select_akun_rekening').val()) {
+    toastr.error('Pilih rekening belanja terlebih dahulu', 'Validasi');
+    return;
+  }
+  if (!$('#select_tipe_paket').val()) {
+    toastr.error('Pilih tipe paket terlebih dahulu', 'Validasi');
+    return;
+  }
+  if (!$('#select_uraian_paket').val()) {
+    toastr.error('Pilih uraian paket terlebih dahulu', 'Validasi');
+    return;
+  }
+  
+  // VALIDASI KATEGORI BELANJA (WAJIB)
+  if (!$('#select_kategori_belanja').val()) {
+    toastr.error('Pilih kategori belanja terlebih dahulu', 'Validasi');
+    return;
+  }
 
-    btn.find('.indicator-label').hide();
-    btn.find('.indicator-progress').show();
-    btn.prop('disabled', true);
+  btn.find('.indicator-label').hide();
+  btn.find('.indicator-progress').show();
+  btn.prop('disabled', true);
 
-    // Serialize form data
-    const formData = form.serializeArray();
-    const dataObj = {};
-    
-    // Convert to object, handle arrays properly
-    formData.forEach(function(item) {
-      if (item.name.includes('[]')) {
-        const key = item.name.replace('[]', '');
-        if (!dataObj[key]) dataObj[key] = [];
-        dataObj[key].push(item.value);
+  // Serialize form data
+  const formData = form.serializeArray();
+  const dataObj = {};
+  
+  // Convert to object, handle arrays properly
+  formData.forEach(function(item) {
+    if (item.name.includes('[]')) {
+      const key = item.name.replace('[]', '');
+      if (!dataObj[key]) dataObj[key] = [];
+      dataObj[key].push(item.value);
+    } else {
+      dataObj[item.name] = item.value;
+    }
+  });
+  
+  // Clean harga_satuan (remove formatting)
+  dataObj.harga_satuan = parseFloat(dataObj.harga_satuan.replace(/[^\d]/g, ''));
+
+  console.log('Saving rincian:', dataObj);
+
+  $.ajax({
+    url: '{{ route("rincian.store") }}',
+    type: 'POST',
+    data: dataObj,
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    success: function(response) {
+      if (response.success) {
+        toastr.success(response.message, 'Berhasil');
+        $('#modal_add_rincian').modal('hide');
+        setTimeout(() => location.reload(), 1000);
       } else {
-        dataObj[item.name] = item.value;
+        toastr.error(response.message, 'Error');
       }
-    });
-    
-    // Clean harga_satuan (remove formatting)
-    dataObj.harga_satuan = parseFloat(dataObj.harga_satuan.replace(/[^\d]/g, ''));
-
-    console.log('Saving rincian:', dataObj);
-
-    $.ajax({
-      url: '{{ route("rincian.store") }}',
-      type: 'POST',
-      data: dataObj,
-      headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-      success: function(response) {
-        if (response.success) {
-          toastr.success(response.message, 'Berhasil');
-          $('#modal_add_rincian').modal('hide');
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          toastr.error(response.message, 'Error');
-        }
-      },
-      error: function(xhr) {
-        const message = xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan';
-        toastr.error(message, 'Error');
-      },
-      complete: function() {
-        btn.find('.indicator-label').show();
-        btn.find('.indicator-progress').hide();
-        btn.prop('disabled', false);
-      }
-    });
+    },
+    error: function(xhr) {
+      const message = xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan';
+      toastr.error(message, 'Error');
+    },
+    complete: function() {
+      btn.find('.indicator-label').show();
+      btn.find('.indicator-progress').hide();
+      btn.prop('disabled', false);
+    }
   });
+});
 
   // ============================================================
-  // RESET MODAL
-  // ============================================================
-  $('#modal_add_rincian').on('hidden.bs.modal', function() {
-    $('#form_add_rincian')[0].reset();
-    
-    // Reset koefisien to 1 row only
-    $('#koefisien_container').html(`
-      <div class="row mb-3 koefisien-row">
-        <div class="col-md-1 d-flex align-items-center justify-content-center">
-          <span class="badge badge-light-primary fs-6">1</span>
-        </div>
-        <div class="col-md-5">
-          <input type="number" step="0.01" class="form-control form-control-solid koefisien-input" name="koefisien[]" placeholder="Nilai koefisien 1">
-        </div>
-        <div class="col-md-5">
-          <input type="text" class="form-control form-control-solid" name="satuan_koefisien[]" placeholder="Satuan (Bulan, Orang, Unit, dll)">
-        </div>
-        <div class="col-md-1 d-flex align-items-center">
-          <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-koef" style="display: none;">
-            <i class="ki-outline ki-cross fs-3"></i>
-          </button>
-        </div>
+// RESET MODAL (UPDATE - DENGAN RESET KATEGORI)
+// ============================================================
+$('#modal_add_rincian').on('hidden.bs.modal', function() {
+  $('#form_add_rincian')[0].reset();
+  
+  // Reset kategori belanja
+  $('#wrapper_kategori_belanja').hide();
+  $('#select_kategori_belanja').html('<option value="">Pilih Kategori Belanja...</option>').prop('disabled', true);
+  
+  // Reset koefisien to 1 row only
+  $('#koefisien_container').html(`
+    <div class="row mb-3 koefisien-row">
+      <div class="col-md-1 d-flex align-items-center justify-content-center">
+        <span class="badge badge-light-primary fs-6">1</span>
       </div>
-    `);
-    
-    koefisienCount = 1;
-    $('#btn_add_koefisien').prop('disabled', false).removeClass('disabled');
-    
-    // Reset select2
-    ['#select_jenis_bl', '#select_akun_rekening', '#select_tipe_paket', '#select_uraian_paket'].forEach(function(selector) {
-      if ($(selector).hasClass('select2-hidden-accessible')) {
-        $(selector).val(null).trigger('change');
-      }
-    });
-    
-    $('#wrapper_akun_rekening').hide();
-    $('#wrapper_uraian_paket').hide();
-    $('#total_display').text('Rp 0');
-    $('#input_volume').val('');
-    $('#kode_rekening, #nama_rekening').val('');
+      <div class="col-md-5">
+        <input type="number" step="0.01" class="form-control form-control-solid koefisien-input" name="koefisien[]" placeholder="Nilai koefisien 1">
+      </div>
+      <div class="col-md-5">
+        <input type="text" class="form-control form-control-solid" name="satuan_koefisien[]" placeholder="Satuan (Bulan, Orang, Unit, dll)">
+      </div>
+      <div class="col-md-1 d-flex align-items-center">
+        <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-koef" style="display: none;">
+          <i class="ki-outline ki-cross fs-3"></i>
+        </button>
+      </div>
+    </div>
+  `);
+  
+  koefisienCount = 1;
+  $('#btn_add_koefisien').prop('disabled', false).removeClass('disabled');
+  
+  // Reset select2 (termasuk kategori belanja)
+  ['#select_jenis_bl', '#select_akun_rekening', '#select_tipe_paket', '#select_uraian_paket', '#select_kategori_belanja'].forEach(function(selector) {
+    if ($(selector).hasClass('select2-hidden-accessible')) {
+      $(selector).val(null).trigger('change');
+    }
   });
+  
+  $('#wrapper_akun_rekening').hide();
+  $('#wrapper_uraian_paket').hide();
+  $('#total_display').text('Rp 0');
+  $('#input_volume').val('');
+  $('#kode_rekening, #nama_rekening').val('');
+});
 
   // ============================================================
   // BUTTON: OPEN MODAL PAKET
@@ -1459,6 +1560,168 @@ $(document).on('input', '#input_harga_satuan', function() {
     $('#form_add_paket')[0].reset();
     $('#modal_add_rincian').css('z-index', '');
   });
+
+  // ============================================================
+// EVENT: KETIKA PAKET DIPILIH - LOAD MINTAG
+// ============================================================
+$('#select_uraian_paket').on('change', function() {
+  const idPaketBelanja = $(this).val();
+  
+  if (!idPaketBelanja) {
+    $('#wrapper_kategori_belanja').hide();
+    $('#select_kategori_belanja').prop('disabled', true).html('<option value="">Pilih Kategori Belanja...</option>');
+    return;
+  }
+  
+  loadMintagList(idPaketBelanja);
+});
+
+// ============================================================
+// FUNCTION: LOAD MINTAG LIST
+// ============================================================
+function loadMintagList(idPaketBelanja) {
+  $('#select_kategori_belanja').prop('disabled', true).html('<option value="">⏳ Memuat kategori...</option>');
+  $('#wrapper_kategori_belanja').show();
+
+  $.ajax({
+    url: '{{ route("mintag.list") }}',
+    type: 'GET',
+    data: { id_paket_belanja: idPaketBelanja },
+    success: function(response) {
+      $('#select_kategori_belanja').empty().append('<option value="">Pilih Kategori Belanja...</option>');
+      
+      if (response.success && response.data && response.data.length > 0) {
+        $.each(response.data, function(index, mintag) {
+          $('#select_kategori_belanja').append(
+            $('<option></option>')
+              .val(mintag.value) // Dengan [-]
+              .text(mintag.text)  // Tanpa [-]
+          );
+        });
+        
+        toastr.success(`✓ ${response.data.length} kategori tersedia`, 'Berhasil');
+      } else {
+        toastr.info('Belum ada kategori, silakan tambahkan', 'Info');
+      }
+      
+      $('#select_kategori_belanja').prop('disabled', false);
+      
+      // Re-init Select2
+      if ($('#select_kategori_belanja').hasClass('select2-hidden-accessible')) {
+        $('#select_kategori_belanja').select2('destroy');
+      }
+      
+      $('#select_kategori_belanja').select2({
+        dropdownParent: $('#modal_add_rincian'),
+        placeholder: 'Pilih Kategori Belanja...',
+        allowClear: true,
+        width: '100%'
+      });
+    },
+    error: function(xhr) {
+      $('#select_kategori_belanja').html('<option value="">❌ Error memuat data</option>').prop('disabled', false);
+      toastr.error('Gagal memuat kategori belanja', 'Error');
+    }
+  });
+}
+
+// ============================================================
+// BUTTON: OPEN MODAL MINTAG
+// ============================================================
+$('#btn_open_modal_mintag').on('click', function() {
+  const idPaketBelanja = $('#select_uraian_paket').val();
+  const namaPaket = $('#select_uraian_paket option:selected').text();
+  
+  if (!idPaketBelanja) {
+    toastr.error('Pilih paket belanja terlebih dahulu', 'Validasi');
+    return;
+  }
+
+  $('#id_paket_belanja_mintag').val(idPaketBelanja);
+  $('#info_paket_mintag').html('<strong>' + namaPaket + '</strong>');
+  
+  $('#modal_add_rincian').css('z-index', 1050);
+  $('#modal_add_mintag').modal('show');
+});
+
+// ============================================================
+// MODAL MINTAG SHOWN
+// ============================================================
+$('#modal_add_mintag').on('shown.bs.modal', function () {
+  $('#modal_add_mintag').css('z-index', 1070);
+  
+  // Handle multiple backdrops
+  const backdrops = $('.modal-backdrop');
+  if (backdrops.length > 1) {
+    backdrops.eq(0).css('z-index', 1055);
+    backdrops.eq(1).css('z-index', 1065);
+  }
+});
+
+// ============================================================
+// SAVE MINTAG
+// ============================================================
+$('#btn_save_mintag').on('click', function() {
+  const form = $('#form_add_mintag');
+  const btn = $(this);
+  
+  if (!form[0].checkValidity()) {
+    form[0].reportValidity();
+    return;
+  }
+
+  const formData = {
+    id_paket_belanja: $('#id_paket_belanja_mintag').val(),
+    nama_mintag: $('textarea[name="nama_mintag"]').val().trim()
+  };
+
+  if (!formData.id_paket_belanja || !formData.nama_mintag) {
+    toastr.error('Lengkapi semua field', 'Validasi');
+    return;
+  }
+
+  btn.find('.indicator-label').hide();
+  btn.find('.indicator-progress').show();
+  btn.prop('disabled', true);
+
+  $.ajax({
+    url: '{{ route("mintag.store") }}',
+    type: 'POST',
+    data: formData,
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    success: function(response) {
+      if (response.success) {
+        toastr.success(response.message, 'Berhasil');
+        
+        // Tambahkan ke dropdown dan select otomatis
+        const newOption = new Option(response.data.text, response.data.value, true, true);
+        $('#select_kategori_belanja').append(newOption).trigger('change');
+        
+        $('#modal_add_mintag').modal('hide');
+        $('#form_add_mintag')[0].reset();
+      } else {
+        toastr.error(response.message, 'Error');
+      }
+    },
+    error: function(xhr) {
+      const message = xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan';
+      toastr.error(message, 'Error');
+    },
+    complete: function() {
+      btn.find('.indicator-label').show();
+      btn.find('.indicator-progress').hide();
+      btn.prop('disabled', false);
+    }
+  });
+});
+
+// ============================================================
+// RESET MODAL MINTAG
+// ============================================================
+$('#modal_add_mintag').on('hidden.bs.modal', function() {
+  $('#form_add_mintag')[0].reset();
+  $('#modal_add_rincian').css('z-index', '');
+});
 
 });
 </script>

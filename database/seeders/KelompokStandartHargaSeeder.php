@@ -165,9 +165,9 @@ class KelompokStandartHargaSeeder extends Seeder
             ['8.1.02.05.02.0002', 'Beban Jasa yang Diberikan kepada Masyarakat', 'SBU'],
             ['8.1.02.89.01.0001', 'Beban Barang dan Jasa BOSP-BOS Reguler', 'SBU'],
             ['8.1.02.89.02.0001', 'Beban Barang dan Jasa BOSP-BOP PAUD Reguler', 'SBU'],
-            ['1.1.12.01.05.0001', 'Persediaan untuk Dijual/Diserahkan Kepada Masyarakat', 'SBU'],
 
             // ASB - Analisa Standar Belanja
+            ['1.1.12.01.05.0001', 'Persediaan untuk Dijual/Diserahkan Kepada Masyarakat', 'ASB'],
             ['1.1.12.01.05.0002', 'Persediaan Untuk Dijual/Diserahkan Lainnya', 'ASB'],
             ['1.3.01.01.02.0007', 'Tanah Pertanian', 'ASB'],
             ['1.3.03.01.01.0001', 'Bangunan Gedung Kantor', 'ASB'],
@@ -206,9 +206,9 @@ class KelompokStandartHargaSeeder extends Seeder
             ['8.1.02.02.13.0001', 'Beban Kursus Singkat/Pelatihan', 'ASB'],
             ['8.1.02.02.13.0003', 'Beban Bimbingan Teknis', 'ASB'],
             ['8.1.02.02.13.0004', 'Beban Diklat Kepemimpinan', 'ASB'],
-            ['8.1.02.03.02.0049', 'Beban Pemeliharaan Alat Angkutan-Alat Angkutan Apung Bermotor-Alat Angkutan Apung Bermotor untuk Penumpang', 'ASB'],
 
             // HSPK - Harga Satuan Pekerjaan Konstruksi
+            ['8.1.02.03.02.0049', 'Beban Pemeliharaan Alat Angkutan-Alat Angkutan Apung Bermotor-Alat Angkutan Apung Bermotor untuk Penumpang', 'HSPK'],
             ['8.1.02.03.03.0001', 'Beban Pemeliharaan Bangunan Gedung-Bangunan Gedung Tempat Kerja-Bangunan Gedung Kantor', 'HSPK'],
             ['8.1.02.03.03.0006', 'Beban Pemeliharaan Bangunan Gedung-Bangunan Gedung Tempat Kerja-Bangunan Kesehatan', 'HSPK'],
             ['8.1.02.03.03.0037', 'Beban Pemeliharaan Bangunan Gedung-Bangunan Gedung Tempat Kerja-Bangunan Gedung Tempat Kerja Lainnya', 'HSPK'],

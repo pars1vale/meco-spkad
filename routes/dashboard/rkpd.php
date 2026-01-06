@@ -37,6 +37,9 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('renja/data', [RenjaController::class, 'getData'])->name('renja.data');
      Route::get('/renja/{id}/rincian', [RenjaController::class, 'showRincian'])->name('renja.rincian');
 
+      Route::get('mintag/list', [RenjaController::class, 'getMintagList'])->name('mintag.list');
+    Route::post('mintag/store', [RenjaController::class, 'storeMintag'])->name('mintag.store');
+
      // ✅ RINCIAN BELANJA
     Route::get('/rincian/get-akun', [RenjaController::class, 'getAkunByJenisBelanja'])->name('rincian.get-akun');
     Route::get('/rincian/get-detail-akun', [RenjaController::class, 'getDetailAkun'])->name('rincian.get-detail-akun');
