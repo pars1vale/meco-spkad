@@ -121,7 +121,7 @@ class StoreRincianRequest extends FormRequest
             'kode_rekening' => 'required|string',
             'nama_rekening' => 'required|string',
             'tipe_paket' => 'required|integer|in:1,2',
-            'id_paket_belanja' => 'nullable|integer',
+            'id_paket_belanja' => 'required', 
             'uraian' => 'required|string|max:1000',
             'volume' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:100',

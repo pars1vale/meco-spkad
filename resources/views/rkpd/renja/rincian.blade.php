@@ -322,6 +322,7 @@
           <input type="hidden" name="tahun_anggaran" value="{{ $subKegiatan->tahun_anggaran }}">
           <input type="hidden" name="kode_rekening" id="kode_rekening">
           <input type="hidden" name="nama_rekening" id="nama_rekening">
+          <input type="hidden" name="subtitle_teks_paket" id="subtitle_teks_paket">
           
           <!-- ============================== -->
           <!-- SECTION 1: OBJEK & REKENING -->
@@ -1256,51 +1257,57 @@ $(document).on('input', '#input_harga_satuan', function() {
   });
 
   // ============================================================
-  // FUNCTION: LOAD PAKET LIST
-  // ============================================================
-  function loadPaketList() {
-    const tipePaket = $('#select_tipe_paket').val();
-    const idRinciSubBl = $('input[name="id_rinci_sub_bl"]').val();
-    const jenisBelanja = $('#select_jenis_bl').val();
-    
-    if (!tipePaket || !idRinciSubBl) return;
+// FUNCTION: LOAD PAKET LIST - UPDATED
+// ============================================================
+function loadPaketList() {
+  const tipePaket = $('#select_tipe_paket').val();
+  const idRinciSubBl = $('input[name="id_rinci_sub_bl"]').val();
+  const jenisBelanja = $('#select_jenis_bl').val();
+  
+  if (!tipePaket || !idRinciSubBl) return;
 
-    $('#select_uraian_paket').prop('disabled', true).html('<option value="">⏳ Memuat data paket...</option>');
-    $('#wrapper_uraian_paket').show();
+  $('#select_uraian_paket').prop('disabled', true).html('<option value="">⏳ Memuat data paket...</option>');
+  $('#wrapper_uraian_paket').show();
 
-    $.ajax({
-      url: '{{ route("paket.list") }}',
-      type: 'GET',
-      data: { id_rinci_sub_bl: idRinciSubBl, tipe_paket: tipePaket, jenis_bl: jenisBelanja },
-      success: function(response) {
-        $('#select_uraian_paket').empty().append('<option value="">Pilih Paket Belanja...</option>');
-        
-        if (response.success && response.data && response.data.length > 0) {
-          $.each(response.data, function(index, paket) {
-            $('#select_uraian_paket').append($('<option></option>').val(paket.id).text(paket.uraian_paket));
-          });
-          toastr.success(`✓ ${response.data.length} paket tersedia`, 'Berhasil');
-        } else {
-          toastr.info('Belum ada paket, silakan tambahkan', 'Info');
-        }
-        
-        $('#select_uraian_paket').prop('disabled', false);
-        
-        if ($('#select_uraian_paket').hasClass('select2-hidden-accessible')) {
-          $('#select_uraian_paket').select2('destroy').select2({
-            dropdownParent: $('#modal_add_rincian'),
-            placeholder: 'Pilih Paket Belanja...',
-            allowClear: true,
-            width: '100%'
-          });
-        }
-      },
-      error: function() {
-        $('#select_uraian_paket').html('<option value="">❌ Error memuat data</option>').prop('disabled', false);
-        toastr.error('Gagal memuat data paket', 'Error');
+  $.ajax({
+    url: '{{ route("paket.list") }}',
+    type: 'GET',
+    data: { id_rinci_sub_bl: idRinciSubBl, tipe_paket: tipePaket, jenis_bl: jenisBelanja },
+    success: function(response) {
+      $('#select_uraian_paket').empty().append('<option value="">Pilih Paket Belanja...</option>');
+      
+      if (response.success && response.data && response.data.length > 0) {
+        $.each(response.data, function(index, paket) {
+          // ✅ TAMBAHKAN data-subtitle
+          $('#select_uraian_paket').append(
+            $('<option></option>')
+              .val(paket.id)
+              .text(paket.uraian_paket)
+              .attr('data-subtitle', paket.uraian_paket_full) // ✅ FULL version dengan [#]
+          );
+        });
+        toastr.success(`✓ ${response.data.length} paket tersedia`, 'Berhasil');
+      } else {
+        toastr.info('Belum ada paket, silakan tambahkan', 'Info');
       }
-    });
-  }
+      
+      $('#select_uraian_paket').prop('disabled', false);
+      
+      if ($('#select_uraian_paket').hasClass('select2-hidden-accessible')) {
+        $('#select_uraian_paket').select2('destroy').select2({
+          dropdownParent: $('#modal_add_rincian'),
+          placeholder: 'Pilih Paket Belanja...',
+          allowClear: true,
+          width: '100%'
+        });
+      }
+    },
+    error: function() {
+      $('#select_uraian_paket').html('<option value="">❌ Error memuat data</option>').prop('disabled', false);
+      toastr.error('Gagal memuat data paket', 'Error');
+    }
+  });
+}
 
   // ============================================================
   // SAVE RINCIAN BELANJA
@@ -1484,74 +1491,83 @@ $('#modal_add_rincian').on('hidden.bs.modal', function() {
     $('#info_rekening').html('<strong>Rekening:</strong> ' + rekening);
   });
 
-  // ============================================================
-  // SAVE PAKET BELANJA
-  // ============================================================
-  $('#btn_save_paket').on('click', function() {
-    const form = $('#form_add_paket');
-    const btn = $(this);
-    
-    if (!form[0].checkValidity()) {
-      form[0].reportValidity();
-      return;
-    }
+// ============================================================
+// SAVE PAKET BELANJA - UPDATED
+// ============================================================
+$('#btn_save_paket').on('click', function() {
+  const form = $('#form_add_paket');
+  const btn = $(this);
+  
+  if (!form[0].checkValidity()) {
+    form[0].reportValidity();
+    return;
+  }
 
-    // ========================================
-    // TAMBAHKAN [#] OTOMATIS
-    // ========================================
-    let uraianPaket = $('textarea[name="uraian_paket"]').val().trim();
-    
-    // Jika belum ada [#] di awal, tambahkan
-    if (!uraianPaket.startsWith('[#]')) {
-      uraianPaket = '[#] ' + uraianPaket;
-    }
+  let uraianPaket = $('textarea[name="uraian_paket"]').val().trim();
+  
+  if (!uraianPaket.startsWith('[#]')) {
+    uraianPaket = '[#] ' + uraianPaket;
+  }
 
-    const formData = {
-      id_rinci_sub_bl: $('input[name="id_rinci_sub_bl"]').val(),
-      tipe_paket: $('#tipe_paket_new').val(),
-      jenis_bl: $('#jenis_bl_new').val(),
-      id_akun: $('#id_akun_new').val(),
-      uraian_paket: uraianPaket  // ← KIRIM DENGAN [#]
-    };
+  const formData = {
+    id_rinci_sub_bl: $('input[name="id_rinci_sub_bl"]').val(),
+    tipe_paket: $('#tipe_paket_new').val(),
+    jenis_bl: $('#jenis_bl_new').val(),
+    id_akun: $('#id_akun_new').val(),
+    uraian_paket: uraianPaket
+  };
 
-    if (!formData.tipe_paket || !formData.jenis_bl || !formData.id_akun || !formData.uraian_paket) {
-      toastr.error('Lengkapi semua field', 'Validasi');
-      return;
-    }
+  if (!formData.tipe_paket || !formData.jenis_bl || !formData.id_akun || !formData.uraian_paket) {
+    toastr.error('Lengkapi semua field', 'Validasi');
+    return;
+  }
 
-    btn.find('.indicator-label').hide();
-    btn.find('.indicator-progress').show();
-    btn.prop('disabled', true);
+  btn.find('.indicator-label').hide();
+  btn.find('.indicator-progress').show();
+  btn.prop('disabled', true);
 
-    $.ajax({
-      url: '{{ route("paket.store") }}',
-      type: 'POST',
-      data: formData,
-      headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-      success: function(response) {
-        if (response.success) {
-          toastr.success(response.message, 'Berhasil');
-          
-          const newOption = new Option(response.data.uraian_paket, response.data.id, true, true);
-          $('#select_uraian_paket').append(newOption).trigger('change');
-          
-          $('#modal_add_paket').modal('hide');
-          $('#form_add_paket')[0].reset();
-        } else {
-          toastr.error(response.message, 'Error');
-        }
-      },
-      error: function(xhr) {
-        const message = xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan';
-        toastr.error(message, 'Error');
-      },
-      complete: function() {
-        btn.find('.indicator-label').show();
-        btn.find('.indicator-progress').hide();
-        btn.prop('disabled', false);
+  $.ajax({
+    url: '{{ route("paket.store") }}',
+    type: 'POST',
+    data: formData,
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    success: function(response) {
+      if (response.success) {
+        toastr.success(response.message, 'Berhasil');
+        
+        // ✅ CREATE OPTION DENGAN data-subtitle
+        const newOption = new Option(
+          response.data.uraian_paket, // Text (tanpa [#])
+          response.data.id,            // Value (temp ID)
+          true,                        // defaultSelected
+          true                         // selected
+        );
+        
+        // ✅ SET data-subtitle untuk full version
+        $(newOption).attr('data-subtitle', response.data.uraian_paket_full);
+        
+        $('#select_uraian_paket').append(newOption).trigger('change');
+        
+        // ✅ SET subtitle_teks_paket langsung
+        $('#subtitle_teks_paket').val(response.data.uraian_paket_full);
+        
+        $('#modal_add_paket').modal('hide');
+        $('#form_add_paket')[0].reset();
+      } else {
+        toastr.error(response.message, 'Error');
       }
-    });
+    },
+    error: function(xhr) {
+      const message = xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan';
+      toastr.error(message, 'Error');
+    },
+    complete: function() {
+      btn.find('.indicator-label').show();
+      btn.find('.indicator-progress').hide();
+      btn.prop('disabled', false);
+    }
   });
+});
 
   // ============================================================
   // RESET MODAL PAKET
@@ -1561,8 +1577,8 @@ $('#modal_add_rincian').on('hidden.bs.modal', function() {
     $('#modal_add_rincian').css('z-index', '');
   });
 
-  // ============================================================
-// EVENT: KETIKA PAKET DIPILIH - LOAD MINTAG
+// ============================================================
+// EVENT: KETIKA PAKET DIPILIH - UPDATE
 // ============================================================
 $('#select_uraian_paket').on('change', function() {
   const idPaketBelanja = $(this).val();
@@ -1570,8 +1586,22 @@ $('#select_uraian_paket').on('change', function() {
   if (!idPaketBelanja) {
     $('#wrapper_kategori_belanja').hide();
     $('#select_kategori_belanja').prop('disabled', true).html('<option value="">Pilih Kategori Belanja...</option>');
+    
+    // ✅ CLEAR subtitle_teks_paket
+    $('#subtitle_teks_paket').val('');
     return;
   }
+  
+  // ✅ SET subtitle_teks_paket dari option yang dipilih
+  const selectedOption = $(this).find('option:selected');
+  const subtitleTeks = selectedOption.data('subtitle') || selectedOption.text();
+  
+  $('#subtitle_teks_paket').val(subtitleTeks);
+  
+  console.log('Paket dipilih:', {
+    id: idPaketBelanja,
+    subtitle_teks: subtitleTeks
+  });
   
   loadMintagList(idPaketBelanja);
 });
@@ -1659,7 +1689,7 @@ $('#modal_add_mintag').on('shown.bs.modal', function () {
 });
 
 // ============================================================
-// SAVE MINTAG
+// SAVE MINTAG (UPDATED - FORCE CLOSE MODAL)
 // ============================================================
 $('#btn_save_mintag').on('click', function() {
   const form = $('#form_add_mintag');
@@ -1691,14 +1721,40 @@ $('#btn_save_mintag').on('click', function() {
     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
     success: function(response) {
       if (response.success) {
+        // ✅ 1. Destroy Select2 terlebih dahulu
+        if ($('#select_kategori_belanja').hasClass('select2-hidden-accessible')) {
+          $('#select_kategori_belanja').select2('destroy');
+        }
+        
+        // ✅ 2. Tambahkan option baru
+        const newOption = new Option(response.data.text, response.data.value, true, true);
+        $('#select_kategori_belanja').append(newOption);
+        
+        // ✅ 3. Re-init Select2
+        $('#select_kategori_belanja').select2({
+          dropdownParent: $('#modal_add_rincian'),
+          placeholder: 'Pilih Kategori Belanja...',
+          allowClear: true,
+          width: '100%'
+        });
+        
+        // ✅ 4. Set nilai terpilih
+        $('#select_kategori_belanja').val(response.data.value).trigger('change');
+        
+        // ✅ 5. Show success message
         toastr.success(response.message, 'Berhasil');
         
-        // Tambahkan ke dropdown dan select otomatis
-        const newOption = new Option(response.data.text, response.data.value, true, true);
-        $('#select_kategori_belanja').append(newOption).trigger('change');
-        
+        // ✅ 6. FORCE CLOSE modal mintag
         $('#modal_add_mintag').modal('hide');
-        $('#form_add_mintag')[0].reset();
+        
+        // ✅ 7. Remove ALL backdrops yang mungkin stuck
+        setTimeout(function() {
+          $('.modal-backdrop').remove();
+          $('body').removeClass('modal-open').css('padding-right', '');
+          $('#form_add_mintag')[0].reset();
+          $('#modal_add_rincian').css('z-index', 1055);
+        }, 300);
+        
       } else {
         toastr.error(response.message, 'Error');
       }
