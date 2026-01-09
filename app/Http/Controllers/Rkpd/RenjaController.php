@@ -348,7 +348,7 @@ class RenjaController extends Controller
             // 1. GET DATA SUB KEGIATAN
             // ================================================
             $subKegiatan = DB::table('data_sub_keg_bl')
-                ->where('id_sub_bl', $request->id_rinci_sub_bl)
+                ->where('id', $request->id_rinci_sub_bl)
                 ->first();
 
             if (!$subKegiatan) {
