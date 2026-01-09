@@ -41,7 +41,7 @@ class RenjaRepository
                 $join->on('dskb.id_skpd', '=', 'du.id_skpd')
                     ->where('du.tahun_anggaran', '=', self::TAHUN_ANGGARAN_DEFAULT);
             })
-            ->where('dskb.id', $id)
+            ->where('dskb.id_sub_bl', $id)
             ->where('dskb.tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
             ->where('dskb.active', 1)
             ->first();
@@ -410,6 +410,7 @@ class RenjaRepository
             ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
             ->select(
                 'dskb.id',
+                'dskb.id_sub_bl',  
                 'dskb.kode_sbl',
                 'dskb.kode_skpd',
                 'dskb.nama_skpd',
@@ -433,6 +434,7 @@ class RenjaRepository
             ->where('dskb.active', 1)
             ->groupBy(
                 'dskb.id',
+                'dskb.id_sub_bl',
                 'dskb.kode_sbl',
                 'dskb.kode_skpd',
                 'dskb.nama_skpd',
@@ -496,10 +498,10 @@ class RenjaRepository
 
     // ==================== RKA / RINCIAN BELANJA ====================
 
-    public function getRincianBelanjaBySubKegiatan(int $idSubKeg)
+    public function getRincianBelanjaBySubKegiatan(int $idSubBl)
     {
         return DB::table('data_rka')
-            ->where('id_rinci_sub_bl', $idSubKeg)
+            ->where('idsubbl', $idSubBl)
             ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
             ->where('active', 1)
             ->orderBy('kode_akun')

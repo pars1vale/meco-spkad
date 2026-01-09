@@ -467,7 +467,7 @@ class RenjaService
                 'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
                 'total_realisasi' => '0.00',
                 'persentase' => '0.00 %',
-                'aksi' => $this->renderActionButtons($row->id)
+                'aksi' => $this->renderActionButtons($row->id_sub_bl)
             ];
         }
 
