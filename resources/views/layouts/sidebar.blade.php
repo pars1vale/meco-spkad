@@ -473,7 +473,7 @@
         </div>
         {{-- Standar Harga Satuan --}}
         <div class="menu-item">
-          <a class="menu-link {{ Request::routeIs('standar_harga.index') ? 'active' : '' }}" href="{{ route('standar_harga.index') }}">
+          <a class="menu-link {{ Request::routeIs('data_ssh.index') ? 'active' : '' }}" href="{{ route('data_ssh.index') }}">
             <span class="menu-icon">
               <i class="ki-outline ki-price-tag fs-2"></i>
             </span>

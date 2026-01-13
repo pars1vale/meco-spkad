@@ -1,10 +1,10 @@
-<div class="modal fade" id="kt_modal_add_standar_harga" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="kt_modal_add_ssh" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered mw-900px">
     <div class="modal-content">
-      <form class="form" id="kt_modal_add_standar_harga_form">
+      <form class="form" id="kt_modal_add_ssh_form">
         @csrf
         <div class="modal-header">
-          <h2 class="fw-bold">Tambah Standar Harga</h2>
+          <h2 class="fw-bold">Tambah Data SSH</h2>
           <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
             <i class="ki-outline ki-cross fs-1"></i>
           </div>
@@ -15,6 +15,47 @@
 
             <div class="row">
               <div class="col-md-6">
+                <!-- Tipe Standar Harga -->
+                <div class="fv-row mb-7">
+                  <label class="required fs-6 fw-semibold mb-2">Tipe Standar Harga</label>
+                  <div class="d-flex flex-column gap-2">
+                    <div class="form-check form-check-custom form-check-solid">
+                      <input class="form-check-input tipe-ssh-radio" type="radio" value="SSH" id="tipeSSH" name="tipe_standar_harga"
+                        required />
+                      <label class="form-check-label fw-bold" for="tipeSSH">SSH - Standar Satuan Harga</label>
+                    </div>
+                    <div class="form-check form-check-custom form-check-solid">
+                      <input class="form-check-input tipe-ssh-radio" type="radio" value="HSPK" id="tipeHSPK" name="tipe_standar_harga" />
+                      <label class="form-check-label fw-bold" for="tipeHSPK">HSPK - Harga Satuan Pokok Kegiatan</label>
+                    </div>
+                    <div class="form-check form-check-custom form-check-solid">
+                      <input class="form-check-input tipe-ssh-radio" type="radio" value="ASB" id="tipeASB" name="tipe_standar_harga" />
+                      <label class="form-check-label fw-bold" for="tipeASB">ASB - Analisa Standar Belanja</label>
+                    </div>
+                    <div class="form-check form-check-custom form-check-solid">
+                      <input class="form-check-input tipe-ssh-radio" type="radio" value="SBU" id="tipeSBU" name="tipe_standar_harga" />
+                      <label class="form-check-label fw-bold" for="tipeSBU">SBU - Standar Biaya Umum</label>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <!-- Kelompok Standar Harga -->
+                <div class="fv-row mb-7">
+                  <label class="required fs-6 fw-semibold mb-2">Kelompok Standar Harga</label>
+                  <select class="form-select form-select-solid" name="id_kel_standar_harga" id="kelompok_select" data-control="select2"
+                    data-dropdown-parent="#kt_modal_add_ssh" data-placeholder="Pilih kelompok" required>
+                    <option></option>
+                    @foreach ($kelompokList as $kel)
+                      <option value="{{ $kel->id_kategori }}" data-tipe="{{ $kel->tipe_kelompok }}">
+                        {{ $kel->kode_kategori }} - {{ $kel->uraian_kategori }}
+                      </option>
+                    @endforeach
+                  </select>
+                  <div class="invalid-feedback"></div>
+                  <div class="form-text">Kelompok akan difilter sesuai tipe yang dipilih</div>
+                </div>
+
                 <!-- Kode Standar Harga -->
                 <div class="fv-row mb-7">
                   <label class="required fs-6 fw-semibold mb-2">Kode Standar Harga</label>
@@ -23,68 +64,14 @@
                   <div class="invalid-feedback"></div>
                 </div>
 
-                <!-- Tipe Standar Harga -->
-                <div class="fv-row mb-7">
-                  <label class="required fs-6 fw-semibold mb-2">Tipe Standar Harga</label>
-                  <div class="form-text mb-3">Pilih salah satu tipe standar harga</div>
-
-                  <div class="d-flex flex-wrap gap-3">
-                    <div class="form-check form-check-custom form-check-solid">
-                      <input class="form-check-input tipe-standar-harga-radio" type="radio" value="SSH" id="tipeSSH" name="tipe_standar_harga"
-                        required />
-                      <label class="form-check-label fw-bold" for="tipeSSH">SSH</label>
-                    </div>
-
-                    <div class="form-check form-check-custom form-check-solid">
-                      <input class="form-check-input tipe-standar-harga-radio" type="radio" value="HSPK" id="tipeHSPK"
-                        name="tipe_standar_harga" />
-                      <label class="form-check-label fw-bold" for="tipeHSPK">HSPK</label>
-                    </div>
-
-                    <div class="form-check form-check-custom form-check-solid">
-                      <input class="form-check-input tipe-standar-harga-radio" type="radio" value="ASB" id="tipeASB"
-                        name="tipe_standar_harga" />
-                      <label class="form-check-label fw-bold" for="tipeASB">ASB</label>
-                    </div>
-
-                    <div class="form-check form-check-custom form-check-solid">
-                      <input class="form-check-input tipe-standar-harga-radio" type="radio" value="SBU" id="tipeSBU"
-                        name="tipe_standar_harga" />
-                      <label class="form-check-label fw-bold" for="tipeSBU">SBU</label>
-                    </div>
-                  </div>
-
-                  <div class="invalid-feedback d-none" id="tipe-standar-harga-error">
-                    Anda harus memilih salah satu tipe standar harga
-                  </div>
-                </div>
-
-                <!-- Kelompok Standar Harga -->
-                <div class="fv-row mb-7">
-                  <label class="required fs-6 fw-semibold mb-2">Kelompok Standar Harga</label>
-                  <select class="form-select form-select-solid" name="id_kelompok_standar_harga" id="kelompok_select" data-control="select2"
-                    data-dropdown-parent="#kt_modal_add_standar_harga" data-placeholder="Pilih tipe terlebih dahulu" required disabled>
-                    <option></option>
-                  </select>
-                  <div class="invalid-feedback"></div>
-                  <div class="form-text">Kelompok akan ditampilkan sesuai tipe yang dipilih</div>
-                </div>
-
                 <!-- Satuan -->
                 <div class="fv-row mb-7">
                   <label class="required fs-6 fw-semibold mb-2">Satuan</label>
-                  <select class="form-select form-select-solid" name="id_satuan" data-control="select2"
-                    data-dropdown-parent="#kt_modal_add_standar_harga" data-placeholder="Pilih Satuan" required>
-                    <option></option>
-                    @foreach ($satuan as $sat)
-                      <option value="{{ $sat->id }}">{{ $sat->nama_satuan }}</option>
-                    @endforeach
-                  </select>
+                  <input type="text" class="form-control form-control-solid" placeholder="Contoh: Unit, M2, Buah" name="satuan" maxlength="50"
+                    required />
                   <div class="invalid-feedback"></div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
                 <!-- Harga -->
                 <div class="fv-row mb-7">
                   <label class="required fs-6 fw-semibold mb-2">Harga</label>
@@ -92,20 +79,39 @@
                     min="0" required />
                   <div class="invalid-feedback"></div>
                 </div>
+              </div>
+
+              <div class="col-md-6">
+                <!-- Tahun -->
+                <div class="fv-row mb-7">
+                  <label class="required fs-6 fw-semibold mb-2">Tahun Anggaran</label>
+                  <input type="number" class="form-control form-control-solid" placeholder="Contoh: {{ date('Y') }}" name="tahun"
+                    min="2000" max="2100" value="{{ date('Y') }}" required />
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <!-- ID Daerah -->
+                <div class="fv-row mb-7">
+                  <label class="required fs-6 fw-semibold mb-2">ID Daerah</label>
+                  <input type="number" class="form-control form-control-solid" placeholder="Contoh: 1" name="id_daerah" required />
+                  <div class="invalid-feedback"></div>
+                  <div class="form-text">ID Daerah sesuai dengan wilayah</div>
+                </div>
 
                 <!-- Nilai TKDN -->
                 <div class="fv-row mb-7">
                   <label class="fs-6 fw-semibold mb-2">Nilai TKDN (%)</label>
-                  <input type="number" class="form-control form-control-solid" placeholder="0-100" name="nilai_tkdn" step="0.01" min="0"
-                    max="100" value="0" />
+                  <input type="number" class="form-control form-control-solid" placeholder="0-100" name="nilai_tkdn" step="0.01"
+                    min="0" max="100" value="0" />
                   <div class="invalid-feedback"></div>
+                  <div class="form-text">Tingkat Komponen Dalam Negeri</div>
                 </div>
 
                 <!-- Is PDN -->
                 <div class="fv-row mb-7">
                   <div class="form-check form-switch form-check-custom form-check-solid">
                     <input class="form-check-input" type="checkbox" value="1" id="isPdnSwitch" name="is_pdn" />
-                    <label class="form-check-label" for="isPdnSwitch">
+                    <label class="form-check-label fw-bold" for="isPdnSwitch">
                       Produk Dalam Negeri (PDN)
                     </label>
                   </div>
@@ -116,65 +122,23 @@
             <!-- Nama Standar Harga -->
             <div class="fv-row mb-7">
               <label class="required fs-6 fw-semibold mb-2">Nama Standar Harga</label>
-              <textarea class="form-control form-control-solid" rows="3" placeholder="Masukkan nama standar harga" name="nama_standar_harga" required></textarea>
+              <textarea class="form-control form-control-solid" rows="3" placeholder="Masukkan nama standar harga" name="nama_standar_harga"
+                maxlength="255" required></textarea>
               <div class="invalid-feedback"></div>
             </div>
 
             <!-- Spesifikasi -->
             <div class="fv-row mb-7">
               <label class="fs-6 fw-semibold mb-2">Spesifikasi</label>
-              <textarea class="form-control form-control-solid" rows="3" placeholder="Masukkan spesifikasi (opsional)" name="spesifikasi"></textarea>
+              <textarea class="form-control form-control-solid" rows="3" placeholder="Masukkan spesifikasi (opsional)" name="spek"></textarea>
               <div class="invalid-feedback"></div>
             </div>
 
-            <div class="separator my-7"></div>
-
-            <!-- Rekening Belanja dengan Repeater - FIXED WITH SELECT2 -->
+            <!-- Keterangan -->
             <div class="fv-row mb-7">
-              <label class="required fs-6 fw-semibold mb-2">Rekening Belanja (Akun)</label>
-              <div class="form-text mb-3">Tambahkan minimal satu rekening belanja</div>
-
-              <!--begin::Repeater-->
-              <div id="kt_rekening_repeater">
-                <!--begin::Form group-->
-                <div class="form-group">
-                  <div data-repeater-list="rekening_belanja">
-                    <div data-repeater-item>
-                      <div class="form-group row align-items-center mb-5">
-                        <div class="col-md-10">
-                          <select class="form-select form-select-solid rekening-select" data-control="select2"
-                            data-dropdown-parent="#kt_modal_add_standar_harga" data-placeholder="Pilih rekening belanja" name="id_akun" required>
-                            <option></option>
-                            @foreach ($akun as $ak)
-                              <option value="{{ $ak->id }}">{{ $ak->kode_akun }} - {{ $ak->nama_akun }}</option>
-                            @endforeach
-                          </select>
-                        </div>
-                        <div class="col-md-2">
-                          <a href="javascript:;" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger">
-                            <i class="ki-outline ki-trash fs-3"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!--end::Form group-->
-
-                <!--begin::Form group-->
-                <div class="form-group">
-                  <a href="javascript:;" data-repeater-create class="btn btn-sm btn-light-primary">
-                    <i class="ki-outline ki-plus fs-3"></i>
-                    Tambah Rekening
-                  </a>
-                </div>
-                <!--end::Form group-->
-              </div>
-              <!--end::Repeater-->
-
-              <div class="invalid-feedback d-none" id="rekening-error">
-                Minimal satu rekening belanja harus dipilih
-              </div>
+              <label class="fs-6 fw-semibold mb-2">Keterangan</label>
+              <textarea class="form-control form-control-solid" rows="2" placeholder="Keterangan tambahan (opsional)" name="ket_teks"></textarea>
+              <div class="invalid-feedback"></div>
             </div>
 
           </div>
@@ -182,8 +146,11 @@
 
         <div class="modal-footer flex-center">
           <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" id="kt_modal_add_standar_harga_submit" class="btn btn-primary">
-            <span class="indicator-label">Simpan</span>
+          <button type="submit" id="kt_modal_add_ssh_submit" class="btn btn-primary">
+            <span class="indicator-label">
+              <i class="ki-outline ki-check fs-2"></i>
+              Simpan
+            </span>
             <span class="indicator-progress">Menyimpan...
               <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
             </span>

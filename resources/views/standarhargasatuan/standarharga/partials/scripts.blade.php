@@ -10,146 +10,30 @@
     baseToolbar: null,
     selectedCount: null,
     bulkDeleteBtn: null,
-    rekeningError: null,
+    filterTipe: null,
+    filterTahun: null,
+    filterLock: null,
     tipeRadios: null,
     kelompokSelect: null
   };
 
   document.addEventListener("DOMContentLoaded", function() {
-    // Initialize cached DOM elements
-    DOM.table = $('#kt_standar_harga_table');
+    // Initialize DOM elements
+    DOM.table = $('#kt_ssh_table');
     DOM.searchInput = document.getElementById('kt_datatable_search_input');
-    DOM.addForm = document.getElementById('kt_modal_add_standar_harga_form');
-    DOM.addSubmitButton = document.getElementById('kt_modal_add_standar_harga_submit');
-    DOM.masterCheckbox = document.querySelector('#kt_standar_harga_table thead input[type="checkbox"]');
-    DOM.checkboxes = document.querySelectorAll('#kt_standar_harga_table tbody input[type="checkbox"]');
+    DOM.addForm = document.getElementById('kt_modal_add_ssh_form');
+    DOM.addSubmitButton = document.getElementById('kt_modal_add_ssh_submit');
+    DOM.masterCheckbox = document.querySelector('#kt_ssh_table thead input[type="checkbox"]');
+    DOM.checkboxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox');
     DOM.selectedToolbar = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
     DOM.baseToolbar = document.querySelector('[data-kt-customer-table-toolbar="base"]');
     DOM.selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
     DOM.bulkDeleteBtn = document.getElementById('bulk_delete_btn');
-    DOM.rekeningError = document.getElementById('rekening-error');
-    DOM.tipeRadios = document.querySelectorAll('.tipe-standar-harga-radio');
+    DOM.filterTipe = document.getElementById('filter_tipe');
+    DOM.filterTahun = document.getElementById('filter_tahun');
+    DOM.filterLock = document.getElementById('filter_lock');
+    DOM.tipeRadios = document.querySelectorAll('.tipe-ssh-radio');
     DOM.kelompokSelect = document.getElementById('kelompok_select');
-
-    // ============================================
-    // INITIALIZE SELECT2 IN MODAL
-    // ============================================
-    $('#kt_modal_add_standar_harga').on('shown.bs.modal', function() {
-      console.log('Modal ditampilkan - inisialisasi Select2');
-
-      // Init semua select2 yang belum diinisialisasi
-      $(this).find('select[data-control="select2"]').each(function() {
-        if (!$(this).hasClass('select2-hidden-accessible')) {
-          console.log('Init Select2 untuk:', $(this).attr('name'));
-
-          $(this).select2({
-            placeholder: $(this).data('placeholder') || 'Pilih data',
-            dropdownParent: $('#kt_modal_add_standar_harga'),
-            allowClear: true,
-            width: '100%'
-          });
-        }
-      });
-    });
-
-    // Reset Select2 saat modal ditutup
-    $('#kt_modal_add_standar_harga').on('hidden.bs.modal', function() {
-      console.log('Modal ditutup - reset form');
-
-      // Reset form
-      if (DOM.addForm) {
-        DOM.addForm.reset();
-      }
-
-      // Reset kelompok select
-      if (DOM.kelompokSelect) {
-        $(DOM.kelompokSelect).val('').trigger('change');
-        DOM.kelompokSelect.disabled = true;
-        DOM.kelompokSelect.innerHTML = '<option></option>';
-      }
-
-      // Reset tipe radio
-      DOM.tipeRadios.forEach(radio => {
-        radio.checked = false;
-      });
-
-      // Reset repeater ke 1 row
-      $('#kt_rekening_repeater').repeater('setList', [{
-        id_akun: ''
-      }]);
-
-      // Destroy dan reinit select2 di repeater
-      $('.rekening-select').each(function() {
-        if ($(this).hasClass('select2-hidden-accessible')) {
-          $(this).select2('destroy');
-        }
-      });
-
-      // Clear error messages
-      clearFormErrors();
-    });
-
-    // ============================================
-    // INITIALIZE REPEATER WITH SELECT2 FIX
-    // ============================================
-    $('#kt_rekening_repeater').repeater({
-      initEmpty: false,
-
-      defaultValues: {
-        'id_akun': ''
-      },
-
-      show: function() {
-        $(this).slideDown();
-
-        // CRITICAL FIX: Init Select2 untuk row baru
-        const newSelect = $(this).find('.rekening-select');
-
-        // Destroy dulu jika sudah ada
-        if (newSelect.hasClass('select2-hidden-accessible')) {
-          newSelect.select2('destroy');
-        }
-
-        // Init dengan konfigurasi yang benar
-        newSelect.select2({
-          placeholder: "Pilih rekening belanja",
-          allowClear: true,
-          dropdownParent: $('#kt_modal_add_standar_harga'),
-          width: '100%'
-        });
-
-        console.log('New row added - Select2 initialized');
-      },
-
-      hide: function(deleteElement) {
-        const rowCount = $('#kt_rekening_repeater [data-repeater-item]').length;
-
-        if (rowCount <= 1) {
-          toastr.warning('Minimal harus ada satu rekening belanja', 'TIDAK DAPAT MENGHAPUS');
-          return;
-        }
-
-        // Destroy Select2 sebelum remove
-        $(this).find('.rekening-select').select2('destroy');
-        $(this).slideUp(deleteElement);
-        console.log('Row removed');
-      },
-
-      ready: function() {
-        // Init Select2 untuk row pertama
-        $('.rekening-select').each(function() {
-          if (!$(this).hasClass('select2-hidden-accessible')) {
-            $(this).select2({
-              placeholder: "Pilih rekening belanja",
-              allowClear: true,
-              dropdownParent: $('#kt_modal_add_standar_harga'),
-              width: '100%'
-            });
-          }
-        });
-        console.log('Repeater ready - Select2 initialized for initial rows');
-      }
-    });
 
     // Initialize DataTable
     var tableInstance = DOM.table.DataTable({
@@ -157,13 +41,16 @@
       searchDelay: 500,
       processing: true,
       serverSide: false,
+      order: [
+        [1, 'asc']
+      ],
       columnDefs: [{
           targets: [0],
           orderable: false,
           className: 'text-center'
         },
         {
-          targets: [7],
+          targets: [9],
           orderable: false,
           className: 'text-end'
         }
@@ -177,26 +64,44 @@
       });
     }
 
-    // Configure Toastr options
+    // Filter by Tipe
+    if (DOM.filterTipe) {
+      DOM.filterTipe.addEventListener('change', function() {
+        tableInstance.column(3).search(this.value).draw();
+      });
+    }
+
+    // Filter by Tahun
+    if (DOM.filterTahun) {
+      DOM.filterTahun.addEventListener('change', function() {
+        tableInstance.column(7).search(this.value).draw();
+      });
+    }
+
+    // Filter by Lock Status
+    if (DOM.filterLock) {
+      DOM.filterLock.addEventListener('change', function() {
+        const value = this.value;
+
+        if (value === '') {
+          tableInstance.column(8).search('').draw();
+        } else if (value === '1') {
+          tableInstance.column(8).search('Terkunci').draw();
+        } else {
+          tableInstance.column(8).search('Tidak Terkunci').draw();
+        }
+      });
+    }
+
+    // Toastr config
     toastr.options = {
       "closeButton": true,
-      "debug": false,
-      "newestOnTop": false,
       "progressBar": true,
       "positionClass": "toastr-top-right",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "5000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
+      "timeOut": "5000"
     };
 
-    // Session Messages dengan Toaster
+    // Session messages
     const sessionMessages = document.querySelectorAll('#session-messages div');
     sessionMessages.forEach(msg => {
       const type = msg.dataset.type;
@@ -206,56 +111,88 @@
         toastr.error(message, "GAGAL");
       } else if (type === 'success') {
         toastr.success(message, "BERHASIL");
-      } else {
-        toastr.info(message);
       }
     });
 
-    // AJAX load kelompok berdasarkan tipe
-    DOM.tipeRadios.forEach(radio => {
-      radio.addEventListener('change', function() {
-        const tipe = this.value;
-
-        if (tipe) {
-          DOM.kelompokSelect.disabled = true;
-          $(DOM.kelompokSelect).html('<option>Loading...</option>').trigger('change');
-
-          $.ajax({
-            url: "{{ route('kelompok_satuan_harga.get-by-tipe') }}",
-            method: 'GET',
-            data: {
-              tipe: tipe
-            },
-            success: function(response) {
-              if (response.success && response.data) {
-                let options = '<option></option>';
-
-                response.data.forEach(function(kelompok) {
-                  options +=
-                    `<option value="${kelompok.id}">${kelompok.kode_kelompok_standar_harga} - ${kelompok.nama_kelompok_standar_harga}</option>`;
-                });
-
-                $(DOM.kelompokSelect).html(options).trigger('change');
-                DOM.kelompokSelect.disabled = false;
-
-                if (response.data.length === 0) {
-                  $(DOM.kelompokSelect).html('<option>Tidak ada kelompok untuk tipe ' + tipe + '</option>').trigger('change');
-
-                  toastr.info('Belum ada kelompok standar harga untuk tipe ' + tipe +
-                    '. Silakan tambahkan kelompok terlebih dahulu.', 'TIDAK ADA KELOMPOK');
-                }
-              }
-            },
-            error: function() {
-              $(DOM.kelompokSelect).html('<option>Gagal memuat data</option>').trigger('change');
-              toastr.error('Gagal memuat data kelompok', 'GAGAL');
-            }
+    // Initialize Select2 in modal
+    $('#kt_modal_add_ssh').on('shown.bs.modal', function() {
+      $(this).find('select[data-control="select2"]').each(function() {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2({
+            placeholder: $(this).data('placeholder') || 'Pilih data',
+            dropdownParent: $('#kt_modal_add_ssh'),
+            allowClear: true,
+            width: '100%'
           });
         }
       });
     });
 
-    // Event delegation untuk delete buttons
+    // Reset modal on hide
+    $('#kt_modal_add_ssh').on('hidden.bs.modal', function() {
+      if (DOM.addForm) {
+        DOM.addForm.reset();
+        DOM.addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+      }
+
+      if (DOM.kelompokSelect) {
+        $(DOM.kelompokSelect).val('').trigger('change');
+      }
+
+      DOM.tipeRadios.forEach(radio => radio.checked = false);
+    });
+
+    // Filter kelompok by tipe
+    DOM.tipeRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        const tipe = this.value;
+        const kelompokOptions = DOM.kelompokSelect.querySelectorAll('option');
+
+        kelompokOptions.forEach(option => {
+          if (option.value === '') {
+            option.style.display = 'block';
+          } else {
+            const optionTipe = option.getAttribute('data-tipe');
+            option.style.display = (optionTipe === tipe) ? 'block' : 'none';
+          }
+        });
+
+        $(DOM.kelompokSelect).val('').trigger('change');
+      });
+    });
+
+    // Toggle lock status
+    $(document).on('change', '.toggle-lock', function() {
+      const id = $(this).data('id');
+      const checkbox = $(this);
+      const label = $(this).next('label');
+
+      $.ajax({
+        url: `/standarHarga/data_ssh/${id}/toggle-lock`,
+        method: 'POST',
+        data: {
+          _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+          if (response.success) {
+            toastr.success(response.message, 'BERHASIL');
+
+            if (response.is_locked) {
+              label.text('Terkunci');
+            } else {
+              label.text('Tidak Terkunci');
+            }
+          }
+        },
+        error: function(xhr) {
+          toastr.error(xhr.responseJSON?.message || 'Gagal mengubah status', 'GAGAL');
+          checkbox.prop('checked', !checkbox.prop('checked'));
+        }
+      });
+    });
+
+    // Delete button
     DOM.table.on('click', '.delete-btn', function(e) {
       e.preventDefault();
       const form = $(this).closest('form');
@@ -263,7 +200,7 @@
 
       Swal.fire({
         title: 'Apakah Anda yakin?',
-        html: `Data standar harga <strong>"${name}"</strong> akan dihapus!`,
+        html: `Data SSH <strong>"${name}"</strong> akan dihapus!`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Ya, hapus!',
@@ -280,34 +217,9 @@
       });
     });
 
-    // Event delegation untuk remove rekening buttons
-    $(document).on('click', '.btn-remove-rekening', function(e) {
-      e.preventDefault();
-      const form = $(this).closest('form');
-      const rekening = $(this).data('rekening');
-
-      Swal.fire({
-        title: 'Hapus Rekening?',
-        html: `Rekening <strong>"${rekening}"</strong> akan dihapus dari standar harga ini.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, hapus!',
-        cancelButtonText: 'Batal',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "btn btn-danger",
-          cancelButton: "btn btn-secondary"
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          form.submit();
-        }
-      });
-    });
-
-    // Bulk selection functionality
+    // Bulk selection
     function updateToolbar() {
-      const checkedBoxes = document.querySelectorAll('#kt_standar_harga_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:checked');
 
       if (checkedBoxes.length > 0) {
         DOM.selectedCount.textContent = checkedBoxes.length;
@@ -319,40 +231,37 @@
       }
     }
 
-    // Master checkbox
     if (DOM.masterCheckbox) {
       DOM.masterCheckbox.addEventListener('change', function() {
-        DOM.checkboxes.forEach(checkbox => {
-          checkbox.checked = this.checked;
-        });
+        const enabledCheckboxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:not(:disabled)');
+        enabledCheckboxes.forEach(cb => cb.checked = this.checked);
         updateToolbar();
       });
     }
 
-    // Individual checkboxes
-    DOM.checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        updateToolbar();
-        const checkedBoxes = document.querySelectorAll('#kt_standar_harga_table tbody input[type="checkbox"]:checked');
-        if (DOM.masterCheckbox) {
-          DOM.masterCheckbox.checked = checkedBoxes.length === DOM.checkboxes.length;
-          DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < DOM.checkboxes.length;
-        }
-      });
+    DOM.table.on('change', 'tbody .row-checkbox', function() {
+      updateToolbar();
+      const allCheckboxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:not(:disabled)');
+      const checkedBoxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:checked');
+
+      if (DOM.masterCheckbox) {
+        DOM.masterCheckbox.checked = checkedBoxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+        DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCheckboxes.length;
+      }
     });
 
     // Bulk delete
     DOM.bulkDeleteBtn?.addEventListener('click', function() {
-      const checkedBoxes = document.querySelectorAll('#kt_standar_harga_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:checked');
 
       if (checkedBoxes.length === 0) {
-        toastr.info('Pilih minimal satu standar harga untuk dihapus.', 'INFORMASI');
+        toastr.info('Pilih minimal satu data untuk dihapus.', 'INFORMASI');
         return;
       }
 
       Swal.fire({
         title: 'Apakah Anda yakin?',
-        html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data standar harga terpilih!`,
+        html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data SSH terpilih!`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Ya, hapus!',
@@ -368,7 +277,7 @@
 
           const form = document.createElement('form');
           form.method = 'POST';
-          form.action = '{{ route('standar_harga.bulk-delete') }}';
+          form.action = '{{ route('data_ssh.bulk-delete') }}';
 
           const csrfToken = document.createElement('input');
           csrfToken.type = 'hidden';
@@ -390,77 +299,35 @@
       });
     });
 
-    // Clear form errors function
-    function clearFormErrors() {
-      if (!DOM.addForm) return;
-
-      DOM.addForm.querySelectorAll('.is-invalid').forEach(el => {
-        el.classList.remove('is-invalid');
-      });
-
-      DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => {
-        el.textContent = '';
-        el.classList.add('d-none');
-      });
-
-      if (DOM.rekeningError) {
-        DOM.rekeningError.classList.add('d-none');
-      }
-
-      const tipeError = document.getElementById('tipe-standar-harga-error');
-      if (tipeError) {
-        tipeError.classList.add('d-none');
-      }
-    }
-
-    // AJAX Form Submission
+    // AJAX Form submission
     if (DOM.addForm && DOM.addSubmitButton) {
       DOM.addForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
         const formData = new FormData(this);
 
-        // Check tipe standar harga
-        const tipeChecked = document.querySelector('.tipe-standar-harga-radio:checked');
+        // Validation
+        const tipeChecked = document.querySelector('.tipe-ssh-radio:checked');
         if (!tipeChecked) {
-          document.getElementById('tipe-standar-harga-error')?.classList.remove('d-none');
           toastr.error('Pilih tipe standar harga terlebih dahulu!', 'VALIDASI GAGAL');
           return;
         }
 
-        // Check rekening dari Select2
-        const rekeningSelects = document.querySelectorAll('.rekening-select');
-        let hasValidRekening = false;
-
-        rekeningSelects.forEach(select => {
-          const value = $(select).val(); // Gunakan jQuery untuk get value Select2
-          if (value && value !== '') {
-            hasValidRekening = true;
-          }
-        });
-
-        if (!hasValidRekening) {
-          DOM.rekeningError?.classList.remove('d-none');
-          toastr.error('Minimal satu rekening belanja harus dipilih!', 'VALIDASI GAGAL');
-          return;
-        }
-
-        // Show loading state
         DOM.addSubmitButton.setAttribute('data-kt-indicator', 'on');
         DOM.addSubmitButton.disabled = true;
 
-        // Clear previous errors
-        clearFormErrors();
+        DOM.addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
 
-        // Submit via AJAX
         $.ajax({
-          url: "{{ route('standar_harga.store') }}",
+          url: "{{ route('data_ssh.store') }}",
           method: 'POST',
           data: formData,
           processData: false,
           contentType: false,
           success: function(response) {
-            $('#kt_modal_add_standar_harga').modal('hide');
+            $('#kt_modal_add_ssh').modal('hide');
+            DOM.addForm.reset();
 
             toastr.success(response.message || 'Data berhasil disimpan!', 'BERHASIL', {
               timeOut: 2000,
@@ -479,14 +346,12 @@
                   const feedback = input.nextElementSibling;
                   if (feedback && feedback.classList.contains('invalid-feedback')) {
                     feedback.textContent = errors[field][0];
-                    feedback.classList.remove('d-none');
                   }
                 }
               });
-
               toastr.error('Periksa kembali form Anda', 'VALIDASI GAGAL');
             } else {
-              toastr.error(xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan data', 'GAGAL');
+              toastr.error(xhr.responseJSON?.message || 'Terjadi kesalahan', 'GAGAL');
             }
           },
           complete: function() {
@@ -496,10 +361,5 @@
         });
       });
     }
-
-    // Auto show modal if validation errors exist
-    @if ($errors->any() && old('_token'))
-      $('#kt_modal_add_standar_harga').modal('show');
-    @endif
   });
 </script>
