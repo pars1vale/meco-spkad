@@ -29,7 +29,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
     require __DIR__ . '/dashboard/referensi.php';
     require __DIR__ . '/dashboard/rkpd.php';
-    require __DIR__ . '/dashboard/shs.php';
+    require __DIR__ . '/dashboard/standarharga.php';
     require __DIR__ . '/dashboard/perangkatdaerah.php';
 });
 

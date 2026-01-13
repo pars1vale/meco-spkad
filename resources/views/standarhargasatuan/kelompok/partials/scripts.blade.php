@@ -9,7 +9,10 @@
     selectedToolbar: null,
     baseToolbar: null,
     selectedCount: null,
-    bulkDeleteBtn: null
+    bulkDeleteBtn: null,
+    filterTipe: null,
+    filterTahun: null,
+    filterStatus: null
   };
 
   document.addEventListener("DOMContentLoaded", function() {
@@ -19,11 +22,14 @@
     DOM.addForm = document.getElementById('kt_modal_add_kelompok_form');
     DOM.addSubmitButton = document.getElementById('kt_modal_add_kelompok_submit');
     DOM.masterCheckbox = document.querySelector('#kt_kelompok_table thead input[type="checkbox"]');
-    DOM.checkboxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]');
+    DOM.checkboxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:not(.toggle-active)');
     DOM.selectedToolbar = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
     DOM.baseToolbar = document.querySelector('[data-kt-customer-table-toolbar="base"]');
     DOM.selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
     DOM.bulkDeleteBtn = document.getElementById('bulk_delete_btn');
+    DOM.filterTipe = document.getElementById('filter_tipe');
+    DOM.filterTahun = document.getElementById('filter_tahun');
+    DOM.filterStatus = document.getElementById('filter_status');
 
     // Initialize DataTable
     var tableInstance = DOM.table.DataTable({
@@ -31,15 +37,17 @@
       searchDelay: 500,
       processing: true,
       serverSide: false,
+      order: [
+        [2, 'asc']
+      ], // Sort by kode_kategori
       columnDefs: [{
           targets: [0],
           orderable: false,
           className: 'text-center'
         },
         {
-          targets: [3],
-          orderable: false,
-          className: 'text-end'
+          targets: [5, 6],
+          orderable: false
         }
       ]
     });
@@ -48,6 +56,35 @@
     if (DOM.searchInput) {
       DOM.searchInput.addEventListener('keyup', function() {
         tableInstance.search(this.value).draw();
+      });
+    }
+
+    // Filter by Tipe
+    if (DOM.filterTipe) {
+      DOM.filterTipe.addEventListener('change', function() {
+        tableInstance.column(4).search(this.value).draw();
+      });
+    }
+
+    // Filter by Tahun
+    if (DOM.filterTahun) {
+      DOM.filterTahun.addEventListener('change', function() {
+        tableInstance.column(5).search(this.value).draw();
+      });
+    }
+
+    // Filter by Status
+    if (DOM.filterStatus) {
+      DOM.filterStatus.addEventListener('change', function() {
+        const value = this.value;
+
+        if (value === '') {
+          tableInstance.column(6).search('').draw();
+        } else if (value === '1') {
+          tableInstance.column(6).search('Aktif').draw();
+        } else {
+          tableInstance.column(6).search('Tidak Aktif').draw();
+        }
       });
     }
 
@@ -85,6 +122,39 @@
       }
     });
 
+    // Toggle Active Status
+    $(document).on('change', '.toggle-active', function() {
+      const id = $(this).data('id');
+      const checkbox = $(this);
+      const label = $(this).next('label');
+
+      $.ajax({
+        url: `/standarHarga/kel_satuan_harga/${id}/toggle-active`,
+        method: 'POST',
+        data: {
+          _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+          if (response.success) {
+            toastr.success(response.message, 'BERHASIL');
+
+            // Update label
+            if (response.active) {
+              label.text('Aktif');
+            } else {
+              label.text('Tidak Aktif');
+            }
+          }
+        },
+        error: function(xhr) {
+          toastr.error(xhr.responseJSON?.message || 'Gagal mengubah status', 'GAGAL');
+
+          // Revert checkbox
+          checkbox.prop('checked', !checkbox.prop('checked'));
+        }
+      });
+    });
+
     // Event delegation untuk delete buttons
     DOM.table.on('click', '.delete-btn', function(e) {
       e.preventDefault();
@@ -112,7 +182,7 @@
 
     // Bulk selection functionality
     function updateToolbar() {
-      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:not(.toggle-active):checked');
 
       if (checkedBoxes.length > 0) {
         DOM.selectedCount.textContent = checkedBoxes.length;
@@ -127,7 +197,8 @@
     // Master checkbox
     if (DOM.masterCheckbox) {
       DOM.masterCheckbox.addEventListener('change', function() {
-        DOM.checkboxes.forEach(checkbox => {
+        const checkboxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:not(.toggle-active)');
+        checkboxes.forEach(checkbox => {
           checkbox.checked = this.checked;
         });
         updateToolbar();
@@ -135,20 +206,21 @@
     }
 
     // Individual checkboxes
-    DOM.checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        updateToolbar();
-        const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:checked');
-        if (DOM.masterCheckbox) {
-          DOM.masterCheckbox.checked = checkedBoxes.length === DOM.checkboxes.length;
-          DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < DOM.checkboxes.length;
-        }
-      });
+    DOM.table.on('change', 'tbody input[type="checkbox"]:not(.toggle-active)', function() {
+      updateToolbar();
+
+      const allCheckboxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:not(.toggle-active)');
+      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:not(.toggle-active):checked');
+
+      if (DOM.masterCheckbox) {
+        DOM.masterCheckbox.checked = checkedBoxes.length === allCheckboxes.length;
+        DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCheckboxes.length;
+      }
     });
 
     // Bulk delete
     DOM.bulkDeleteBtn?.addEventListener('click', function() {
-      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:not(.toggle-active):checked');
 
       if (checkedBoxes.length === 0) {
         toastr.info('Pilih minimal satu kelompok untuk dihapus.', 'INFORMASI');
@@ -253,6 +325,15 @@
         });
       });
     }
+
+    // Reset form saat modal ditutup
+    $('#kt_modal_add_kelompok').on('hidden.bs.modal', function() {
+      if (DOM.addForm) {
+        DOM.addForm.reset();
+        DOM.addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+      }
+    });
 
     // Auto show modal if validation errors exist
     @if ($errors->any() && old('_token'))

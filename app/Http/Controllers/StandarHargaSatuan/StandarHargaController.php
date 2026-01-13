@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Shs;
+namespace App\Http\Controllers\StandarHargaSatuan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Referensi\Akun;
-use App\Models\StandarHargaSatuan\StandarHarga;
-use App\Models\StandarHargaSatuan\KelompokBarang;
 use App\Models\StandarHargaSatuan\DataSatuan;
+use App\Models\StandarHargaSatuan\KelompokSatuanHarga;
+use App\Models\StandarHargaSatuan\StandarHarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -19,11 +19,12 @@ class StandarHargaController extends Controller
             ->orderBy('kode_standar_harga', 'asc')
             ->get();
 
-        $kelompok = KelompokBarang::orderBy('nama_kelompok_standar_harga', 'asc')->get();
-        $satuan = DataSatuan::orderBy('nama_satuan', 'asc')->get();
+        $kelompok = KelompokSatuanHarga::orderBy('nama_kelompok_standar_harga', 'asc')->get();
+        // $satuan = DataSatuan::orderBy('nama_satuan', 'asc')->get();
         $akun = Akun::where('is_belanja', 1)->orderBy('kode_akun', 'asc')->get();
 
-        return view('shs.standarharga.index', compact('data', 'kelompok', 'satuan', 'akun'));
+        // return view('standarhargasatuan.standarharga.index', compact('data', 'kelompok', 'satuan', 'akun'));
+        return view('standarhargasatuan.standarharga.index', compact('data', 'kelompok', 'akun'));
     }
 
     public function store(Request $request)
@@ -39,7 +40,7 @@ class StandarHargaController extends Controller
             'nilai_tkdn' => 'nullable|numeric|min:0|max:100',
             'is_pdn' => 'nullable|boolean',
             'rekening_belanja' => 'required|array|min:1',
-            'rekening_belanja.*.id_akun' => 'required|exists:akun,id'
+            'rekening_belanja.*.id_akun' => 'required|exists:akun,id',
         ], [
             'kode_standar_harga.required' => 'Kode standar harga wajib diisi',
             'kode_standar_harga.unique' => 'Kode standar harga sudah digunakan',
@@ -51,13 +52,13 @@ class StandarHargaController extends Controller
             'rekening_belanja.required' => 'Minimal satu rekening belanja harus dipilih',
             'rekening_belanja.min' => 'Minimal satu rekening belanja harus dipilih',
             'rekening_belanja.*.id_akun.required' => 'Setiap rekening harus dipilih',
-            'rekening_belanja.*.id_akun.exists' => 'Rekening tidak valid'
+            'rekening_belanja.*.id_akun.exists' => 'Rekening tidak valid',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -72,13 +73,13 @@ class StandarHargaController extends Controller
                 'spesifikasi' => $request->spesifikasi,
                 'harga' => $request->harga,
                 'nilai_tkdn' => $request->nilai_tkdn ?? 0,
-                'is_pdn' => $request->is_pdn ?? false
+                'is_pdn' => $request->is_pdn ?? false,
             ]);
 
             // Extract rekening IDs from repeater data
             $rekeningIds = [];
             foreach ($request->rekening_belanja as $rekening) {
-                if (isset($rekening['id_akun']) && !empty($rekening['id_akun'])) {
+                if (isset($rekening['id_akun']) && ! empty($rekening['id_akun'])) {
                     $rekeningIds[] = $rekening['id_akun'];
                 }
             }
@@ -88,9 +89,10 @@ class StandarHargaController extends Controller
 
             if (empty($rekeningIds)) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Minimal satu rekening belanja harus dipilih'
+                    'message' => 'Minimal satu rekening belanja harus dipilih',
                 ], 422);
             }
 
@@ -101,13 +103,14 @@ class StandarHargaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data standar harga berhasil disimpan dengan ' . count($rekeningIds) . ' rekening belanja'
+                'message' => 'Data standar harga berhasil disimpan dengan '.count($rekeningIds).' rekening belanja',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+                'message' => 'Gagal menyimpan data: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -115,11 +118,12 @@ class StandarHargaController extends Controller
     public function edit($id)
     {
         $standarHarga = StandarHarga::with(['kelompokStandarHarga', 'satuan', 'rekeningBelanja'])->findOrFail($id);
-        $kelompok = KelompokBarang::orderBy('nama_kelompok_standar_harga', 'asc')->get();
-        $satuan = DataSatuan::orderBy('nama_satuan', 'asc')->get();
+        $kelompok = KelompokSatuanHarga::orderBy('nama_kelompok_standar_harga', 'asc')->get();
+        // $satuan = DataSatuan::orderBy('nama_satuan', 'asc')->get();
         $akun = Akun::where('is_belanja', 1)->orderBy('kode_akun', 'asc')->get();
 
-        return view('shs.standarharga.edit', compact('standarHarga', 'kelompok', 'satuan', 'akun'));
+        // return view('standarhargasatuan.standarharga.edit', compact('standarHarga', 'kelompok', 'satuan', 'akun'));
+        return view('standarhargasatuan.standarharga.edit', compact('standarHarga', 'kelompok', 'akun'));
     }
 
     public function update(Request $request, $id)
@@ -127,7 +131,7 @@ class StandarHargaController extends Controller
         $standarHarga = StandarHarga::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'kode_standar_harga' => 'required|string|max:50|unique:standar_harga,kode_standar_harga,' . $id,
+            'kode_standar_harga' => 'required|string|max:50|unique:standar_harga,kode_standar_harga,'.$id,
             'id_kelompok_standar_harga' => 'required|exists:kelompok_standar_harga,id',
             'id_satuan' => 'required|exists:data_satuan,id',
             'nama_standar_harga' => 'required|string',
@@ -136,7 +140,7 @@ class StandarHargaController extends Controller
             'nilai_tkdn' => 'nullable|numeric|min:0|max:100',
             'is_pdn' => 'nullable|boolean',
             'rekening_belanja' => 'required|array|min:1',
-            'rekening_belanja.*' => 'exists:akun,id'
+            'rekening_belanja.*' => 'exists:akun,id',
         ], [
             'kode_standar_harga.required' => 'Kode standar harga wajib diisi',
             'kode_standar_harga.unique' => 'Kode standar harga sudah digunakan',
@@ -145,7 +149,7 @@ class StandarHargaController extends Controller
             'nama_standar_harga.required' => 'Nama standar harga wajib diisi',
             'harga.required' => 'Harga wajib diisi',
             'rekening_belanja.required' => 'Minimal satu rekening belanja harus dipilih',
-            'rekening_belanja.min' => 'Minimal satu rekening belanja harus dipilih'
+            'rekening_belanja.min' => 'Minimal satu rekening belanja harus dipilih',
         ]);
 
         if ($validator->fails()) {
@@ -164,7 +168,7 @@ class StandarHargaController extends Controller
                 'spesifikasi' => $request->spesifikasi,
                 'harga' => $request->harga,
                 'nilai_tkdn' => $request->nilai_tkdn ?? 0,
-                'is_pdn' => $request->is_pdn ?? false
+                'is_pdn' => $request->is_pdn ?? false,
             ]);
 
             // Sync rekening belanja
@@ -176,8 +180,9 @@ class StandarHargaController extends Controller
                 ->with('success', 'Data standar harga berhasil diupdate');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Gagal mengupdate data: ' . $e->getMessage())
+                ->with('error', 'Gagal mengupdate data: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -192,7 +197,7 @@ class StandarHargaController extends Controller
                 ->with('success', 'Data standar harga berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->route('standar_harga.index')
-                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
     }
 
@@ -200,7 +205,7 @@ class StandarHargaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'ids' => 'required|array|min:1',
-            'ids.*' => 'exists:standar_harga,id'
+            'ids.*' => 'exists:standar_harga,id',
         ]);
 
         if ($validator->fails()) {
@@ -211,10 +216,10 @@ class StandarHargaController extends Controller
             StandarHarga::whereIn('id', $request->ids)->delete();
 
             return redirect()->route('standar_harga.index')
-                ->with('success', count($request->ids) . ' data standar harga berhasil dihapus');
+                ->with('success', count($request->ids).' data standar harga berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->route('standar_harga.index')
-                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
     }
 
@@ -222,10 +227,10 @@ class StandarHargaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'rekening_belanja' => 'required|array|min:1',
-            'rekening_belanja.*' => 'exists:akun,id'
+            'rekening_belanja.*' => 'exists:akun,id',
         ], [
             'rekening_belanja.required' => 'Minimal satu rekening belanja harus dipilih',
-            'rekening_belanja.min' => 'Minimal satu rekening belanja harus dipilih'
+            'rekening_belanja.min' => 'Minimal satu rekening belanja harus dipilih',
         ]);
 
         if ($validator->fails()) {
@@ -252,10 +257,10 @@ class StandarHargaController extends Controller
             $standarHarga->rekeningBelanja()->attach($newRekeningIds);
 
             return redirect()->route('standar_harga.index')
-                ->with('success', count($newRekeningIds) . ' rekening belanja berhasil ditambahkan');
+                ->with('success', count($newRekeningIds).' rekening belanja berhasil ditambahkan');
         } catch (\Exception $e) {
             return redirect()->route('standar_harga.index')
-                ->with('error', 'Gagal menambahkan rekening: ' . $e->getMessage());
+                ->with('error', 'Gagal menambahkan rekening: '.$e->getMessage());
         }
     }
 
@@ -265,7 +270,7 @@ class StandarHargaController extends Controller
     public function removeRekening(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'id_akun' => 'required|exists:akun,id'
+            'id_akun' => 'required|exists:akun,id',
         ]);
 
         if ($validator->fails()) {
@@ -288,7 +293,7 @@ class StandarHargaController extends Controller
                 ->with('success', 'Rekening belanja berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->route('standar_harga.index')
-                ->with('error', 'Gagal menghapus rekening: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus rekening: '.$e->getMessage());
         }
     }
 }

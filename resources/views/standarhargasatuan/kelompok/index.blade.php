@@ -4,7 +4,7 @@
     <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
       <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
         <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Kelompok Standar Harga</h1>
+          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Kelompok Satuan Harga</h1>
           <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
             <li class="breadcrumb-item text-muted">
               <a href="{{ url('/home') }}" class="text-muted text-hover-primary">Home</a>
@@ -16,7 +16,7 @@
             <li class="breadcrumb-item">
               <span class="bullet bg-gray-400 w-5px h-2px"></span>
             </li>
-            <li class="breadcrumb-item text-muted">Kelompok</li>
+            <li class="breadcrumb-item text-muted">Kelompok Satuan Harga</li>
           </ul>
         </div>
       </div>
@@ -33,6 +33,7 @@
           <div data-type="error" data-message="{{ session('error') }}"></div>
         @endif
       </div>
+
       <div class="card">
         <div class="card-header border-0 pt-6">
           <div class="card-title">
@@ -42,8 +43,33 @@
             </div>
           </div>
           <div class="card-toolbar">
-            <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
+            <div class="d-flex justify-content-end gap-2" data-kt-customer-table-toolbar="base">
+              <!-- Filter Tipe -->
+              <select class="form-select form-select-solid w-150px" id="filter_tipe">
+                <option value="">Semua Tipe</option>
+                <option value="SSH">SSH</option>
+                <option value="HSPK">HSPK</option>
+                <option value="ASB">ASB</option>
+                <option value="SBU">SBU</option>
+              </select>
+
+              <!-- Filter Tahun -->
+              <select class="form-select form-select-solid w-150px" id="filter_tahun">
+                <option value="">Semua Tahun</option>
+                @foreach ($tahunList as $tahun)
+                  <option value="{{ $tahun }}">{{ $tahun }}</option>
+                @endforeach
+              </select>
+
+              <!-- Filter Status -->
+              <select class="form-select form-select-solid w-150px" id="filter_status">
+                <option value="">Semua Status</option>
+                <option value="1">Aktif</option>
+                <option value="0">Tidak Aktif</option>
+              </select>
+
               <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_kelompok">
+                <i class="ki-outline ki-plus fs-2"></i>
                 Tambah Kelompok
               </button>
             </div>
@@ -62,7 +88,7 @@
               <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
               <div class="d-flex flex-column">
                 <h4 class="mb-1 text-warning">Tidak ada data</h4>
-                <span>Tidak ada data Kelompok Standar Harga yang ditemukan.</span>
+                <span>Tidak ada data Kelompok Satuan Harga yang ditemukan.</span>
               </div>
             </div>
           @else
@@ -75,9 +101,11 @@
                         value="1" />
                     </div>
                   </th>
-                  <th class="min-w-150px">Kode Kelompok</th>
-                  <th class="min-w-150px">Nama Kelompok</th>
-                  <th class="min-w-150px text-start">Tipe Kelompok</th>
+                  <th class="min-w-150px">Kode Kategori</th>
+                  <th class="min-w-250px">Uraian Kategori</th>
+                  <th class="min-w-100px">Tipe</th>
+                  <th class="min-w-100px">Tahun</th>
+                  <th class="min-w-100px">Status</th>
                   <th class="text-end min-w-100px">Aksi</th>
                 </tr>
               </thead>
@@ -89,9 +117,9 @@
                         <input class="form-check-input" type="checkbox" value="{{ $item->id }}" />
                       </div>
                     </td>
-                    <td class="fw-bold">{{ $item->kode_kelompok_standar_harga }}</td>
-                    <td>{{ $item->nama_kelompok_standar_harga }}</td>
-                    <td class="text-start">
+                    <td class="fw-bold text-primary">{{ $item->kode_kategori }}</td>
+                    <td>{{ Str::limit($item->uraian_kategori, 80) }}</td>
+                    <td>
                       @switch($item->tipe_kelompok)
                         @case('SSH')
                           <span class="badge badge-light-success">{{ $item->tipe_kelompok }}</span>
@@ -105,28 +133,42 @@
                           <span class="badge badge-light-info">{{ $item->tipe_kelompok }}</span>
                         @break
 
+                        @case('ASB')
+                          <span class="badge badge-light-warning">{{ $item->tipe_kelompok }}</span>
+                        @break
+
                         @default
                           <span class="badge badge-light-secondary">{{ $item->tipe_kelompok }}</span>
                       @endswitch
                     </td>
-
+                    <td>
+                      <span class="badge badge-light-dark">{{ $item->tahun_anggaran }}</span>
+                    </td>
+                    <td>
+                      <div class="form-check form-switch form-check-custom form-check-solid">
+                        <input class="form-check-input toggle-active" type="checkbox" value="{{ $item->id }}"
+                          {{ $item->active ? 'checked' : '' }} data-id="{{ $item->id }}" />
+                        <label class="form-check-label">
+                          {{ $item->active ? 'Aktif' : 'Tidak Aktif' }}
+                        </label>
+                      </div>
+                    </td>
                     <td class="text-end">
-                      <div class="d-inline-flex">
+                      <div class="d-inline-flex gap-1">
                         <a href="{{ route('kelompok_satuan_harga.edit', $item->id) }}"
-                          class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit">
+                          class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="Edit">
                           <i class="ki-outline ki-pencil fs-2"></i>
                         </a>
                         <form action="{{ route('kelompok_satuan_harga.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
                           @csrf
                           @method('DELETE')
                           <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus"
-                            data-name="{{ $item->nama_kelompok_standar_harga }}">
+                            data-name="{{ $item->kode_kategori }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
                       </div>
                     </td>
-
                   </tr>
                 @endforeach
               </tbody>
@@ -137,9 +179,6 @@
     </div>
   </div>
 
-  {{-- Include Modal Create --}}
-  @include('shs.kelompokbarang.partials.modal-create')
-
-  {{-- Include Scripts --}}
-  @include('shs.kelompokbarang.partials.scripts')
+  @include('standarhargasatuan.kelompok.partials.modal-create')
+  @include('standarhargasatuan.kelompok.partials.scripts')
 @endsection
