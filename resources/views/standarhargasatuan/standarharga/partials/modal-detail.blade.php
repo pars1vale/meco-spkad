@@ -129,6 +129,57 @@
 
             <div class="separator my-5"></div>
 
+            {{-- Rekening Belanja Section --}}
+            <div class="mb-5">
+              <div class="d-flex justify-content-between align-items-center mb-5">
+                <h4 class="mb-0">Rekening Belanja ({{ $item->rekeningBelanja->count() }})</h4>
+                @if (!$item->is_locked)
+                  <a href="{{ route('data_ssh.edit', $item->id_standar_harga) }}" class="btn btn-sm btn-primary">
+                    <i class="ki-outline ki-plus fs-2"></i>
+                    Kelola Rekening
+                  </a>
+                @endif
+              </div>
+
+              @if ($item->rekeningBelanja->isEmpty())
+                <div class="alert alert-warning d-flex align-items-center">
+                  <i class="ki-outline ki-information-5 fs-2 me-2"></i>
+                  <span>Belum ada rekening belanja untuk data SSH ini</span>
+                </div>
+              @else
+                <div class="table-responsive">
+                  <table class="table table-row-bordered table-row-gray-300">
+                    <thead>
+                      <tr class="fw-bold fs-6 text-gray-800">
+                        <th>Kode Akun</th>
+                        <th>Nama Akun</th>
+                        <th>Tahun</th>
+                        <th class="text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach ($item->rekeningBelanja as $rekening)
+                        <tr>
+                          <td>{{ $rekening->kode_akun }}</td>
+                          <td>{{ $rekening->nama_akun }}</td>
+                          <td><span class="badge badge-light-dark">{{ $rekening->tahun_anggaran }}</span></td>
+                          <td class="text-center">
+                            @if ($rekening->active)
+                              <span class="badge badge-light-success">Aktif</span>
+                            @else
+                              <span class="badge badge-light-danger">Tidak Aktif</span>
+                            @endif
+                          </td>
+                        </tr>
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+              @endif
+            </div>
+
+            <div class="separator my-5"></div>
+
             <div class="row mb-3">
               <div class="col-md-4 fw-bold">Dibuat:</div>
               <div class="col-md-8 text-muted">{{ $item->created_at->format('d/m/Y H:i:s') }}</div>

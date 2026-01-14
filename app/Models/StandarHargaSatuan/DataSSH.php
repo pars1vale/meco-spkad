@@ -10,7 +10,7 @@ class DataSSH extends Model
 
     protected $primaryKey = 'id_standar_harga';
 
-    public $incrementing = false;
+    public $incrementing = false; // Karena primary key bukan auto increment
 
     public $timestamps = true;
 
@@ -55,6 +55,19 @@ class DataSSH extends Model
     public function kelompokSatuanHarga()
     {
         return $this->belongsTo(KelompokSatuanHarga::class, 'id_kel_standar_harga', 'id_kategori');
+    }
+
+    // Relationship dengan Rekening Belanja
+    public function rekeningBelanja()
+    {
+        return $this->hasMany(DataSSHRekBelanja::class, 'id_standar_harga', 'id_standar_harga');
+    }
+
+    // Relationship dengan Rekening Belanja yang aktif
+    public function rekeningBelanjaAktif()
+    {
+        return $this->hasMany(DataSSHRekBelanja::class, 'id_standar_harga', 'id_standar_harga')
+            ->where('active', 1);
     }
 
     // Scopes untuk pencarian

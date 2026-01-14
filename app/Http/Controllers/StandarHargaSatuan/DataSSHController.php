@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\StandarHargaSatuan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Referensi\Akun;
 use App\Models\StandarHargaSatuan\DataSSH;
+use App\Models\StandarHargaSatuan\DataSSHRekBelanja;
 use App\Models\StandarHargaSatuan\KelompokSatuanHarga;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -13,7 +16,7 @@ class DataSSHController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DataSSH::with('kelompokSatuanHarga');
+        $query = DataSSH::with(['kelompokSatuanHarga', 'rekeningBelanja']);
 
         // Apply filters if provided
         if ($request->filled('tipe')) {
@@ -44,7 +47,13 @@ class DataSSHController extends Controller
             ->orderBy('kode_kategori', 'asc')
             ->get();
 
-        return view('standarhargasatuan.standarharga.index', compact('data', 'tahunList', 'kelompokList'));
+        // Get akun list for rekening belanja (menggunakan is_bl sesuai model Akun)
+        $akunList = Akun::where('is_bl', 1)
+            ->where('active', 1)
+            ->orderBy('kode_akun', 'asc')
+            ->get();
+
+        return view('standarhargasatuan.standarharga.index', compact('data', 'tahunList', 'kelompokList', 'akunList'));
     }
 
     public function store(Request $request)
@@ -128,12 +137,18 @@ class DataSSHController extends Controller
 
     public function edit($id)
     {
-        $ssh = DataSSH::with('kelompokSatuanHarga')->findOrFail($id);
+        $ssh = DataSSH::with(['kelompokSatuanHarga', 'rekeningBelanja'])->findOrFail($id);
         $kelompokList = KelompokSatuanHarga::where('active', 1)
             ->orderBy('kode_kategori', 'asc')
             ->get();
 
-        return view('standarhargasatuan.standarharga.edit', compact('ssh', 'kelompokList'));
+        // Get akun list (hanya akun belanja yang aktif)
+        $akunList = Akun::where('is_bl', 1)
+            ->where('active', 1)
+            ->orderBy('kode_akun', 'asc')
+            ->get();
+
+        return view('standarhargasatuan.standarharga.edit', compact('ssh', 'kelompokList', 'akunList'));
     }
 
     public function update(Request $request, $id)
@@ -164,6 +179,8 @@ class DataSSHController extends Controller
             'tahun' => 'required|integer|min:2000|max:2100',
             'id_daerah' => 'required|integer',
             'is_pdn' => 'nullable|boolean',
+            'rekening_belanja' => 'nullable|array',
+            'rekening_belanja.*' => 'exists:akun,id',
         ], [
             'id_kel_standar_harga.required' => 'Kelompok standar harga wajib dipilih',
             'kode_standar_harga.required' => 'Kode standar harga wajib diisi',
@@ -179,6 +196,7 @@ class DataSSHController extends Controller
                 ->withInput();
         }
 
+        DB::beginTransaction();
         try {
             // Get kelompok data
             $kelompok = KelompokSatuanHarga::where('id_kategori', $request->id_kel_standar_harga)->firstOrFail();
@@ -200,9 +218,34 @@ class DataSSHController extends Controller
                 'is_pdn' => $request->is_pdn ?? 0,
             ]);
 
+            // Update rekening belanja if provided
+            if ($request->has('rekening_belanja') && is_array($request->rekening_belanja)) {
+                // Delete existing rekening
+                DataSSHRekBelanja::where('id_standar_harga', $ssh->id_standar_harga)->delete();
+
+                // Add new rekening
+                foreach ($request->rekening_belanja as $idAkun) {
+                    $akun = Akun::find($idAkun);
+                    if ($akun) {
+                        DataSSHRekBelanja::create([
+                            'id_akun' => $akun->id,
+                            'kode_akun' => $akun->kode_akun,
+                            'nama_akun' => $akun->nama_akun,
+                            'id_standar_harga' => $ssh->id_standar_harga,
+                            'active' => 1,
+                            'tahun_anggaran' => $request->tahun,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
             return redirect()->route('data_ssh.index')
                 ->with('success', 'Data SSH berhasil diupdate');
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return redirect()->back()
                 ->with('error', 'Gagal mengupdate data: '.$e->getMessage())
                 ->withInput();
@@ -306,5 +349,112 @@ class DataSSHController extends Controller
             'success' => true,
             'data' => $data,
         ]);
+    }
+
+    // Add rekening belanja to SSH
+    public function addRekening(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'rekening_belanja' => 'required|array|min:1',
+            'rekening_belanja.*' => 'exists:akun,id',
+        ], [
+            'rekening_belanja.required' => 'Minimal satu rekening belanja harus dipilih',
+            'rekening_belanja.min' => 'Minimal satu rekening belanja harus dipilih',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->with('error', 'Minimal satu rekening belanja harus dipilih')
+                ->withErrors($validator);
+        }
+
+        try {
+            $ssh = DataSSH::findOrFail($id);
+
+            if ($ssh->is_locked) {
+                return redirect()->back()->with('error', 'Data terkunci dan tidak dapat diubah');
+            }
+
+            $addedCount = 0;
+            foreach ($request->rekening_belanja as $idAkun) {
+                // Check if already exists
+                $exists = DataSSHRekBelanja::where('id_standar_harga', $ssh->id_standar_harga)
+                    ->where('id_akun', $idAkun)
+                    ->exists();
+
+                if (! $exists) {
+                    $akun = Akun::find($idAkun);
+                    if ($akun) {
+                        DataSSHRekBelanja::create([
+                            'id_akun' => $akun->id,
+                            'kode_akun' => $akun->kode_akun,
+                            'nama_akun' => $akun->nama_akun,
+                            'id_standar_harga' => $ssh->id_standar_harga,
+                            'active' => 1,
+                            'tahun_anggaran' => $ssh->tahun,
+                        ]);
+                        $addedCount++;
+                    }
+                }
+            }
+
+            if ($addedCount > 0) {
+                return redirect()->route('data_ssh.index')
+                    ->with('success', "{$addedCount} rekening belanja berhasil ditambahkan");
+            } else {
+                return redirect()->route('data_ssh.index')
+                    ->with('info', 'Rekening yang dipilih sudah ada');
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('data_ssh.index')
+                ->with('error', 'Gagal menambahkan rekening: '.$e->getMessage());
+        }
+    }
+
+    // Remove rekening belanja from SSH
+    public function removeRekening($id, $idRekening)
+    {
+        try {
+            $ssh = DataSSH::findOrFail($id);
+
+            if ($ssh->is_locked) {
+                return redirect()->back()->with('error', 'Data terkunci dan tidak dapat diubah');
+            }
+
+            $rekening = DataSSHRekBelanja::where('id_standar_harga', $ssh->id_standar_harga)
+                ->where('id', $idRekening)
+                ->firstOrFail();
+
+            $rekening->delete();
+
+            return redirect()->route('data_ssh.index')
+                ->with('success', 'Rekening belanja berhasil dihapus');
+        } catch (\Exception $e) {
+            return redirect()->route('data_ssh.index')
+                ->with('error', 'Gagal menghapus rekening: '.$e->getMessage());
+        }
+    }
+
+    // Toggle active status rekening
+    public function toggleRekeningActive($id, $idRekening)
+    {
+        try {
+            $rekening = DataSSHRekBelanja::where('id_standar_harga', $id)
+                ->where('id', $idRekening)
+                ->firstOrFail();
+
+            $rekening->toggleActive();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status rekening berhasil diubah',
+                'active' => $rekening->active,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah status: '.$e->getMessage(),
+            ], 500);
+        }
     }
 }

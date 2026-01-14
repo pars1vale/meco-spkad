@@ -226,14 +226,122 @@
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>
+
+              <div class="separator my-7"></div>
+
+              {{-- Rekening Belanja Management --}}
+              <div class="card-body">
+                <h5 class="fw-bold mb-5">
+                  <i class="ki-outline ki-wallet fs-2 text-primary me-2"></i>
+                  Manajemen Rekening Belanja
+                </h5>
+
+                {{-- Existing Rekening --}}
+                @if ($ssh->rekeningBelanja->count() > 0)
+                  <div class="mb-7">
+                    <h6 class="fw-bold mb-3 text-gray-800">
+                      <i class="ki-outline ki-check-circle fs-3 text-success me-2"></i>
+                      Rekening Terhubung ({{ $ssh->rekeningBelanja->count() }})
+                    </h6>
+                    <div class="table-responsive">
+                      <table class="table table-row-bordered table-striped table-hover align-middle">
+                        <thead class="bg-light">
+                          <tr class="fw-bold fs-6 text-gray-800">
+                            <th width="15%">Kode Akun</th>
+                            <th width="45%">Nama Akun</th>
+                            <th width="12%" class="text-center">Tahun</th>
+                            <th width="15%" class="text-center">Status</th>
+                            <th width="13%" class="text-end">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @foreach ($ssh->rekeningBelanja as $rekening)
+                            <tr>
+                              <td class="fw-bold text-primary">{{ $rekening->kode_akun }}</td>
+                              <td>{{ $rekening->nama_akun }}</td>
+                              <td class="text-center">
+                                <span class="badge badge-light-dark">{{ $rekening->tahun_anggaran }}</span>
+                              </td>
+                              <td class="text-center">
+                                <div class="form-check form-switch form-check-custom form-check-solid justify-content-center">
+                                  <input class="form-check-input toggle-rekening-active" type="checkbox" {{ $rekening->active ? 'checked' : '' }}
+                                    data-id="{{ $rekening->id }}" data-ssh-id="{{ $ssh->id_standar_harga }}" />
+                                </div>
+                              </td>
+                              <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-light-danger btn-remove-rekening" data-id="{{ $rekening->id }}"
+                                  data-nama="{{ $rekening->nama_akun }}">
+                                  <i class="ki-outline ki-trash fs-4"></i> Hapus
+                                </button>
+                              </td>
+                            </tr>
+                          @endforeach
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                @else
+                  <div class="alert alert-warning mb-7">
+                    <i class="ki-outline ki-information-5 fs-2 me-2"></i>
+                    <strong>Belum ada rekening terhubung.</strong> Silakan tambahkan rekening baru di bawah.
+                  </div>
+                @endif
+
+                {{-- Add New Rekening - SIMPLE APPROACH --}}
+                <div class="card border border-primary border-dashed bg-light-primary">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-4 text-primary">
+                      <i class="ki-outline ki-plus-circle fs-2 me-2"></i>
+                      Tambah Rekening Baru
+                    </h6>
+
+                    <div class="row">
+                      <div class="col-12">
+                        <label class="fs-6 fw-semibold mb-3">Pilih Rekening Belanja (Akun)</label>
+                        <select class="form-select form-select-solid" name="rekening_belanja[]" id="select_rekening_belanja" multiple
+                          size="10">
+                          @foreach ($akunList as $akun)
+                            <option value="{{ $akun->id }}">{{ $akun->kode_akun }} - {{ $akun->nama_akun }}</option>
+                          @endforeach
+                        </select>
+                        <div class="form-text mt-3">
+                          <i class="ki-outline ki-information-5 fs-4 me-1"></i>
+                          <strong>Cara Memilih:</strong> Tahan <kbd>Ctrl</kbd> (Windows) atau <kbd>Cmd</kbd> (Mac) lalu klik untuk memilih multiple
+                          rekening.
+                          <br>
+                          <strong>Info:</strong> {{ $akunList->count() }} akun belanja tersedia untuk dipilih.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="separator my-5"></div>
+
+                    <div class="alert alert-light-info mb-0">
+                      <h6 class="fw-bold mb-2">
+                        <i class="ki-outline ki-information fs-3 me-2"></i>
+                        Informasi Penting:
+                      </h6>
+                      <ul class="mb-0">
+                        <li>Pilih satu atau lebih rekening dari list di atas</li>
+                        <li>Sistem akan <strong>mengganti semua</strong> rekening lama dengan yang baru dipilih</li>
+                        <li>Kosongkan pilihan jika tidak ingin menambah rekening baru</li>
+                        <li>Kode dan nama akun akan otomatis tersimpan dari master data</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="card-footer">
+            <div class="card-footer bg-light">
               <div class="d-flex justify-content-end gap-2">
-                <a href="{{ route('data_ssh.index') }}" class="btn btn-light">Batal</a>
+                <a href="{{ route('data_ssh.index') }}" class="btn btn-light">
+                  <i class="ki-outline ki-cross fs-2"></i>
+                  Batal
+                </a>
                 <button type="submit" class="btn btn-primary" id="update_ssh_btn">
                   <i class="ki-outline ki-check fs-2"></i>
-                  Update Data
+                  Update Data & Rekening
                 </button>
               </div>
             </div>
@@ -248,11 +356,107 @@
       const editForm = document.getElementById('edit_ssh_form');
       const updateButton = document.getElementById('update_ssh_btn');
 
+      // Toastr config
+      toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toastr-top-right",
+        "timeOut": "5000"
+      };
+
       if (editForm && updateButton) {
-        editForm.addEventListener('submit', function() {
+        editForm.addEventListener('submit', function(e) {
+          // Get selected rekening
+          const selectElement = document.getElementById('select_rekening_belanja');
+          const selectedOptions = Array.from(selectElement.selectedOptions);
+          const selectedCount = selectedOptions.length;
+
+          console.log('Selected rekening count:', selectedCount);
+          console.log('Selected rekening IDs:', selectedOptions.map(opt => opt.value));
+
+          // Show confirmation if rekening selected
+          if (selectedCount > 0) {
+            console.log('Will add', selectedCount, 'new rekening');
+          }
+
           updateButton.setAttribute('data-kt-indicator', 'on');
           updateButton.disabled = true;
         });
+      }
+
+      // Toggle rekening active
+      $(document).on('change', '.toggle-rekening-active', function() {
+        const checkbox = $(this);
+        const idRekening = checkbox.data('id');
+        const sshId = checkbox.data('ssh-id');
+
+        $.ajax({
+          url: `/standarHarga/data_ssh/${sshId}/rekening/${idRekening}/toggle-active`,
+          method: 'POST',
+          data: {
+            _token: '{{ csrf_token() }}'
+          },
+          success: function(response) {
+            if (response.success) {
+              toastr.success(response.message, 'BERHASIL');
+            }
+          },
+          error: function(xhr) {
+            toastr.error(xhr.responseJSON?.message || 'Gagal mengubah status', 'GAGAL');
+            checkbox.prop('checked', !checkbox.prop('checked'));
+          }
+        });
+      });
+
+      // Remove rekening
+      $(document).on('click', '.btn-remove-rekening', function() {
+        const id = $(this).data('id');
+        const nama = $(this).data('nama');
+        const sshId = '{{ $ssh->id_standar_harga }}';
+
+        Swal.fire({
+          title: 'Hapus Rekening?',
+          html: `Rekening <strong>"${nama}"</strong> akan dihapus dari data SSH ini.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, hapus!',
+          cancelButtonText: 'Batal',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: "btn btn-danger",
+            cancelButton: "btn btn-secondary"
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = `/standarHarga/data_ssh/${sshId}/rekening/${id}/remove`;
+          }
+        });
+      });
+
+      // Initialize Select2 for better UX (optional)
+      if (typeof $.fn.select2 !== 'undefined') {
+        $('#select_rekening_belanja').select2({
+          placeholder: "Pilih rekening belanja...",
+          allowClear: true,
+          width: '100%',
+          templateResult: formatOption,
+          templateSelection: formatSelection
+        });
+
+        function formatOption(option) {
+          if (!option.id) return option.text;
+          const parts = option.text.split(' - ');
+          if (parts.length === 2) {
+            return $('<div><strong>' + parts[0] + '</strong><br><small class="text-muted">' + parts[1] + '</small></div>');
+          }
+          return option.text;
+        }
+
+        function formatSelection(option) {
+          if (!option.id) return option.text;
+          const parts = option.text.split(' - ');
+          return parts[0] || option.text;
+        }
       }
     });
   </script>
