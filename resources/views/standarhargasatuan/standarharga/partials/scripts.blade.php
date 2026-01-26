@@ -9,21 +9,31 @@
     selectedToolbar: null,
     baseToolbar: null,
     selectedCount: null,
-    bulkDeleteBtn: null
+    bulkDeleteBtn: null,
+    filterTipe: null,
+    filterTahun: null,
+    filterLock: null,
+    tipeRadios: null,
+    kelompokSelect: null
   };
 
   document.addEventListener("DOMContentLoaded", function() {
-    // Initialize cached DOM elements
-    DOM.table = $('#kt_kelompok_table');
+    // Initialize DOM elements
+    DOM.table = $('#kt_ssh_table');
     DOM.searchInput = document.getElementById('kt_datatable_search_input');
-    DOM.addForm = document.getElementById('kt_modal_add_kelompok_form');
-    DOM.addSubmitButton = document.getElementById('kt_modal_add_kelompok_submit');
-    DOM.masterCheckbox = document.querySelector('#kt_kelompok_table thead input[type="checkbox"]');
-    DOM.checkboxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]');
+    DOM.addForm = document.getElementById('kt_modal_add_ssh_form');
+    DOM.addSubmitButton = document.getElementById('kt_modal_add_ssh_submit');
+    DOM.masterCheckbox = document.querySelector('#kt_ssh_table thead input[type="checkbox"]');
+    DOM.checkboxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox');
     DOM.selectedToolbar = document.querySelector('[data-kt-customer-table-toolbar="selected"]');
     DOM.baseToolbar = document.querySelector('[data-kt-customer-table-toolbar="base"]');
     DOM.selectedCount = document.querySelector('[data-kt-customer-table-select="selected_count"]');
     DOM.bulkDeleteBtn = document.getElementById('bulk_delete_btn');
+    DOM.filterTipe = document.getElementById('filter_tipe');
+    DOM.filterTahun = document.getElementById('filter_tahun');
+    DOM.filterLock = document.getElementById('filter_lock');
+    DOM.tipeRadios = document.querySelectorAll('.tipe-ssh-radio');
+    DOM.kelompokSelect = document.getElementById('kelompok_select');
 
     // Initialize DataTable
     var tableInstance = DOM.table.DataTable({
@@ -31,13 +41,16 @@
       searchDelay: 500,
       processing: true,
       serverSide: false,
+      order: [
+        [1, 'asc']
+      ],
       columnDefs: [{
           targets: [0],
           orderable: false,
           className: 'text-center'
         },
         {
-          targets: [3],
+          targets: [9],
           orderable: false,
           className: 'text-end'
         }
@@ -51,26 +64,44 @@
       });
     }
 
-    // Configure Toastr options
+    // Filter by Tipe
+    if (DOM.filterTipe) {
+      DOM.filterTipe.addEventListener('change', function() {
+        tableInstance.column(3).search(this.value).draw();
+      });
+    }
+
+    // Filter by Tahun
+    if (DOM.filterTahun) {
+      DOM.filterTahun.addEventListener('change', function() {
+        tableInstance.column(7).search(this.value).draw();
+      });
+    }
+
+    // Filter by Lock Status
+    if (DOM.filterLock) {
+      DOM.filterLock.addEventListener('change', function() {
+        const value = this.value;
+
+        if (value === '') {
+          tableInstance.column(8).search('').draw();
+        } else if (value === '1') {
+          tableInstance.column(8).search('Terkunci').draw();
+        } else {
+          tableInstance.column(8).search('Tidak Terkunci').draw();
+        }
+      });
+    }
+
+    // Toastr config
     toastr.options = {
       "closeButton": true,
-      "debug": false,
-      "newestOnTop": false,
       "progressBar": true,
       "positionClass": "toastr-top-right",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "5000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
+      "timeOut": "5000"
     };
 
-    // Session Messages dengan Toaster
+    // Session messages
     const sessionMessages = document.querySelectorAll('#session-messages div');
     sessionMessages.forEach(msg => {
       const type = msg.dataset.type;
@@ -80,12 +111,88 @@
         toastr.error(message, "GAGAL");
       } else if (type === 'success') {
         toastr.success(message, "BERHASIL");
-      } else {
-        toastr.info(message);
       }
     });
 
-    // Event delegation untuk delete buttons
+    // Initialize Select2 in modal
+    $('#kt_modal_add_ssh').on('shown.bs.modal', function() {
+      $(this).find('select[data-control="select2"]').each(function() {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2({
+            placeholder: $(this).data('placeholder') || 'Pilih data',
+            dropdownParent: $('#kt_modal_add_ssh'),
+            allowClear: true,
+            width: '100%'
+          });
+        }
+      });
+    });
+
+    // Reset modal on hide
+    $('#kt_modal_add_ssh').on('hidden.bs.modal', function() {
+      if (DOM.addForm) {
+        DOM.addForm.reset();
+        DOM.addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+      }
+
+      if (DOM.kelompokSelect) {
+        $(DOM.kelompokSelect).val('').trigger('change');
+      }
+
+      DOM.tipeRadios.forEach(radio => radio.checked = false);
+    });
+
+    // Filter kelompok by tipe
+    DOM.tipeRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        const tipe = this.value;
+        const kelompokOptions = DOM.kelompokSelect.querySelectorAll('option');
+
+        kelompokOptions.forEach(option => {
+          if (option.value === '') {
+            option.style.display = 'block';
+          } else {
+            const optionTipe = option.getAttribute('data-tipe');
+            option.style.display = (optionTipe === tipe) ? 'block' : 'none';
+          }
+        });
+
+        $(DOM.kelompokSelect).val('').trigger('change');
+      });
+    });
+
+    // Toggle lock status
+    $(document).on('change', '.toggle-lock', function() {
+      const id = $(this).data('id');
+      const checkbox = $(this);
+      const label = $(this).next('label');
+
+      $.ajax({
+        url: `/standarHarga/data_ssh/${id}/toggle-lock`,
+        method: 'POST',
+        data: {
+          _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+          if (response.success) {
+            toastr.success(response.message, 'BERHASIL');
+
+            if (response.is_locked) {
+              label.text('Terkunci');
+            } else {
+              label.text('Tidak Terkunci');
+            }
+          }
+        },
+        error: function(xhr) {
+          toastr.error(xhr.responseJSON?.message || 'Gagal mengubah status', 'GAGAL');
+          checkbox.prop('checked', !checkbox.prop('checked'));
+        }
+      });
+    });
+
+    // Delete button
     DOM.table.on('click', '.delete-btn', function(e) {
       e.preventDefault();
       const form = $(this).closest('form');
@@ -93,7 +200,7 @@
 
       Swal.fire({
         title: 'Apakah Anda yakin?',
-        html: `Data kelompok <strong>"${name}"</strong> akan dihapus!`,
+        html: `Data SSH <strong>"${name}"</strong> akan dihapus!`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Ya, hapus!',
@@ -110,9 +217,9 @@
       });
     });
 
-    // Bulk selection functionality
+    // Bulk selection
     function updateToolbar() {
-      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:checked');
 
       if (checkedBoxes.length > 0) {
         DOM.selectedCount.textContent = checkedBoxes.length;
@@ -124,40 +231,37 @@
       }
     }
 
-    // Master checkbox
     if (DOM.masterCheckbox) {
       DOM.masterCheckbox.addEventListener('change', function() {
-        DOM.checkboxes.forEach(checkbox => {
-          checkbox.checked = this.checked;
-        });
+        const enabledCheckboxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:not(:disabled)');
+        enabledCheckboxes.forEach(cb => cb.checked = this.checked);
         updateToolbar();
       });
     }
 
-    // Individual checkboxes
-    DOM.checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        updateToolbar();
-        const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:checked');
-        if (DOM.masterCheckbox) {
-          DOM.masterCheckbox.checked = checkedBoxes.length === DOM.checkboxes.length;
-          DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < DOM.checkboxes.length;
-        }
-      });
+    DOM.table.on('change', 'tbody .row-checkbox', function() {
+      updateToolbar();
+      const allCheckboxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:not(:disabled)');
+      const checkedBoxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:checked');
+
+      if (DOM.masterCheckbox) {
+        DOM.masterCheckbox.checked = checkedBoxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+        DOM.masterCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCheckboxes.length;
+      }
     });
 
     // Bulk delete
     DOM.bulkDeleteBtn?.addEventListener('click', function() {
-      const checkedBoxes = document.querySelectorAll('#kt_kelompok_table tbody input[type="checkbox"]:checked');
+      const checkedBoxes = document.querySelectorAll('#kt_ssh_table tbody .row-checkbox:checked');
 
       if (checkedBoxes.length === 0) {
-        toastr.info('Pilih minimal satu kelompok untuk dihapus.', 'INFORMASI');
+        toastr.info('Pilih minimal satu data untuk dihapus.', 'INFORMASI');
         return;
       }
 
       Swal.fire({
         title: 'Apakah Anda yakin?',
-        html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data kelompok terpilih!`,
+        html: `Anda akan menghapus <strong>${checkedBoxes.length}</strong> data SSH terpilih!`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Ya, hapus!',
@@ -173,7 +277,7 @@
 
           const form = document.createElement('form');
           form.method = 'POST';
-          form.action = '{{ route('kelompok_satuan_harga.bulk-delete') }}';
+          form.action = '{{ route('data_ssh.bulk-delete') }}';
 
           const csrfToken = document.createElement('input');
           csrfToken.type = 'hidden';
@@ -195,30 +299,34 @@
       });
     });
 
-    // AJAX Form Submission
+    // AJAX Form submission
     if (DOM.addForm && DOM.addSubmitButton) {
       DOM.addForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
         const formData = new FormData(this);
 
-        // Show loading state
+        // Validation
+        const tipeChecked = document.querySelector('.tipe-ssh-radio:checked');
+        if (!tipeChecked) {
+          toastr.error('Pilih tipe standar harga terlebih dahulu!', 'VALIDASI GAGAL');
+          return;
+        }
+
         DOM.addSubmitButton.setAttribute('data-kt-indicator', 'on');
         DOM.addSubmitButton.disabled = true;
 
-        // Clear previous errors
         DOM.addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         DOM.addForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
 
-        // Submit via AJAX
         $.ajax({
-          url: "{{ route('kelompok_satuan_harga.store') }}",
+          url: "{{ route('data_ssh.store') }}",
           method: 'POST',
           data: formData,
           processData: false,
           contentType: false,
           success: function(response) {
-            $('#kt_modal_add_kelompok').modal('hide');
+            $('#kt_modal_add_ssh').modal('hide');
             DOM.addForm.reset();
 
             toastr.success(response.message || 'Data berhasil disimpan!', 'BERHASIL', {
@@ -243,7 +351,7 @@
               });
               toastr.error('Periksa kembali form Anda', 'VALIDASI GAGAL');
             } else {
-              toastr.error(xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan data', 'GAGAL');
+              toastr.error(xhr.responseJSON?.message || 'Terjadi kesalahan', 'GAGAL');
             }
           },
           complete: function() {
@@ -253,10 +361,5 @@
         });
       });
     }
-
-    // Auto show modal if validation errors exist
-    @if ($errors->any() && old('_token'))
-      $('#kt_modal_add_kelompok').modal('show');
-    @endif
   });
 </script>
