@@ -2,26 +2,17 @@
 
 namespace App\Services\Rkpd;
 
-use App\Repositories\Rkpd\RenjaRepository;
 use App\Repositories\Referensi\AkunRepository;
+use App\Repositories\Rkpd\RenjaRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Service untuk Business Logic RENJA
- * 
- * Responsibility:
- * - Validasi business rules
- * - Koordinasi antar repository
- * - Transform data untuk presentation
- * - Transaction management
- */
 class RenjaService
 {
     protected $renjaRepo;
+
     protected $akunRepo;
 
-    // Mapping jenis belanja ke field akun
     protected const JENIS_BELANJA_MAPPING = [
         'BTL-GAJI' => 'is_gaji_asn',
         'BARJAS-MODAL' => 'is_barjas',
@@ -37,7 +28,7 @@ class RenjaService
         'BTT' => 'is_btt',
         'BOS' => 'is_bos',
         'BLUD' => 'is_bl',
-        'TANAH' => 'is_modal_tanah'
+        'TANAH' => 'is_modal_tanah',
     ];
 
     public function __construct(
@@ -48,9 +39,6 @@ class RenjaService
         $this->akunRepo = $akunRepo;
     }
 
-    /**
-     * Get data untuk halaman index
-     */
     public function getIndexData(): array
     {
         return [
@@ -60,54 +48,74 @@ class RenjaService
             'daerah' => $this->renjaRepo->getDataDaerah(),
             'kec' => $this->renjaRepo->getDataKecamatan(),
             'kel' => $this->renjaRepo->getDataKelurahan(),
-            'bln' => $this->renjaRepo->getDataBulan()
+            'bln' => $this->renjaRepo->getDataBulan(),
         ];
     }
 
-    /**
-     * Get sub kegiatan berdasarkan SKPD
-     */
     public function getSubKegiatanBySkpd(int $idSkpd, int $tahunAnggaran): array
     {
         $subKegiatan = $this->renjaRepo->getSubKegiatanWithIndikatorBySkpd($idSkpd, $tahunAnggaran);
 
         return [
             'data' => $subKegiatan,
-            'count' => $subKegiatan->count()
+            'count' => $subKegiatan->count(),
         ];
     }
 
-    /**
-     * Create RENJA baru dengan validasi business rules
-     */
+    public function getEditData(int $idSubBl): array
+    {
+        $subKegiatan = $this->renjaRepo->getSubKegiatanForEdit($idSubBl);
+
+        if (! $subKegiatan) {
+            return ['subKegiatan' => null];
+        }
+
+        $sumberDana = $this->renjaRepo->getSumberDanaForEdit($subKegiatan->id, $subKegiatan->kode_sbl);
+        $indikator = $this->renjaRepo->getIndikatorForEdit($subKegiatan->id, $subKegiatan->kode_sbl);
+        $dataUnit = $this->renjaRepo->getDataUnitById($subKegiatan->id_skpd, 2025);
+        $allSumberDana = $this->renjaRepo->getSumberDana();
+        $dataBulan = $this->renjaRepo->getDataBulan();
+        $dataKecamatan = $this->renjaRepo->getDataKecamatan();
+        $dataKelurahan = $this->renjaRepo->getDataKelurahan();
+        $dataDaerah = $this->renjaRepo->getDataDaerah();
+
+        return [
+            'subKegiatan' => $subKegiatan,
+            'sumberDana' => $sumberDana,
+            'indikator' => $indikator,
+            'dataUnit' => $dataUnit,
+            'data_unit' => $this->renjaRepo->getDataUnit(2025),
+            'allSumberDana' => $allSumberDana,
+            'sumberdana' => $allSumberDana,
+            'bln' => $dataBulan,
+            'kec' => $dataKecamatan,
+            'kel' => $dataKelurahan,
+            'daerah' => $dataDaerah,
+        ];
+    }
+
     public function createRenja(array $data): array
     {
         DB::beginTransaction();
 
         try {
-            // 1. Validasi SKPD exists
             $dataUnit = $this->renjaRepo->getDataUnitById($data['id_skpd'], 2025);
-            if (!$dataUnit) {
+            if (! $dataUnit) {
                 throw new \Exception('Data SKPD tidak ditemukan');
             }
 
-            // 2. Validasi Sub Kegiatan exists
             $subKegiatanData = $this->renjaRepo->getSubKegiatanDetailById(
                 $data['id_skpd'],
                 $data['id_sub_kegiatan'],
                 2025
             );
-            if (!$subKegiatanData) {
+            if (! $subKegiatanData) {
                 throw new \Exception('Data sub kegiatan tidak ditemukan');
             }
 
-            // 3. Hitung total pagu
             $totalPagu = array_sum(array_column($data['sumber_dana'], 'pagu'));
-
-            // 4. Generate kode
             $codes = $this->generateKodeBelanja($subKegiatanData, $dataUnit);
 
-            // 5. Insert sub kegiatan
             $idSubKegBl = $this->renjaRepo->createSubKegiatanBelanja([
                 'sub_kegiatan' => $subKegiatanData,
                 'data_unit' => $dataUnit,
@@ -116,39 +124,105 @@ class RenjaService
                 'waktu_awal' => $data['waktu_awal'] ?? null,
                 'waktu_akhir' => $data['waktu_akhir'] ?? null,
                 'pagu_n_depan' => $data['pagu_n_depan'] ?? 0,
-                'tahun_anggaran' => 2025
+                'tahun_anggaran' => 2025,
             ]);
 
-            // 6. Insert sumber dana
             $this->insertSumberDana($data['sumber_dana'], $idSubKegBl, $codes['kode_sbl']);
 
-            // 7. Insert indikator (jika ada)
-            if (!empty($data['indikator'])) {
+            if (! empty($data['indikator'])) {
                 $this->insertIndikator($data['indikator'], $idSubKegBl, $codes['kode_sbl']);
             }
 
             DB::commit();
 
-            $message = 'Sub Kegiatan berhasil ditambahkan dengan ' . count($data['sumber_dana']) . ' sumber dana';
-            if (!empty($data['indikator'])) {
-                $message .= ' dan ' . count($data['indikator']) . ' indikator';
+            $message = 'Sub Kegiatan berhasil ditambahkan dengan '.count($data['sumber_dana']).' sumber dana';
+            if (! empty($data['indikator'])) {
+                $message .= ' dan '.count($data['indikator']).' indikator';
             }
 
             return [
                 'success' => true,
                 'message' => $message,
-                'id' => $idSubKegBl
+                'id' => $idSubKegBl,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating RENJA: ' . $e->getMessage());
+            Log::error('Error creating RENJA: '.$e->getMessage());
             throw $e;
         }
     }
 
-    /**
-     * Get data untuk DataTables dengan grouping
-     */
+    public function updateRenja(int $idSubBl, array $data): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $subKegiatanBelanja = $this->renjaRepo->getSubKegiatanForEdit($idSubBl);
+            if (! $subKegiatanBelanja) {
+                throw new \Exception('Sub kegiatan tidak ditemukan');
+            }
+
+            $totalPagu = array_sum(array_column($data['sumber_dana'], 'pagu'));
+
+            $this->renjaRepo->updateSubKegiatanBelanja($subKegiatanBelanja->id, [
+                'pagu' => $totalPagu,
+                'waktu_awal' => $data['waktu_awal'] ?? null,
+                'waktu_akhir' => $data['waktu_akhir'] ?? null,
+                'pagu_n_depan' => $data['pagu_n_depan'] ?? 0,
+                'nama_lokasi' => (string) 604,
+            ]);
+
+            $this->replaceSumberDana($data['sumber_dana'], $subKegiatanBelanja);
+
+            if (isset($data['indikator'])) {
+                $this->replaceIndikator($data['indikator'], $subKegiatanBelanja);
+            }
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Sub kegiatan berhasil diupdate',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating RENJA: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function deleteRenja(int $idSubBl): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $subKegiatanBelanja = $this->renjaRepo->getSubKegiatanForEdit($idSubBl);
+            if (! $subKegiatanBelanja) {
+                throw new \Exception('Sub kegiatan tidak ditemukan');
+            }
+
+            $rincianCount = $this->renjaRepo->countRincianBelanja($subKegiatanBelanja->id);
+            if ($rincianCount > 0) {
+                throw new \Exception('Tidak dapat menghapus! Sub kegiatan ini sudah memiliki '.$rincianCount.' rincian belanja.');
+            }
+
+            $this->renjaRepo->softDeleteSubKegiatan($subKegiatanBelanja->id);
+            $this->renjaRepo->softDeleteSumberDana($subKegiatanBelanja->id);
+            $this->renjaRepo->softDeleteIndikator($subKegiatanBelanja->id);
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Sub kegiatan berhasil dihapus',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error deleting RENJA: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
     public function getDataTableData(array $params): array
     {
         $searchValue = $params['search']['value'] ?? null;
@@ -156,36 +230,30 @@ class RenjaService
         $length = $params['length'] ?? 10;
 
         $query = $this->renjaRepo->getDataTableQuery($searchValue);
-
         $totalRecords = $this->renjaRepo->getTotalRecords();
         $totalFiltered = $this->renjaRepo->getFilteredCount($searchValue);
 
         $data = $query->skip($start)->take($length)->get();
-
         $formattedData = $this->formatDataTableRows($data);
 
         return [
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalFiltered,
-            'data' => $formattedData
+            'data' => $formattedData,
         ];
     }
 
-    /**
-     * Get detail rincian sub kegiatan
-     */
     public function getRincianSubKegiatan(int $id): array
     {
         $subKegiatan = $this->renjaRepo->getSubKegiatanWithUnit($id);
 
-        if (!$subKegiatan) {
+        if (! $subKegiatan) {
             return ['subKegiatan' => null];
         }
 
         $sumberDana = $this->renjaRepo->getSumberDanaBySubKegiatan($id);
         $indikator = $this->renjaRepo->getIndikatorBySubKegiatan($id);
         $rincianBelanja = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id);
-
         $totalPerObjek = $this->groupRincianByObjek($rincianBelanja);
 
         return [
@@ -193,19 +261,16 @@ class RenjaService
             'sumberDana' => $sumberDana,
             'indikator' => $indikator,
             'rincianBelanja' => $rincianBelanja,
-            'totalPerObjek' => $totalPerObjek
+            'totalPerObjek' => $totalPerObjek,
         ];
     }
 
-    /**
-     * Get akun berdasarkan jenis belanja
-     */
     public function getAkunByJenisBelanja(string $jenisBelanja, int $tahunAnggaran): array
     {
-        if (!isset(self::JENIS_BELANJA_MAPPING[$jenisBelanja])) {
+        if (! isset(self::JENIS_BELANJA_MAPPING[$jenisBelanja])) {
             return [
                 'success' => false,
-                'message' => 'Jenis belanja tidak valid: ' . $jenisBelanja
+                'message' => 'Jenis belanja tidak valid: '.$jenisBelanja,
             ];
         }
 
@@ -217,94 +282,61 @@ class RenjaService
                 'id' => $akun->id,
                 'kode_akun' => $akun->kode_akun,
                 'nama_akun' => $akun->nama_akun,
-                'text' => $akun->kode_akun . ' - ' . $akun->nama_akun,
-                'level' => $akun->level
+                'text' => $akun->kode_akun.' - '.$akun->nama_akun,
+                'level' => $akun->level,
             ];
         });
 
         return [
             'success' => true,
             'data' => $data,
-            'count' => $data->count()
         ];
     }
 
-    /**
-     * Get detail akun
-     */
     public function getDetailAkun(int $akunId): array
     {
         $akun = $this->akunRepo->findById($akunId);
 
-        if (!$akun) {
+        if (! $akun) {
             return [
                 'success' => false,
-                'message' => 'Akun tidak ditemukan'
+                'message' => 'Akun tidak ditemukan',
             ];
         }
 
         return [
             'success' => true,
             'data' => [
-                'id' => $akun->id,
-                'kode_akun' => $akun->kode_akun,
-                'nama_akun' => $akun->nama_akun,
-                'level' => $akun->level,
-                'set_input' => $akun->set_input
-            ]
+                'kode_rekening' => $akun->kode_akun,
+                'nama_rekening' => $akun->nama_akun,
+            ],
         ];
     }
 
-    /**
-     * Get list paket belanja
-     */
-    public function getPaketBelanjaList(array $params): array
-    {
-        $paketList = $this->renjaRepo->getPaketBelanjaList(
-            $params['id_rinci_sub_bl'],
-            $params['tipe_paket'],
-            $params['jenis_bl'] ?? null
-        );
-
-        return [
-            'success' => true,
-            'message' => 'Data paket berhasil dimuat',
-            'data' => $paketList,
-            'count' => $paketList->count()
-        ];
-    }
-
-    /**
-     * Create paket belanja baru
-     */
     public function createPaketBelanja(array $data): array
     {
         DB::beginTransaction();
 
         try {
-            // Validasi sub kegiatan
             $subKegiatan = $this->renjaRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl']);
-            if (!$subKegiatan) {
+            if (! $subKegiatan) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
 
-            // Validasi akun
             $akun = $this->akunRepo->findById($data['id_akun']);
-            if (!$akun) {
+            if (! $akun) {
                 throw new \Exception('Akun tidak ditemukan');
             }
 
-            // Get sumber dana
             $sumberDana = $this->renjaRepo->getFirstSumberDana($data['id_rinci_sub_bl']);
 
-            // Insert paket
             $idPaket = $this->renjaRepo->createPaketBelanja([
                 'sub_kegiatan' => $subKegiatan,
                 'akun' => $akun,
                 'sumber_dana' => $sumberDana,
+                'jenis_bl' => $data['jenis_bl'],
                 'tipe_paket' => $data['tipe_paket'],
                 'uraian_paket' => $data['uraian_paket'],
-                'jenis_bl' => $data['jenis_bl']
             ]);
 
             DB::commit();
@@ -312,39 +344,30 @@ class RenjaService
             return [
                 'success' => true,
                 'message' => 'Paket belanja berhasil ditambahkan',
-                'data' => [
-                    'id' => $idPaket,
-                    'uraian_paket' => $data['uraian_paket'],
-                    'is_paket' => $data['tipe_paket']
-                ]
+                'data' => ['id' => $idPaket],
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating paket: ' . $e->getMessage());
+            Log::error('Error creating paket: '.$e->getMessage());
             throw $e;
         }
     }
 
-    /**
-     * Create rincian belanja detail
-     */
     public function createRincianBelanja(array $data): array
     {
         DB::beginTransaction();
 
         try {
-            // Validasi
             $subKegiatan = $this->renjaRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl']);
-            if (!$subKegiatan) {
+            if (! $subKegiatan) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
 
             $akun = $this->akunRepo->findById($data['id_akun']);
-            if (!$akun) {
+            if (! $akun) {
                 throw new \Exception('Akun tidak ditemukan');
             }
 
-            // Get nama paket jika ada
             $namaPaket = null;
             if ($data['id_paket_belanja']) {
                 $paket = $this->renjaRepo->getPaketBelanjaById($data['id_paket_belanja']);
@@ -353,12 +376,10 @@ class RenjaService
 
             $sumberDana = $this->renjaRepo->getFirstSumberDana($data['id_rinci_sub_bl']);
 
-            // Calculate total
             $volume = floatval($data['volume']);
             $hargaSatuan = floatval($data['harga_satuan']);
             $totalHarga = $volume * $hargaSatuan;
 
-            // Insert rincian
             $idRka = $this->renjaRepo->createRincianBelanja([
                 'sub_kegiatan' => $subKegiatan,
                 'akun' => $akun,
@@ -366,14 +387,14 @@ class RenjaService
                 'paket' => [
                     'id' => $data['id_paket_belanja'],
                     'nama' => $namaPaket,
-                    'tipe' => $data['tipe_paket']
+                    'tipe' => $data['tipe_paket'],
                 ],
                 'uraian' => $data['uraian'],
                 'volume' => $volume,
                 'satuan' => $data['satuan'],
                 'harga_satuan' => $hargaSatuan,
                 'total_harga' => $totalHarga,
-                'jenis_bl' => $data['jenis_bl']
+                'jenis_bl' => $data['jenis_bl'],
             ]);
 
             DB::commit();
@@ -383,17 +404,15 @@ class RenjaService
                 'message' => 'Rincian belanja berhasil ditambahkan',
                 'data' => [
                     'id' => $idRka,
-                    'total' => $totalHarga
-                ]
+                    'total' => $totalHarga,
+                ],
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating rincian: ' . $e->getMessage());
+            Log::error('Error creating rincian: '.$e->getMessage());
             throw $e;
         }
     }
-
-    // ==================== PRIVATE HELPER METHODS ====================
 
     private function generateKodeBelanja($subKegiatan, $dataUnit): array
     {
@@ -402,7 +421,7 @@ class RenjaService
         return [
             'id_unik_sub_bl' => uniqid('subbl_', true),
             'kode_bl' => "{$subKegiatan->id_skpd}.{$idSubSkpd}.{$subKegiatan->id_program}.{$subKegiatan->id_kegiatan}",
-            'kode_sbl' => "{$subKegiatan->id_skpd}.{$idSubSkpd}.{$subKegiatan->id_program}.{$subKegiatan->id_kegiatan}.{$subKegiatan->id_sub_kegiatan}"
+            'kode_sbl' => "{$subKegiatan->id_skpd}.{$idSubSkpd}.{$subKegiatan->id_program}.{$subKegiatan->id_kegiatan}.{$subKegiatan->id_sub_kegiatan}",
         ];
     }
 
@@ -413,7 +432,7 @@ class RenjaService
                 'id_sumber_dana' => $dana['id_sumber_dana'],
                 'pagu' => $dana['pagu'],
                 'idsubbl' => $idSubKegBl,
-                'kode_sbl' => $kodeSbl
+                'kode_sbl' => $kodeSbl,
             ]);
         }
     }
@@ -429,8 +448,52 @@ class RenjaService
                 'satuan_output' => $indikator['satuan'],
                 'id_output_bl' => $indikator['id_indikator'] ?? 0,
                 'idsubbl' => $idSubKegBl,
-                'kode_sbl' => $kodeSbl
+                'kode_sbl' => $kodeSbl,
             ]);
+        }
+    }
+
+    private function replaceSumberDana(array $sumberDanaList, $subKegiatanBelanja): void
+    {
+        $this->renjaRepo->deleteSumberDanaBySubKegiatan($subKegiatanBelanja->id);
+
+        foreach ($sumberDanaList as $dana) {
+            $sumberDanaInfo = $this->renjaRepo->getMasterSumberDana($dana['id_sumber_dana']);
+
+            if ($sumberDanaInfo) {
+                $paguValue = is_numeric($dana['pagu'])
+                    ? $dana['pagu']
+                    : str_replace(',', '', $dana['pagu']);
+
+                $this->renjaRepo->insertSumberDana([
+                    'nama_dana' => $sumberDanaInfo->nama_dana,
+                    'kode_dana' => $sumberDanaInfo->kode_dana,
+                    'id_dana' => $sumberDanaInfo->id_dana,
+                    'pagu' => floatval($paguValue),
+                    'kode_sbl' => $subKegiatanBelanja->kode_sbl,
+                    'idsubbl' => $subKegiatanBelanja->id,
+                ]);
+            }
+        }
+    }
+
+    private function replaceIndikator(array $indikatorList, $subKegiatanBelanja): void
+    {
+        $this->renjaRepo->deleteIndikatorBySubKegiatan($subKegiatanBelanja->id);
+
+        foreach ($indikatorList as $indikator) {
+            if (! empty($indikator['target'])) {
+                $targetValue = str_replace(['.', ','], '', $indikator['target']);
+
+                $this->renjaRepo->insertIndikator([
+                    'output_teks' => $indikator['indikator_text'],
+                    'target_output' => $targetValue,
+                    'satuan_output' => $indikator['satuan'],
+                    'id_output_bl' => $indikator['id_indikator'] ?? 0,
+                    'idsubbl' => $subKegiatanBelanja->id,
+                    'kode_sbl' => $subKegiatanBelanja->kode_sbl,
+                ]);
+            }
         }
     }
 
@@ -445,7 +508,7 @@ class RenjaService
 
             $randomColor = $badgeColors[array_rand($badgeColors)];
             $usulanBadge = $jumlahUsulan > 0
-                ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>'
+                ? '<span class="badge badge-'.$randomColor.' ms-2">'.$jumlahUsulan.' Usulan Pokir</span>'
                 : '';
 
             $checkIcon = $jumlahIndikator > 0
@@ -455,10 +518,10 @@ class RenjaService
             $formattedData[] = [
                 'DT_RowIndex' => count($formattedData) + 1,
                 'checkbox' => '',
-                'group_skpd' => $row->kode_skpd . ' ' . $row->nama_skpd,
-                'group_urusan' => $row->kode_urusan . ' ' . $row->nama_urusan,
-                'group_program' => $row->kode_program . ' ' . $row->nama_program,
-                'group_kegiatan' => $row->kode_giat . ' ' . $row->nama_giat,
+                'group_skpd' => $row->kode_skpd.' '.$row->nama_skpd,
+                'group_urusan' => $row->kode_urusan.' '.$row->nama_urusan,
+                'group_program' => $row->kode_program.' '.$row->nama_program,
+                'group_kegiatan' => $row->kode_giat.' '.$row->nama_giat,
                 'sub_kegiatan' => $this->renderSubKegiatanColumn($row, $checkIcon, $usulanBadge),
                 'status_sub_kegiatan' => '<span class="badge badge-light-danger">DIKUNCI</span>',
                 'status_rincian' => '<span class="badge badge-light-danger">DIKUNCI</span>',
@@ -467,7 +530,7 @@ class RenjaService
                 'total_rincian' => number_format($row->pagu ?? 0, 3, '.', ','),
                 'total_realisasi' => '0.00',
                 'persentase' => '0.00 %',
-                'aksi' => $this->renderActionButtons($row->id_sub_bl)
+                'aksi' => $this->renderActionButtons($row->id_sub_bl ?? $row->id ?? 0),
             ];
         }
 
@@ -482,16 +545,20 @@ class RenjaService
                     <i class="ki-outline ki-minus fs-3"></i>
                 </button>
                 <div>
-                    <a href="#" class="text-primary fw-bold">' . $row->kode_sub_giat . ' ' . $row->nama_sub_giat . '</a>
-                    ' . $checkIcon . '
-                    ' . $usulanBadge . '
+                    <a href="#" class="text-primary fw-bold">'.$row->kode_sub_giat.' '.$row->nama_sub_giat.'</a>
+                    '.$checkIcon.'
+                    '.$usulanBadge.'
                 </div>
             </div>
         ';
     }
 
-    private function renderActionButtons(int $id): string
+    private function renderActionButtons(?int $id): string
     {
+        if (! $id || $id === 0) {
+            return '<span class="badge badge-light-secondary">No Action</span>';
+        }
+
         return '
             <div class="btn-group">
                 <button class="btn btn-sm btn-icon btn-light btn-active-light-primary" type="button" data-bs-toggle="dropdown">
@@ -502,29 +569,27 @@ class RenjaService
                         <div class="text-gray-800 fw-bold fs-6">Pilih Aksi</div>
                     </li>
                     <li><hr class="dropdown-divider"></li>
+                    
                     <li>
-                        <a class="dropdown-item btn-lihat-sub-kegiatan" href="#" data-id="' . $id . '">
-                            <i class="ki-outline ki-file-down fs-5 me-2 text-primary"></i>
-                            Lihat Sub Kegiatan
+                        <a class="dropdown-item" href="/rkpd/renja/'.$id.'/edit">
+                            <i class="ki-outline ki-pencil fs-5 me-2 text-warning"></i>
+                            Edit Sub Kegiatan
                         </a>
                     </li>
+                    
                     <li>
-                        <a class="dropdown-item btn-lihat-rincian" href="#" data-id="' . $id . '">
+                        <a class="dropdown-item btn-lihat-rincian" href="#" data-id="'.$id.'">
                             <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
                             Lihat Rincian Belanja
                         </a>
                     </li>
+                    
                     <li><hr class="dropdown-divider"></li>
+                    
                     <li>
-                        <a class="dropdown-item btn-rka-paket" href="#" data-id="' . $id . '">
-                            <i class="ki-outline ki-package fs-5 me-2 text-success"></i>
-                            RKA Paket / Kelompok
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item btn-rka-rincian" href="#" data-id="' . $id . '">
-                            <i class="ki-outline ki-copy fs-5 me-2 text-warning"></i>
-                            RKA Rincian Belanja
+                        <a class="dropdown-item btn-delete-renja" href="#" data-id="'.$id.'">
+                            <i class="ki-outline ki-trash fs-5 me-2 text-danger"></i>
+                            Hapus Sub Kegiatan
                         </a>
                     </li>
                 </ul>
@@ -552,8 +617,9 @@ class RenjaService
                     }),
                     'items' => $items->map(function ($item) {
                         $item->uraian = $item->ket_bl_teks ?? $item->spek;
+
                         return $item;
-                    })
+                    }),
                 ];
             });
     }

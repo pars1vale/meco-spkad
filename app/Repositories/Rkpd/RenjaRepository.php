@@ -2,8 +2,8 @@
 
 namespace App\Repositories\Rkpd;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Repository untuk Data Access RENJA
@@ -11,7 +11,9 @@ use Illuminate\Support\Collection;
 class RenjaRepository
 {
     protected const TAHUN_ANGGARAN_DEFAULT = 2025;
+
     protected const ID_DAERAH = 604;
+
     protected const URUSAN_X_ID = 20; // Urusan yang bisa diakses semua SKPD
 
     // ==================== RENJA / SUB KEGIATAN ====================
@@ -47,10 +49,6 @@ class RenjaRepository
             ->first();
     }
 
-    /**
-     * Get sub kegiatan dengan indikator berdasarkan SKPD
-     * Menggabungkan sub kegiatan milik SKPD + urusan X
-     */
     public function getSubKegiatanWithIndikatorBySkpd(int $idSkpd, int $tahunAnggaran): Collection
     {
         // Query 1: Sub kegiatan milik SKPD
@@ -137,9 +135,6 @@ class RenjaRepository
             ->get();
     }
 
-    /**
-     * Get detail sub kegiatan dengan urusan untuk insert
-     */
     public function getSubKegiatanDetailById(int $idSkpd, int $idSubKegiatan, int $tahunAnggaran)
     {
         $query1 = DB::table('data_unit as du')
@@ -275,8 +270,229 @@ class RenjaRepository
             'kode_sbl' => $codes['kode_sbl'],
             'active' => 1,
             'update_at' => now(),
-            'tahun_anggaran' => $data['tahun_anggaran']
+            'tahun_anggaran' => $data['tahun_anggaran'],
         ]);
+    }
+
+    // ==================== UPDATE OPERATIONS ====================
+
+    /**
+     * Get sub kegiatan untuk edit by id_sub_bl
+     */
+    public function getSubKegiatanForEdit(int $idSubBl)
+    {
+        return DB::table('data_sub_keg_bl')
+            ->where('id_sub_bl', $idSubBl)
+            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('active', 1)
+            ->first();
+    }
+
+    /**
+     * Update data sub kegiatan belanja
+     */
+    public function updateSubKegiatanBelanja(int $pkId, array $data): int
+    {
+        return DB::table('data_sub_keg_bl')
+            ->where('id', $pkId)
+            ->update([
+                'waktu_awal' => $data['waktu_awal'],
+                'waktu_akhir' => $data['waktu_akhir'],
+                'pagu' => $data['pagu'],
+                'pagu_n_depan' => $data['pagu_n_depan'] ?? 0,
+                'nama_lokasi' => $data['nama_lokasi'] ?? self::ID_DAERAH,
+                'update_at' => now(),
+            ]);
+    }
+
+    /**
+     * Verify update result
+     */
+    public function verifyUpdate(int $pkId)
+    {
+        return DB::table('data_sub_keg_bl')
+            ->where('id', $pkId)
+            ->first();
+    }
+
+    /**
+     * Delete sumber dana by idsubbl
+     */
+    public function deleteSumberDanaBySubKegiatan(int $idSubBl): int
+    {
+        return DB::table('data_dana_sub_keg')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->delete();
+    }
+
+    /**
+     * Get master sumber dana by id_dana or id
+     */
+    public function getMasterSumberDana(int $idSumberDana)
+    {
+        // Try by id_dana first
+        $sumberDana = DB::table('sumber_dana')
+            ->where('id_dana', $idSumberDana)
+            ->first();
+
+        // Fallback: try by PK id
+        if (! $sumberDana) {
+            $sumberDana = DB::table('sumber_dana')
+                ->where('id', $idSumberDana)
+                ->first();
+        }
+
+        return $sumberDana;
+    }
+
+    /**
+     * Insert sumber dana sub kegiatan
+     */
+    public function insertSumberDana(array $data): int
+    {
+        return DB::table('data_dana_sub_keg')->insertGetId([
+            'namadana' => $data['nama_dana'],
+            'kodedana' => $data['kode_dana'],
+            'iddana' => $data['id_dana'],
+            'pagudana' => $data['pagu'],
+            'kode_sbl' => $data['kode_sbl'],
+            'idsubbl' => $data['idsubbl'],
+            'is_locked' => 0,
+            'active' => 1,
+            'update_at' => now(),
+            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
+        ]);
+    }
+
+    /**
+     * Delete indikator by idsubbl
+     */
+    public function deleteIndikatorBySubKegiatan(int $idSubBl): int
+    {
+        return DB::table('data_sub_keg_indikator')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->delete();
+    }
+
+    /**
+     * Insert indikator sub kegiatan
+     */
+    public function insertIndikator(array $data): int
+    {
+        return DB::table('data_sub_keg_indikator')->insertGetId([
+            'outputteks' => $data['output_teks'],
+            'targetoutput' => $data['target_output'],
+            'satuanoutput' => $data['satuan_output'],
+            'targetoutputteks' => $data['target_output'],
+            'kode_sbl' => $data['kode_sbl'],
+            'idsubbl' => $data['idsubbl'],
+            'idoutputbl' => $data['id_output_bl'] ?? 0,
+            'bobot_kinerja' => '1',
+            'active' => 1,
+            'update_at' => now(),
+            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
+        ]);
+    }
+
+    // ==================== DELETE OPERATIONS ====================
+
+    /**
+     * Count rincian belanja by idsubbl
+     */
+    public function countRincianBelanja(int $idSubBl): int
+    {
+        return DB::table('data_rka')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('active', 1)
+            ->count();
+    }
+
+    /**
+     * Soft delete sub kegiatan belanja
+     */
+    public function softDeleteSubKegiatan(int $pkId): int
+    {
+        return DB::table('data_sub_keg_bl')
+            ->where('id', $pkId)
+            ->update([
+                'active' => 0,
+                'update_at' => now(),
+            ]);
+    }
+
+    /**
+     * Soft delete sumber dana by idsubbl
+     */
+    public function softDeleteSumberDana(int $idSubBl): int
+    {
+        return DB::table('data_dana_sub_keg')
+            ->where('idsubbl', $idSubBl)
+            ->update([
+                'active' => 0,
+                'update_at' => now(),
+            ]);
+    }
+
+    /**
+     * Soft delete indikator by idsubbl
+     */
+    public function softDeleteIndikator(int $idSubBl): int
+    {
+        return DB::table('data_sub_keg_indikator')
+            ->where('idsubbl', $idSubBl)
+            ->update([
+                'active' => 0,
+                'update_at' => now(),
+            ]);
+    }
+
+    /**
+     * Get sumber dana by idsubbl (untuk edit form)
+     */
+    public function getSumberDanaForEdit(int $idSubBl, ?string $kodeSbl = null)
+    {
+        $query = DB::table('data_dana_sub_keg')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('active', 1)
+            ->get();
+
+        // Fallback by kode_sbl if empty
+        if ($query->isEmpty() && $kodeSbl) {
+            $query = DB::table('data_dana_sub_keg')
+                ->where('kode_sbl', $kodeSbl)
+                ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+                ->where('active', 1)
+                ->get();
+        }
+
+        return $query;
+    }
+
+    /**
+     * Get indikator by idsubbl (untuk edit form)
+     */
+    public function getIndikatorForEdit(int $idSubBl, ?string $kodeSbl = null)
+    {
+        $query = DB::table('data_sub_keg_indikator')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('active', 1)
+            ->get();
+
+        // Fallback by kode_sbl if empty
+        if ($query->isEmpty() && $kodeSbl) {
+            $query = DB::table('data_sub_keg_indikator')
+                ->where('kode_sbl', $kodeSbl)
+                ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+                ->where('active', 1)
+                ->get();
+        }
+
+        return $query;
     }
 
     // ==================== SUMBER DANA ====================
@@ -321,7 +537,7 @@ class RenjaRepository
                 'is_locked' => 0,
                 'active' => 1,
                 'update_at' => now(),
-                'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT
+                'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
             ]);
         }
     }
@@ -358,7 +574,7 @@ class RenjaRepository
             'bobot_kinerja' => '1',
             'active' => 1,
             'update_at' => now(),
-            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT
+            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
         ]);
     }
 
@@ -410,7 +626,7 @@ class RenjaRepository
             ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
             ->select(
                 'dskb.id',
-                'dskb.id_sub_bl',  
+                'dskb.id_sub_bl',
                 'dskb.kode_sbl',
                 'dskb.kode_skpd',
                 'dskb.nama_skpd',
@@ -480,7 +696,7 @@ class RenjaRepository
 
     public function getFilteredCount(?string $searchValue): int
     {
-        if (!$searchValue) {
+        if (! $searchValue) {
             return $this->getTotalRecords();
         }
 
@@ -592,7 +808,7 @@ class RenjaRepository
             'volume_murni' => 0,
             'totalpajak' => 0,
             'pajak' => 0,
-            'pajak_murni' => 0
+            'pajak_murni' => 0,
         ]);
     }
 
@@ -648,7 +864,7 @@ class RenjaRepository
             'totalpajak' => 0,
             'pajak' => 0,
             'pajak_murni' => 0,
-            'update_at' => now()
+            'update_at' => now(),
         ]);
     }
 }
