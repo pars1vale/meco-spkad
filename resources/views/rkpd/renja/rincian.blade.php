@@ -797,12 +797,6 @@
   <script>
     $(document).ready(function() {
 
-
-      // Tambahkan di bagian $(document).ready()
-
-      // ============================================================
-      // TOGGLE ANTARA INPUT MANUAL DAN PILIH DARI SSH
-      // ============================================================
       $('#btn_pilih_dari_ssh').on('click', function(e) {
         e.preventDefault();
         $('#wrapper_komponen_manual').hide();
@@ -1653,7 +1647,8 @@
         $('#id_paket_belanja_mintag').val(idPaketBelanja);
         $('#info_paket_mintag').html('<strong>' + namaPaket + '</strong>');
 
-        $('#modal_add_rincian').css('z-index', 1050);
+        // ✅ FIX: Langsung show modal tanpa manipulasi z-index
+        // Bootstrap 5 akan handle modal stacking secara otomatis
         $('#modal_add_mintag').modal('show');
       });
 
@@ -1661,14 +1656,7 @@
       // MODAL MINTAG SHOWN
       // ============================================================
       $('#modal_add_mintag').on('shown.bs.modal', function() {
-        $('#modal_add_mintag').css('z-index', 1070);
-
-        // Handle multiple backdrops
-        const backdrops = $('.modal-backdrop');
-        if (backdrops.length > 1) {
-          backdrops.eq(0).css('z-index', 1055);
-          backdrops.eq(1).css('z-index', 1065);
-        }
+        $('textarea[name="nama_mintag"]').focus();
       });
 
       // ============================================================
@@ -1713,7 +1701,6 @@
               $('#select_kategori_belanja').append(newOption).trigger('change');
 
               $('#modal_add_mintag').modal('hide');
-              $('#form_add_mintag')[0].reset();
             } else {
               toastr.error(response.message, 'Error');
             }
@@ -1730,12 +1717,24 @@
         });
       });
 
+
       // ============================================================
       // RESET MODAL MINTAG
       // ============================================================
       $('#modal_add_mintag').on('hidden.bs.modal', function() {
+        // Reset form
         $('#form_add_mintag')[0].reset();
-        $('#modal_add_rincian').css('z-index', '');
+
+        // ✅ FIX: Blur semua element di modal untuk menghindari aria-hidden warning
+        $(this).find('button, input, textarea, select').blur();
+
+        // ✅ FIX: Optional - Return focus ke parent modal jika masih terbuka
+        if ($('#modal_add_rincian').hasClass('show')) {
+          setTimeout(function() {
+            // Focus ke element yang aman (tidak akan trigger warning)
+            $('#select_kategori_belanja').focus();
+          }, 150);
+        }
       });
 
     });
