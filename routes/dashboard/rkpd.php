@@ -37,7 +37,9 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('/renja/sub-kegiatan', [RenjaController::class, 'getSubKegiatanBySkpd'])->name('sub-kegiatan');
     Route::post('/rkpd/renja/store', [RenjaController::class, 'store'])->name('renja.store');
     Route::get('renja/data', [RenjaController::class, 'getData'])->name('renja.data');
-
+    Route::get('/renja/{id}/edit', [RenjaController::class, 'edit'])->name('renja.edit');
+    Route::put('/renja/{id}', [RenjaController::class, 'update'])->name('renja.update');
+    Route::delete('/renja/{id}', [RenjaController::class, 'destroy'])->name('renja.destroy');
     // ==================== RINCIAN BELANJA ====================
     // View Rincian Belanja
     Route::get('/renja/{id}/rincian', [RincianBelanjaController::class, 'showRincian'])->name('renja.rincian');
