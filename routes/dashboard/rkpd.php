@@ -42,16 +42,16 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::delete('/renja/{id}', [RenjaController::class, 'destroy'])->name('renja.destroy');
     // ==================== RINCIAN BELANJA ====================
     // View Rincian Belanja
-    Route::get('/renja/{id}/rincian', [RincianBelanjaController::class, 'showRincian'])->name('renja.rincian');
-
-    // Akun & Detail Akun
-    Route::get('/rincian/get-akun', [RincianBelanjaController::class, 'getAkunByJenisBelanja'])->name('rincian.get-akun');
-    Route::get('/rincian/get-detail-akun', [RincianBelanjaController::class, 'getDetailAkun'])->name('rincian.get-detail-akun');
-
+    Route::get('/renja/{id}/rincian', [RincianBelanjaController::class, 'index'])->name('renja.rincian');
     // CRUD Rincian
     Route::post('/rincian/store', [RincianBelanjaController::class, 'storerincian'])->name('rincian.store');
     Route::put('/rincian/update/{id}', [RincianBelanjaController::class, 'updateRincian'])->name('rincian.update');
     Route::delete('/rincian/delete/{id}', [RincianBelanjaController::class, 'destroyRincian'])->name('rincian.delete');
+    Route::get('/rincian/edit/{id}', [RincianBelanjaController::class, 'editRincian'])->name('rincian.edit');
+
+    // Akun & Detail Akun
+    Route::get('/rincian/get-akun', [RincianBelanjaController::class, 'getAkunByJenisBelanja'])->name('rincian.get-akun');
+    Route::get('/rincian/get-detail-akun', [RincianBelanjaController::class, 'getDetailAkun'])->name('rincian.get-detail-akun');
 
     // SSH & Search Komponen
     Route::get('/rincian/get-ssh-data', [RincianBelanjaController::class, 'getSshData'])->name('rincian.get-ssh-data');

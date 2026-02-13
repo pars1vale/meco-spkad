@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Rkpd;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Rkpd\StorePaketBelanjaRequest;
 use App\Http\Requests\Rkpd\StoreRincianRequest;
+use App\Http\Requests\Rkpd\UpdateRincianRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,7 @@ class RincianBelanjaController extends Controller
     /**
      * Menampilkan halaman rincian belanja sub kegiatan
      */
-    public function showRincian($id)
+    public function index($id)
     {
         try {
             Log::info('=== SHOW RINCIAN START ===', ['id_sub_bl' => $id]);
@@ -208,7 +209,7 @@ class RincianBelanjaController extends Controller
             // ===============================
             // 6. RETURN VIEW
             // ===============================
-            return view('rkpd.renja.rincian', compact(
+            return view('rkpd.renja.rincian.index', compact(
                 'subKegiatan',
                 'sumberDana',
                 'indikator',
@@ -224,9 +225,7 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Get akun berdasarkan jenis belanja
-     */
+    // objek belanja & rekening start
     public function getAkunByJenisBelanja(Request $request)
     {
         try {
@@ -292,9 +291,6 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Get detail akun
-     */
     public function getDetailAkun(Request $request)
     {
         try {
@@ -330,10 +326,9 @@ class RincianBelanjaController extends Controller
             ], 500);
         }
     }
+    // objek belanja & rekening end
 
-    /**
-     * Get list paket belanja
-     */
+    // paket/kelompok belanja start
     public function getPaketBelanjaList(Request $request)
     {
         try {
@@ -430,9 +425,6 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Store paket belanja
-     */
     public function storePaketBelanja(StorePaketBelanjaRequest $request)
     {
         try {
@@ -492,10 +484,131 @@ class RincianBelanjaController extends Controller
             ], 500);
         }
     }
+    // paket/kelompok belanja end
 
-    /**
-     * Store rincian belanja - Exact copy dari RenjaController::storerincian()
-     */
+    // Kaegtori belanja start
+    public function getMintagList(Request $request)
+    {
+        try {
+            $idPaketBelanja = $request->input('id_paket_belanja');
+            $subtitleTeks = $request->input('subtitle_teks');
+
+            if (! $idPaketBelanja) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID Paket tidak valid',
+                    'data' => [],
+                ], 400);
+            }
+
+            if (str_starts_with($idPaketBelanja, 'new_')) {
+                if (! $subtitleTeks) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Paket baru belum memiliki kategori',
+                        'data' => [],
+                        'count' => 0,
+                    ]);
+                }
+
+                $paketSubtitle = $subtitleTeks;
+            } else {
+                $paket = DB::table('data_rka')
+                    ->where('id', $idPaketBelanja)
+                    ->first();
+
+                if (! $paket) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Paket tidak ditemukan',
+                        'data' => [],
+                    ], 404);
+                }
+
+                $paketSubtitle = $paket->subtitle_teks;
+            }
+
+            $mintagList = DB::table('data_rka')
+                ->select('ket_bl_teks')
+                ->where('subtitle_teks', $paketSubtitle)
+                ->where('tahun_anggaran', 2025)
+                ->where('active', 1)
+                ->whereNotNull('ket_bl_teks')
+                ->where('ket_bl_teks', '!=', '')
+                ->where('ket_bl_teks', '!=', '--- PAKET/KELOMPOK ---')
+                ->groupBy('ket_bl_teks')
+                ->orderBy('ket_bl_teks')
+                ->get();
+
+            $formattedData = $mintagList->map(function ($item) {
+                $displayText = preg_replace('/^\[\-\]\s*/', '', $item->ket_bl_teks);
+
+                return [
+                    'value' => $item->ket_bl_teks,
+                    'text' => $displayText,
+                ];
+            });
+
+            Log::info('MINTAG LIST', [
+                'paket_id' => $idPaketBelanja,
+                'subtitle' => $paketSubtitle,
+                'count' => $formattedData->count(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data mintag berhasil dimuat',
+                'data' => $formattedData,
+                'count' => $formattedData->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('ERROR GET MINTAG', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'data' => [],
+            ], 500);
+        }
+    }
+
+    public function storeMintag(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_paket_belanja' => 'required',
+                'nama_mintag' => 'required|string|max:500',
+            ]);
+
+            $mintag = $request->nama_mintag;
+            if (! preg_match('/^\[\-\]/', $mintag)) {
+                $mintag = '[-] '.$mintag;
+            }
+
+            $displayText = preg_replace('/^\[\-\]\s*/', '', $mintag);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kategori belanja berhasil ditambahkan',
+                'data' => [
+                    'value' => $mintag,
+                    'text' => $displayText,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('ERROR STORE MINTAG: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+    // kategori belanja end
+
     public function storerincian(StoreRincianRequest $request)
     {
         try {
@@ -596,14 +709,14 @@ class RincianBelanjaController extends Controller
                     $idSubtitleToUse = $existingPaket->idsubtitle;
                     $isNewPaket = false;
 
-                    Log::info('📦 EXISTING PAKET FOUND', [
+                    Log::info('EXISTING PAKET FOUND', [
                         'idsubtitle' => $idSubtitleToUse,
                     ]);
                 } else {
                     // Belum ada rincian, ini akan jadi rincian pertama
                     $idSubtitleToUse = null;
 
-                    Log::info('🆕 NEW PAKET - Will create on insert');
+                    Log::info('NEW PAKET - Will create on insert');
                 }
             } else {
                 // Ini paket yang sudah ada
@@ -615,7 +728,7 @@ class RincianBelanjaController extends Controller
                     $idSubtitleToUse = $paketHashtag->idsubtitle ?? $paketHashtag->id;
                     $subtitleTeks = $paketHashtag->subtitle_teks;
 
-                    Log::info('📦 USING EXISTING PAKET', [
+                    Log::info('USING EXISTING PAKET', [
                         'paket_id' => $paketHashtag->id,
                         'idsubtitle' => $idSubtitleToUse,
                     ]);
@@ -808,15 +921,10 @@ class RincianBelanjaController extends Controller
                 }
             }
 
-            // ================================================
             // 11. SIMPAN KE DATABASE
-            // ================================================
             $idRka = DB::table('data_rka')->insertGetId($insertData);
 
-            // ================================================
             // 12. JIKA INI RINCIAN PERTAMA DARI PAKET BARU
-            // UPDATE idsubtitle-nya KE ID RECORD INI
-            // ================================================
             if ($isNewPaket && $idSubtitleToUse === null) {
                 DB::table('data_rka')
                     ->where('id', $idRka)
@@ -875,9 +983,6 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Get SSH data
-     */
     public function getSshData(Request $request)
     {
         try {
@@ -926,9 +1031,6 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Search komponen
-     */
     public function searchKomponen(Request $request)
     {
         try {
@@ -994,125 +1096,192 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Get mintag list
-     */
-    public function getMintagList(Request $request)
+    public function editRincian($id)
     {
         try {
-            $idPaketBelanja = $request->input('id_paket_belanja');
-            $subtitleTeks = $request->input('subtitle_teks');
+            // Get rincian data
+            $rincian = DB::table('data_rka')
+                ->where('id', $id)
+                ->where('active', 1)
+                ->first();
 
-            if (! $idPaketBelanja) {
+            if (! $rincian) {
+                return redirect()->back()
+                    ->with('error', 'Data rincian tidak ditemukan');
+            }
+
+            Log::info('EDIT RINCIAN', [
+                'id' => $id,
+                'idsubbl' => $rincian->idsubbl,
+                'kode_akun' => $rincian->kode_akun,
+            ]);
+
+            // Get sub kegiatan info
+            $subKegiatan = DB::table('data_sub_keg_bl')
+                ->where('id_sub_bl', $rincian->idsubbl)
+                ->where('tahun_anggaran', 2025)
+                ->first();
+
+            return view('rkpd.renja.rincian.edit', compact('rincian', 'subKegiatan'));
+        } catch (\Exception $e) {
+            Log::error('Error editRincian: '.$e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Update rincian belanja
+     */
+    public function updateRincian(UpdateRincianRequest $request, $id)
+    {
+        try {
+            Log::info('=== UPDATE RINCIAN START ===', ['id' => $id]);
+
+            // Get existing rincian
+            $rincian = DB::table('data_rka')
+                ->where('id', $id)
+                ->where('active', 1)
+                ->first();
+
+            if (! $rincian) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'ID Paket tidak valid',
-                    'data' => [],
-                ], 400);
+                    'message' => 'Rincian tidak ditemukan',
+                ], 404);
             }
 
-            if (str_starts_with($idPaketBelanja, 'new_')) {
-                if (! $subtitleTeks) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Paket baru belum memiliki kategori',
-                        'data' => [],
-                        'count' => 0,
-                    ]);
+            DB::beginTransaction();
+
+            try {
+                $validated = $request->validated();
+
+                // Calculate total
+                $totalHarga = $validated['volume'] * $validated['harga_satuan'];
+
+                // PARSE KOEFISIEN DATA
+                $koefisien = $request->input('koefisien', []);
+                $satuanKoefisien = $request->input('satuan_koefisien', []);
+
+                // Set volum1-volum4 dan sat1-sat4
+                $volumData = [];
+                $satData = [];
+
+                for ($i = 0; $i < 4; $i++) {
+                    $volumField = 'volum'.($i + 1);
+                    $satField = 'sat'.($i + 1);
+
+                    if (isset($koefisien[$i]) && $koefisien[$i] !== null && $koefisien[$i] !== '') {
+                        $volumData[$volumField] = $koefisien[$i];
+                        $satData[$satField] = $satuanKoefisien[$i] ?? null;
+                    } else {
+                        $volumData[$volumField] = null;
+                        $satData[$satField] = null;
+                    }
                 }
 
-                $paketSubtitle = $subtitleTeks;
-            } else {
-                $paket = DB::table('data_rka')
-                    ->where('id', $idPaketBelanja)
-                    ->first();
+                // PREPARE UPDATE DATA
+                $updateData = [
+                    // Data dari hidden fields (read-only)
+                    'jenis_bl' => $validated['jenis_bl'],
+                    'kode_akun' => $validated['kode_rekening'],
+                    'nama_akun' => $validated['nama_rekening'],
+                    'is_paket' => $validated['tipe_paket'],
+                    'idsubtitle' => $validated['id_paket_belanja'] ?? null,
+                    // 'subtitle_teks' tidak perlu diupdate karena sudah ada di DB
+                    'ket_bl_teks' => $validated['kategori_belanja'] ?? null,
 
-                if (! $paket) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Paket tidak ditemukan',
-                        'data' => [],
-                    ], 404);
-                }
+                    // Data editable
+                    'spek' => $validated['uraian'],
+                    'nama_komponen' => $validated['uraian'], // Simpan juga di nama_komponen untuk old value
+                    'volume' => $validated['volume'],
+                    'satuan' => $validated['satuan'],
+                    'harga_satuan' => $validated['harga_satuan'],
+                    'total_harga' => $totalHarga,
 
-                $paketSubtitle = $paket->subtitle_teks;
-            }
-
-            $mintagList = DB::table('data_rka')
-                ->select('ket_bl_teks')
-                ->where('subtitle_teks', $paketSubtitle)
-                ->where('tahun_anggaran', 2025)
-                ->where('active', 1)
-                ->whereNotNull('ket_bl_teks')
-                ->where('ket_bl_teks', '!=', '')
-                ->where('ket_bl_teks', '!=', '--- PAKET/KELOMPOK ---')
-                ->groupBy('ket_bl_teks')
-                ->orderBy('ket_bl_teks')
-                ->get();
-
-            $formattedData = $mintagList->map(function ($item) {
-                $displayText = preg_replace('/^\[\-\]\s*/', '', $item->ket_bl_teks);
-
-                return [
-                    'value' => $item->ket_bl_teks,
-                    'text' => $displayText,
+                    // Audit fields
+                    'updated_user' => auth()->id() ?? null,
+                    'update_at' => now(),
                 ];
-            });
 
-            Log::info('MINTAG LIST', [
-                'paket_id' => $idPaketBelanja,
-                'subtitle' => $paketSubtitle,
-                'count' => $formattedData->count(),
-            ]);
+                // Merge koefisien data
+                $updateData = array_merge($updateData, $volumData, $satData);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data mintag berhasil dimuat',
-                'data' => $formattedData,
-                'count' => $formattedData->count(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('ERROR GET MINTAG', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+                // ADD OPTIONAL FIELDS
+                if ($request->filled('jenis_standar_harga')) {
+                    $updateData['jenis_standar_harga'] = $request->input('jenis_standar_harga');
+                }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
-                'data' => [],
-            ], 500);
-        }
-    }
+                if ($request->filled('id_standar_harga')) {
+                    $updateData['id_standar_harga'] = $request->input('id_standar_harga');
+                }
 
-    /**
-     * Store mintag
-     */
-    public function storeMintag(Request $request)
-    {
-        try {
-            $request->validate([
-                'id_paket_belanja' => 'required',
-                'nama_mintag' => 'required|string|max:500',
-            ]);
+                if ($request->filled('tkdn')) {
+                    $updateData['tkdn'] = $request->input('tkdn');
+                }
 
-            $mintag = $request->nama_mintag;
-            if (! preg_match('/^\[\-\]/', $mintag)) {
-                $mintag = '[-] '.$mintag;
+                if ($request->filled('spesifikasi_komponen')) {
+                    $updateData['spek_komponen'] = $request->input('spesifikasi_komponen');
+                }
+
+                Log::info('UPDATE DATA PREPARED', [
+                    'id' => $id,
+                    'koefisien_count' => count(array_filter($koefisien)),
+                    'total_harga' => $totalHarga,
+                ]);
+
+                // UPDATE RINCIAN
+                DB::table('data_rka')
+                    ->where('id', $id)
+                    ->update($updateData);
+
+                DB::commit();
+
+                Log::info('✅ RINCIAN UPDATED SUCCESSFULLY', [
+                    'id' => $id,
+                    'uraian' => $validated['uraian'],
+                    'volume' => $validated['volume'],
+                    'satuan' => $validated['satuan'],
+                    'harga_satuan' => $validated['harga_satuan'],
+                    'total_harga' => $totalHarga,
+                    'koefisien' => array_filter($koefisien),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Rincian belanja berhasil diperbarui',
+                    'data' => [
+                        'id' => $id,
+                        'uraian' => $validated['uraian'],
+                        'volume' => $validated['volume'],
+                        'satuan' => $validated['satuan'],
+                        'harga_satuan' => $validated['harga_satuan'],
+                        'total_harga' => $totalHarga,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error('ERROR UPDATE RINCIAN', [
+                    'id' => $id,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                ], 500);
             }
-
-            $displayText = preg_replace('/^\[\-\]\s*/', '', $mintag);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Kategori belanja berhasil ditambahkan',
-                'data' => [
-                    'value' => $mintag,
-                    'text' => $displayText,
-                ],
+        } catch (\Exception $e) {
+            Log::error('FATAL ERROR updateRincian', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
-        } catch (\Exception $e) {
-            Log::error('ERROR STORE MINTAG: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -1121,34 +1290,60 @@ class RincianBelanjaController extends Controller
         }
     }
 
-    /**
-     * Update rincian - placeholder untuk future implementation
-     */
-    public function updateRincian(Request $request, $id)
-    {
-        try {
-            // TODO: Implement update logic
-            return response()->json([
-                'success' => false,
-                'message' => 'Method belum diimplementasikan',
-            ], 501);
-        } catch (\Exception $e) {
-            Log::error('Error updating rincian: '.$e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Delete rincian - placeholder untuk future implementation
-     */
+    // Delete rincian - placeholder untuk future implementation
     public function destroyRincian($id)
     {
         try {
-            // TODO: Implement delete logic
+            $rincian = DB::table('data_rka')
+                ->where('id', $id)
+                ->where('active', 1)
+                ->first();
+
+            if (! $rincian) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Rincian belanja tidak ditemukan',
+                ], 404);
+            }
+
+            DB::beginTransaction();
+
+            try {
+                // Soft delete by setting active = 0
+                DB::table('data_rka')
+                    ->where('id', $id)
+                    ->update([
+                        'active' => 0,
+                        'updated_user' => auth()->id() ?? null,
+                        'update_at' => now(),
+                    ]);
+
+                DB::commit();
+
+                Log::info('RINCIAN DELETED', [
+                    'id_rka' => $id,
+                    'total_harga' => $rincian->total_harga,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Rincian belanja berhasil dihapus',
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error('ERROR DELETE RINCIAN', [
+                    'id_rka' => $id,
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                ], 500);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Method belum diimplementasikan',

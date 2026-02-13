@@ -4,18 +4,12 @@ namespace App\Repositories\Rkpd;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Repository untuk Data Access Rincian Belanja
- */
 class RincianBelanjaRepository
 {
     protected const TAHUN_ANGGARAN_DEFAULT = 2025;
 
     protected const ID_DAERAH = 604;
 
-    /**
-     * Get sub kegiatan belanja by ID dengan relasi
-     */
     public function getSubKegiatanBelanjaById(int $id)
     {
         return DB::table('data_sub_keg_bl')
@@ -25,9 +19,6 @@ class RincianBelanjaRepository
             ->first();
     }
 
-    /**
-     * Get sub kegiatan belanja by ID Sub Bl (untuk compatibility dengan route)
-     */
     public function getSubKegiatanBelanjaByIdSubBl(int $idSubBl)
     {
         return DB::table('data_sub_keg_bl')
@@ -37,9 +28,6 @@ class RincianBelanjaRepository
             ->first();
     }
 
-    /**
-     * Get sumber dana by sub kegiatan
-     */
     public function getSumberDanaBySubKegiatan(int $idSubBl, string $kodeSbl)
     {
         return DB::table('data_dana_sub_keg')
@@ -50,9 +38,6 @@ class RincianBelanjaRepository
             ->get();
     }
 
-    /**
-     * Get indikator by sub kegiatan
-     */
     public function getIndikatorBySubKegiatan(int $idSubBl, string $kodeSbl)
     {
         return DB::table('data_sub_keg_indikator')
@@ -63,9 +48,6 @@ class RincianBelanjaRepository
             ->get();
     }
 
-    /**
-     * Get rincian belanja by sub kegiatan
-     */
     public function getRincianBelanjaBySubKegiatan(int $idSubBl)
     {
         return DB::table('data_rka')
@@ -79,9 +61,6 @@ class RincianBelanjaRepository
             ->get();
     }
 
-    /**
-     * Get paket belanja list
-     */
     public function getPaketBelanjaList(string $kodeSbl, int $tipePaket)
     {
         return DB::table('data_rka')
@@ -109,9 +88,6 @@ class RincianBelanjaRepository
             ->get();
     }
 
-    /**
-     * Get paket belanja by ID
-     */
     public function getPaketBelanjaById(int $id)
     {
         return DB::table('data_rka')
@@ -119,9 +95,6 @@ class RincianBelanjaRepository
             ->first();
     }
 
-    /**
-     * Create paket belanja
-     */
     public function createPaketBelanja(array $data): int
     {
         $subKegiatan = $data['sub_kegiatan'];
@@ -168,9 +141,6 @@ class RincianBelanjaRepository
         ]);
     }
 
-    /**
-     * Create rincian belanja
-     */
     public function createRincianBelanja(array $data): int
     {
         $subKegiatan = $data['sub_kegiatan'];
@@ -227,9 +197,6 @@ class RincianBelanjaRepository
         ]);
     }
 
-    /**
-     * Get rincian belanja by ID
-     */
     public function getRincianBelanjaById(int $id)
     {
         return DB::table('data_rka')
@@ -238,9 +205,6 @@ class RincianBelanjaRepository
             ->first();
     }
 
-    /**
-     * Update rincian belanja
-     */
     public function updateRincianBelanja(int $id, array $data): bool
     {
         return DB::table('data_rka')
@@ -263,9 +227,6 @@ class RincianBelanjaRepository
             ]) > 0;
     }
 
-    /**
-     * Soft delete rincian belanja
-     */
     public function softDeleteRincianBelanja(int $id): bool
     {
         return DB::table('data_rka')
@@ -279,9 +240,6 @@ class RincianBelanjaRepository
             ]) > 0;
     }
 
-    /**
-     * Get sumber dana by ID
-     */
     public function getSumberDanaById(int $id)
     {
         return DB::table('data_dana_sub_keg')
@@ -289,9 +247,6 @@ class RincianBelanjaRepository
             ->first();
     }
 
-    /**
-     * Calculate total rincian by sub kegiatan
-     */
     public function calculateTotalRincian(int $idSubBl): float
     {
         return DB::table('data_rka')
@@ -301,9 +256,6 @@ class RincianBelanjaRepository
             ->sum(DB::raw('volume * harga_satuan'));
     }
 
-    /**
-     * Update pagu sub kegiatan after rincian changes
-     */
     public function updatePaguSubKegiatan(int $idSubBl, float $totalPagu): bool
     {
         return DB::table('data_sub_keg_bl')

@@ -221,7 +221,7 @@
                   @foreach ($dataTerkelompok as $hashtag => $dataHashtag)
                     {{-- LEVEL 1: HASHTAG [#] - Paket/Kelompok --}}
                     <tr class="bg-light-info">
-                      <td class="fw-bolder text-info">#</td>
+                      <td class="fw-bolder text-info">[#]</td>
                       <td colspan="5" class="fw-bolder text-info fs-6">
                         {{-- HAPUS [#] DARI TAMPILAN --}}
                         {{ preg_replace('/^\[\#\]\s*/', '', $dataHashtag['title']) }}
@@ -234,7 +234,7 @@
                       {{-- LEVEL 2: MINTAG [-] - Kategori Belanja --}}
                       <tr class="bg-light-warning">
                         <td></td>
-                        <td class="fw-bold text-warning">-</td>
+                        <td class="fw-bold text-warning">Kategori Belanja:</td>
                         <td colspan="4" class="fw-bold text-warning">{{ $dataMintag['title'] }}</td>
                         <td class="text-end fw-bold text-warning">Rp {{ number_format($dataMintag['total'], 0, ',', '.') }}</td>
                         <td></td>
@@ -243,7 +243,7 @@
                       @foreach ($dataMintag['rekening'] as $kodeRekening => $dataRekening)
                         {{-- LEVEL 3: KODE REKENING --}}
                         <tr class="bg-light-primary">
-                          <td class="fw-bold">{{ $no++ }}</td>
+                          <td></td>
                           <td class="fw-bold">{{ $dataRekening['kode_akun'] }}</td>
                           <td class="fw-bold" colspan="4">{{ $dataRekening['nama_akun'] }}</td>
                           <td class="text-end fw-bold text-primary">Rp {{ number_format($dataRekening['total'], 0, ',', '.') }}</td>
@@ -252,18 +252,19 @@
 
                         @foreach ($dataRekening['items'] as $item)
                           {{-- LEVEL 4: RINCIAN DETAIL --}}
-                          <tr>
-                            <td class="text-center text-muted">{{ $no++ }}</td>
-                            <td class="ps-5 text-muted">-</td>
+                          {{-- <tr> --}}
+                          <tr id="row-{{ $item['id'] }}">
+                            <td class="text-center text-muted fw-bold">{{ $no++ }}</td>
+                            <td class="ps-5 text-muted">Item:</td>
                             <td>{{ $item['nama_komponen'] }}</td>
                             <td class="text-center">{{ number_format($item['volume'] ?? 0, 2, ',', '.') }}</td>
                             <td class="text-center">{{ $item['satuan'] }}</td>
                             <td class="text-end">Rp {{ number_format($item['harga_satuan'] ?? 0, 0, ',', '.') }}</td>
                             <td class="text-end fw-bold">Rp {{ number_format($item['total_harga'], 0, ',', '.') }}</td>
                             <td class="text-center">
-                              <button class="btn btn-icon btn-sm btn-light-primary btn-edit" data-id="{{ $item['id'] }}">
+                              <a href="{{ route('rincian.edit', $item['id']) }}" class="btn btn-icon btn-sm btn-light-primary" title="Edit">
                                 <i class="ki-outline ki-pencil fs-4"></i>
-                              </button>
+                              </a>
                               <button class="btn btn-icon btn-sm btn-light-danger btn-delete" data-id="{{ $item['id'] }}">
                                 <i class="ki-outline ki-trash fs-4"></i>
                               </button>
@@ -300,7 +301,7 @@
     </div>
   </div>
 
-  <!-- Modal Tambah Rincian - LENGKAP -->
+  <!-- Modal Tambah Rincian Belanja (induk) -->
   <div class="modal fade" id="modal_add_rincian" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-1000px modal-dialog-scrollable">
       <div class="modal-content">
@@ -316,7 +317,60 @@
             <input type="hidden" name="tahun_anggaran" value="{{ $subKegiatan->tahun_anggaran }}">
             <input type="hidden" name="kode_rekening" id="kode_rekening">
             <input type="hidden" name="nama_rekening" id="nama_rekening">
-            <!-- SECTION 1: OBJEK & REKENING -->
+            <!-- SECTION 1: PAKET/KELOMPOK -->
+            <div class="card mb-5 shadow-sm">
+              <div class="card-header bg-light-warning">
+                <h3 class="card-title text-warning">
+                  <i class="ki-outline ki-package fs-3 me-2"></i>
+                  Paket/Kelompok Belanja
+                </h3>
+              </div>
+              <div class="card-body">
+                <!-- Tipe Paket -->
+                <div class="mb-5">
+                  <label class="required form-label fw-bold fs-6">Pengelompokan Belanja / Paket Pekerjaan</label>
+                  <select class="form-select form-select-solid" id="select_tipe_paket" name="tipe_paket" required>
+                    <option value="">Pilih Paket/Kelompok...</option>
+                    <option value="1">Pemaketan Kerja</option>
+                    <option value="2">Pengelompokan Belanja</option>
+                  </select>
+                </div>
+                <div class="separator separator-dashed my-7"></div>
+
+                <!-- Uraian Paket (#) -->
+                <div id="wrapper_uraian_paket" style="display: none;">
+                  <label class="required form-label fw-bold fs-6">Uraian Pengelompokan Belanja / Paket Pekerjaan</label>
+                  <div class="input-group">
+                    <select class="form-select form-select-solid" id="select_uraian_paket" name="id_paket_belanja" required disabled>
+                      <option value="">Pilih Paket Belanja...</option>
+                    </select>
+                    <button class="btn btn-primary" type="button" id="btn_open_modal_paket" tooltip="true" data-bs-placement="top"
+                      title="Buat [#] baru">
+                      <i class="ki-outline ki-add-files fs-4"></i>
+                      Tambah Baru
+                    </button>
+                  </div>
+                  <div class="form-text">Uraian Paket Belanja akan menjadi [#] hastag</div>
+                </div>
+                <div class="separator separator-dashed my-7"></div>
+                <!-- KATEGORI BELANJA (-) -->
+                <div id="wrapper_kategori_belanja" style="display: none;">
+                  <label class="required form-label fw-bold">Kategori Belanja</label>
+                  <div class="input-group mb-3">
+                    <select class="form-select form-select-solid" id="select_kategori_belanja" name="kategori_belanja" required disabled>
+                      <option value="">Pilih Kategori Belanja...</option>
+                    </select>
+                    <button class="btn btn-primary" type="button" id="btn_open_modal_mintag" tooltip="true" data-bs-placement="top"
+                      title="Buat [-] baru">
+                      <i class="ki-outline ki-add-files fs-4"></i>
+                      Tambah Kategori
+                    </button>
+                  </div>
+                  <div class="form-text">Kategori belanja akan menjadi [-] mintag</div>
+                </div>
+              </div>
+            </div>
+            <!-- SECTION 2: OBJEK & REKENING -->
             <div class="card mb-5 shadow-sm">
               <div class="card-header bg-light-primary">
                 <h3 class="card-title text-primary">
@@ -354,40 +408,6 @@
                   <select class="form-select form-select-solid" id="select_akun_rekening" name="id_akun" required disabled>
                     <option value="">Pilih rekening belanja...</option>
                   </select>
-                </div>
-              </div>
-            </div>
-            <!-- SECTION 2: PAKET/KELOMPOK -->
-            <div class="card mb-5 shadow-sm">
-              <div class="card-header bg-light-warning">
-                <h3 class="card-title text-warning">
-                  <i class="ki-outline ki-package fs-3 me-2"></i>
-                  Paket/Kelompok Belanja
-                </h3>
-              </div>
-              <div class="card-body">
-                <!-- Tipe Paket -->
-                <div class="mb-5">
-                  <label class="required form-label fw-bold fs-6">Pengelompokan Belanja / Paket Pekerjaan</label>
-                  <select class="form-select form-select-solid" id="select_tipe_paket" name="tipe_paket" required>
-                    <option value="">Pilih Paket/Kelompok...</option>
-                    <option value="1">Pemaketan Kerja</option>
-                    <option value="2">Pengelompokan Belanja</option>
-                  </select>
-                </div>
-
-                <!-- Uraian Paket -->
-                <div id="wrapper_uraian_paket" style="display: none;">
-                  <label class="required form-label fw-bold fs-6">Uraian Pengelompokan Belanja / Paket Pekerjaan</label>
-                  <div class="input-group">
-                    <select class="form-select form-select-solid" id="select_uraian_paket" name="id_paket_belanja" required disabled>
-                      <option value="">Pilih Paket Belanja...</option>
-                    </select>
-                    <button class="btn btn-primary" type="button" id="btn_open_modal_paket">
-                      <i class="ki-outline ki-add-files fs-4"></i>
-                      Tambah Baru
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -523,20 +543,6 @@
                   <div class="form-text">Otomatis dari SSH (bisa diubah manual)</div>
                 </div>
 
-                <!-- KATEGORI BELANJA (MINTAG) - DINAMIS & WAJIB -->
-                <div id="wrapper_kategori_belanja" style="display: none;">
-                  <label class="required form-label fw-bold">Kategori Belanja</label>
-                  <div class="input-group mb-3">
-                    <select class="form-select form-select-solid" id="select_kategori_belanja" name="kategori_belanja" required disabled>
-                      <option value="">Pilih Kategori Belanja...</option>
-                    </select>
-                    <button class="btn btn-primary" type="button" id="btn_open_modal_mintag">
-                      <i class="ki-outline ki-add-files fs-4"></i>
-                      Tambah Kategori
-                    </button>
-                  </div>
-                  <div class="form-text">Kategori belanja untuk pengelompokan rincian (wajib diisi)</div>
-                </div>
               </div>
             </div>
             <!-- TOTAL BELANJA -->
@@ -551,7 +557,6 @@
                 </div>
               </div>
             </div>
-
           </form>
         </div>
         <div class="modal-footer">
@@ -573,7 +578,7 @@
     </div>
   </div>
 
-  <!-- Modal Tambah Paket Belanja (Nested Modal) -->
+  <!-- Modal Tambah Paket Belanja (#) (Nested Modal) -->
   <div class="modal fade" id="modal_add_paket" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
@@ -645,7 +650,7 @@
     </div>
   </div>
 
-  <!-- Modal Tambah Mintag (Nested Modal) -->
+  <!-- Modal Tambah Kategori Belanja (-) (Nested Modal) -->
   <div class="modal fade" id="modal_add_mintag" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
@@ -825,9 +830,6 @@
         clearAutoFilledFields();
       });
 
-      // ============================================================
-      // INIT SELECT2 UNTUK SSH AUTOCOMPLETE
-      // ============================================================
       function initSelect2SSH() {
         if ($('#select_komponen_ssh').hasClass('select2-hidden-accessible')) {
           $('#select_komponen_ssh').select2('destroy');
@@ -878,9 +880,6 @@
         });
       }
 
-      // ============================================================
-      // FORMAT TAMPILAN HASIL PENCARIAN SSH
-      // ============================================================
       function formatSSHResult(item) {
         if (item.loading) {
           return item.text;
@@ -889,16 +888,16 @@
         const hargaFormat = new Intl.NumberFormat('id-ID').format(item.harga || 0);
 
         return $(`
-    <div class="d-flex flex-column py-2">
-      <div class="fw-bold text-gray-800">${item.nama || item.text}</div>
-      <div class="text-muted fs-7">
-        <span class="badge badge-light me-2">${item.kode}</span>
-        <span class="badge badge-light-success">${item.satuan}</span>
-        <span class="text-primary ms-3">Rp ${hargaFormat}</span>
-      </div>
-      ${item.spek ? `<div class="text-muted fs-8 mt-1">${item.spek}</div>` : ''}
-    </div>
-  `);
+        <div class="d-flex flex-column py-2">
+          <div class="fw-bold text-gray-800">${item.nama || item.text}</div>
+          <div class="text-muted fs-7">
+            <span class="badge badge-light me-2">${item.kode}</span>
+            <span class="badge badge-light-success">${item.satuan}</span>
+            <span class="text-primary ms-3">Rp ${hargaFormat}</span>
+          </div>
+          ${item.spek ? `<div class="text-muted fs-8 mt-1">${item.spek}</div>` : ''}
+        </div>
+      `);
       }
 
       function formatSSHSelection(item) {
@@ -1017,23 +1016,23 @@
         koefisienCount++;
 
         const newRow = `
-      <div class="row mb-3 koefisien-row">
-        <div class="col-md-1 d-flex align-items-center justify-content-center">
-          <span class="badge badge-light-primary fs-6">${koefisienCount}</span>
-        </div>
-        <div class="col-md-5">
-          <input type="number" step="0.01" class="form-control form-control-solid koefisien-input" name="koefisien[]" placeholder="Nilai koefisien ${koefisienCount}">
-        </div>
-        <div class="col-md-5">
-          <input type="text" class="form-control form-control-solid" name="satuan_koefisien[]" placeholder="Satuan">
-        </div>
-        <div class="col-md-1 d-flex align-items-center">
-          <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-koef">
-            <i class="ki-outline ki-cross fs-3"></i>
-          </button>
-        </div>
-      </div>
-    `;
+          <div class="row mb-3 koefisien-row">
+            <div class="col-md-1 d-flex align-items-center justify-content-center">
+              <span class="badge badge-light-primary fs-6">${koefisienCount}</span>
+            </div>
+            <div class="col-md-5">
+              <input type="number" step="0.01" class="form-control form-control-solid koefisien-input" name="koefisien[]" placeholder="Nilai koefisien ${koefisienCount}">
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control form-control-solid" name="satuan_koefisien[]" placeholder="Satuan">
+            </div>
+            <div class="col-md-1 d-flex align-items-center">
+              <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-koef">
+                <i class="ki-outline ki-cross fs-3"></i>
+              </button>
+            </div>
+          </div>
+        `;
 
         $('#koefisien_container').append(newRow);
 
@@ -1277,7 +1276,12 @@
 
             if (response.success && response.data && response.data.length > 0) {
               $.each(response.data, function(index, paket) {
-                $('#select_uraian_paket').append($('<option></option>').val(paket.id).text(paket.uraian_paket));
+                // $('#select_uraian_paket').append($('<option></option>').val(paket.id).text(paket.uraian_paket));
+                $('#select_uraian_paket').append(
+                  $('<option></option>')
+                  .val(paket.id)
+                  .text(`${paket.uraian_paket} — ${paket.nama_akun}`)
+                );
               });
               toastr.success(`✓ ${response.data.length} paket tersedia`, 'Berhasil');
             } else {
@@ -1406,23 +1410,23 @@
 
         // Reset koefisien to 1 row only
         $('#koefisien_container').html(`
-    <div class="row mb-3 koefisien-row">
-      <div class="col-md-1 d-flex align-items-center justify-content-center">
-        <span class="badge badge-light-primary fs-6">1</span>
-      </div>
-      <div class="col-md-5">
-        <input type="number" step="0.01" class="form-control form-control-solid koefisien-input" name="koefisien[]" placeholder="Nilai koefisien 1">
-      </div>
-      <div class="col-md-5">
-        <input type="text" class="form-control form-control-solid" name="satuan_koefisien[]" placeholder="Satuan (Bulan, Orang, Unit, dll)">
-      </div>
-      <div class="col-md-1 d-flex align-items-center">
-        <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-koef" style="display: none;">
-          <i class="ki-outline ki-cross fs-3"></i>
-        </button>
-      </div>
-    </div>
-  `);
+          <div class="row mb-3 koefisien-row">
+            <div class="col-md-1 d-flex align-items-center justify-content-center">
+              <span class="badge badge-light-primary fs-6">1</span>
+            </div>
+            <div class="col-md-5">
+              <input type="number" step="0.01" class="form-control form-control-solid koefisien-input" name="koefisien[]" placeholder="Nilai koefisien 1">
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control form-control-solid" name="satuan_koefisien[]" placeholder="Satuan (Bulan, Orang, Unit, dll)">
+            </div>
+            <div class="col-md-1 d-flex align-items-center">
+              <button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-koef" style="display: none;">
+                <i class="ki-outline ki-cross fs-3"></i>
+              </button>
+            </div>
+          </div>
+        `);
 
         koefisienCount = 1;
         $('#btn_add_koefisien').prop('disabled', false).removeClass('disabled');
@@ -1735,6 +1739,100 @@
             $('#select_kategori_belanja').focus();
           }, 150);
         }
+      });
+
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1800,
+        timerProgressBar: true,
+      });
+
+      document.querySelectorAll('.btn-delete').forEach(button => {
+
+        button.addEventListener('click', function() {
+
+          let id = this.dataset.id;
+          let currentButton = this;
+          let icon = currentButton.innerHTML;
+
+          Swal.fire({
+            title: 'Yakin ingin menghapus?',
+            text: "Rincian akan dinonaktifkan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            buttonsStyling: false,
+            customClass: {
+              confirmButton: "btn btn-danger",
+              cancelButton: "btn btn-secondary"
+            }
+          }).then((result) => {
+
+            if (result.isConfirmed) {
+
+              // Disable button + spinner
+              currentButton.disabled = true;
+              currentButton.innerHTML =
+                `<span class="spinner-border spinner-border-sm"></span>`;
+
+              fetch("{{ url('rkpd/rincian/delete') }}/" + id, {
+                  method: "DELETE",
+                  headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json",
+                  }
+                })
+                .then(response => response.json())
+                .then(data => {
+
+                  if (data.success) {
+
+                    // Hapus row
+                    let row = document.getElementById("row-" + id);
+                    if (row) row.remove();
+
+                    Toast.fire({
+                      icon: 'success',
+                      title: data.message
+                    });
+
+                  } else {
+
+                    currentButton.disabled = false;
+                    currentButton.innerHTML = icon;
+
+                    Toast.fire({
+                      icon: 'error',
+                      title: data.message
+                    });
+                  }
+
+                })
+                .catch(() => {
+
+                  currentButton.disabled = false;
+                  currentButton.innerHTML = icon;
+
+                  Toast.fire({
+                    icon: 'error',
+                    title: 'Terjadi kesalahan sistem'
+                  });
+
+                });
+
+            }
+
+          });
+
+        });
+
       });
 
     });
