@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @page {
+            size: 330mm 210mm;
+            margin: 12mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .wrapper {
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            vertical-align: middle;
+        }
+
+        .no-border-right {
+            border-right: none !important;
+        }
+
+        .no-border-left {
+            border-left: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .bg-gray {
+            background: #e6e6e6;
+        }
+
+        .bg-skpd {
+            background: #FFF7CD;
+        }
+
+        .kd {
+            width: 40px;
+        }
+
+        .uraian {
+            width: 320px;
+        }
+
+        .dana {
+            width: 50px;
+        }
+
+        .lokasi {
+            width: 110px;
+        }
+
+        .nominal {
+            width: auto;
+        }
+
+        .rotate-left {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+            white-space: nowrap;
+            /* height: 120px; */
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <!-- ================= HEADER ================= -->
+        <table>
+            <tr>
+                <td colspan="2" class="text-center bold" style="width:75%;">
+                    DOKUMEN PELAKSANAAN ANGGARAN<br>
+                    SATUAN KERJA PERANGKAT DAERAH
+                </td>
+                <td rowspan="2" class="text-center bold" style="width:25%;">
+                    FORMULIR<br>
+                    DPA-BELANJA<br>
+                    SKPD
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="text-center">
+                    KAB. YAHUKIMO<br>
+                    TAHUN ANGGARAN 2026
+                </td>
+            </tr>
+            <!-- ================= IDENTITAS ================= -->
+            <tr>
+                <td class="no-border-right" style="width: 7%;">Nomor DPA</td>
+                <td class="no-border-left" colspan="2">
+                    : DPA/A.1/5.02.0.00.0.00.27.0000/01/2026
+                </td>
+            </tr>
+            <tr>
+                <td class="no-border-right">SKPD</td>
+                <td class="no-border-left" colspan="2">
+                    : 5.02.0.00.0.00.27.0000 - Badan Pengelolaan Keuangan dan Aset Daerah
+                </td>
+            </tr>
+            <!-- ================= JUDUL ================= -->
+
+            <tr>
+                <td class="text-center" colspan="3">
+                    Rekapitulasi Dokumen Pelaksanaan Belanja Berdasarkan Program, Kegiatan, dan Sub Kegiatan
+                </td>
+            </tr>
+        </table>
+
+        <table>
+
+            <!-- HEADER BERTINGKAT -->
+            <tr class="text-center">
+                <th rowspan="3" class="kd rotate-left">Urusan</th>
+                <th rowspan="3" class="kd rotate-left">Bidang<br>Urusan</th>
+                <th rowspan="3" class="kd rotate-left">Program</th>
+                <th rowspan="3" class="kd rotate-left">Kegiatan</th>
+                <th rowspan="3" class="kd rotate-left">Sub<br>Kegiatan</th>
+                <th rowspan="3" class="uraian">Uraian</th>
+                <th rowspan="3" class="dana">Sumber<br>Dana</th>
+                <th rowspan="3" class="lokasi">Lokasi</th>
+                <th colspan="7">Jumlah</th>
+            </tr>
+
+            <tr class="text-center">
+                <th rowspan="2" class="nominal">T-1</th>
+                <th colspan="5">Tahun</th>
+                <th rowspan="2" class="nominal">T+1</th>
+            </tr>
+
+            <tr class="text-center">
+                <th class="nominal">Belanja Operasi</th>
+                <th class="nominal">Belanja Modal</th>
+                <th class="nominal">Belanja Tidak Terduga</th>
+                <th class="nominal">Belanja Transfer</th>
+                <th class="nominal">Jumlah</th>
+            </tr>
+
+            <!-- SKPD -->
+            <tr>
+                <td colspan="8" class="bg-skpd bold"> 5.02.0.00.0.00.27.0000 - Badan Pengelolaan Keuangan dan Aset
+                    Daerah
+                </td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+
+            <!-- URUSAN -->
+            <tr>
+                <td class="text-center bold">5</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="bold" colspan="3">UNSUR PENUNJANG URUSAN PEMERINTAHAN</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+
+            <!-- BIDANG URUSAN -->
+            <!-- looping bidang urusan berdasarkan urusan(sebagai induk dari bidang urusan), jika tidak ada bidang urusan, looping langsung ke urusan -->
+            <tr>
+                <td class="text-center bold">5</td>
+                <td class="text-center bold">02</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td colspan="3" class="bold">
+                    KEUANGAN
+                </td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+
+            <!-- PROGRAM -->
+            <!-- looping program berdasarkan bidang urusan(sebagai induk dari program), jika tidak ada program, looping langsung ke bidang urusan -->
+            <tr>
+                <td class="text-center bold">5</td>
+                <td class="text-center bold">02</td>
+                <td class="text-center bold">01</td>
+                <td></td>
+                <td></td>
+                <td colspan="3" class="bold">
+                    PROGRAM PENUNJANG URUSAN PEMERINTAHAN DAERAH KABUPATEN/KOTA
+                </td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+
+            <!-- KEGIATAN -->
+            <!-- looping kegiatan berdasarkan program(sebagai induk dari kegiatan), jika tidak ada kegiatan, looping langsung ke program -->
+            <tr>
+                <td class="text-center bold">5</td>
+                <td class="text-center bold">02</td>
+                <td class="text-center bold">01</td>
+                <td class="text-center bold">2.01</td>
+                <td class="text-center bold"></td>
+                <td colspan="3" class="bold">Perencanaan, Penganggaran, dan Evaluasi Kinerja Perangkat Daerah</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+
+            <!-- SUB KEGIATAN -->
+            <!-- looping sub kegiatan berdasarkan kegiatan(sebagai induk dari sub-kegiatan), jika tidak ada sub kegiatan, looping langsung ke kegiatan -->
+            <tr>
+                <td class="text-center">5</td>
+                <td class="text-center">02</td>
+                <td class="text-center">01</td>
+                <td class="text-center">2.01</td>
+                <td class="text-center">0001</td>
+                <td>Penyusunan Dokumen Perencanaan Perangkat Daerah</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+            <tr>
+                <td class="text-center">5</td>
+                <td class="text-center">02</td>
+                <td class="text-center">01</td>
+                <td class="text-center">2.01</td>
+                <td class="text-center">0006</td>
+                <td>Koordinasi dan Penyusunan Laporan Capaian Kinerja dan Ikhtisar Realisasi Kinerja SKPD</td>
+                <td></td>
+                <td>Kab. Yahukimo, Semua
+                    Kecamatan, Semua
+                    Kelurahan/Desa</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+                <td class="text-right">Rp.0,00</td>
+            </tr>
+
+        </table>
+
+        <table>
+            <tr>
+                <td colspan="4" class="text-center bold" style="width: 50%;">Rencana Realisasi Belanja per Bulan*)
+                    <br>(Rp)
+                </td>
+
+                <td rowspan="14" class="text-center" style="width: 50%;">
+                    <p style="font-weight: normal !important;">
+                        Sumohai, Tanggal 08 Januari 2026<br>
+                        KEPALA BADAN PENGELOLAAN KEUANGAN DAN ASET DAERAH
+                    </p>
+                    <br><br><br><br>
+                    <u>MATIUS, S.Hut., M.Si</u><br>
+                    NIP. 197603202003121007<br><br><br>
+                    <p style="font-weight: normal !important;">
+                        Mengesahkan,<br>
+                        PPKD
+                    </p><br><br><br><br><br><br>
+                    <u>MATIUS, S.Hut., M.Si</u><br>
+                    NIP. 197603202003121007
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Januari</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Februari</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Maret</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">April</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Mei</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Juni</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Juli</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Agustus</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">September</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Oktober</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">November</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr>
+                <td style="width: 25%;">Desember</td>
+                <td style="width: 25%;" class="text-right">Rp165.335.424.825,00</td>
+            </tr>
+
+            <tr class="bold" style="background-color:#BFC9D1;">
+                <td style="width: 25%;">Jumlah</td>
+                <td style="width: 25%;" class="text-right">Rp1.983.825.097.918,00</td>
+            </tr>
+        </table>
+
+        <!-- tim anggaran pemerintah daerah -->
+        <table>
+            <tr>
+                <td colspan="5" class="text-center">
+                    Tim Anggaran Pemerintah Daerah
+                </td>
+            </tr>
+
+            <tr class="bold">
+                <td style="width:60px;">No.</td>
+                <td style="width:35%;">Nama</td>
+                <td style="width:25%;">NIP</td>
+                <td style="width:22%;">Jabatan</td>
+                <td style="width:18%;">Tanda Tangan</td>
+            </tr>
+
+            <!-- ======= ROWS ======= -->
+            <tr>
+                <td class="text-center">1.</td>
+                <td>Redison Manurung, S.Pd., M.Si</td>
+                <td>196808011995121004</td>
+                <td>Ketua TAPD</td>
+                <td></td>
+            </tr>
+
+            <tr>
+                <td class="text-center">2.</td>
+                <td>Ambekni Kobak, SE</td>
+                <td>197112312006051001</td>
+                <td>Wakil Ketua TAPD</td>
+                <td></td>
+            </tr>
+
+            <tr>
+                <td class="text-center">3.</td>
+                <td>Mathius, S.Hut., M.Si</td>
+                <td>197603202003121007</td>
+                <td>Sekretaris TAPD</td>
+                <td></td>
+            </tr>
+
+            <tr>
+                <td class="text-center">4.</td>
+                <td>Khristian Priambodo Widiarko, M.Si</td>
+                <td>196701201993031006</td>
+                <td>Anggota TAPD</td>
+                <td></td>
+            </tr>
+
+            <tr>
+                <td class="text-center">5.</td>
+                <td>Diniarso Sunarjayanto, S.Kom</td>
+                <td>198308102011041002</td>
+                <td>Anggota TAPD</td>
+                <td></td>
+            </tr>
+
+            <tr>
+                <td class="text-center">6.</td>
+                <td>Visdita A. Rahayaan, SH</td>
+                <td>198511222009091002</td>
+                <td>Anggota TAPD</td>
+                <td></td>
+            </tr>
+
+        </table>
+
+    </div>
+</body>
+
+</html>
