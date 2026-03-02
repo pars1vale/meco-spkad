@@ -346,56 +346,65 @@ class PendapatanController extends Controller
         $pendapatan = DB::table('data_pendapatan')
             ->where('id', $id)
             ->where('id_skpd', $id_skpd)
+            ->where('active', 1)
             ->first();
 
         abort_if(! $pendapatan, 404, 'Data pendapatan tidak ditemukan.');
 
         $akunList = Akun::where('is_pendapatan', 1)
             ->where('active', 1)
-            ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('tahun_anggaran', 2025) // masih menggunakan tahun 2025 (hardcode)
             ->orderBy('kode_akun')
             ->get();
 
-        return view('pendapatan.edit', compact('skpd', 'pendapatan', 'akunList', 'id_skpd', 'tahunAnggaran'));
+        return view('pendapatan.rincian.edit', compact(
+            'skpd',
+            'pendapatan',
+            'akunList',
+            'id_skpd',
+            'tahunAnggaran'
+        ));
     }
 
     public function update(Request $request, $id_skpd, $id)
     {
         $request->validate([
-            'id_akun' => 'required|integer',
-            'uraian' => 'nullable|string',
-            'keterangan' => 'nullable|string',
-            'nilaimurni' => 'nullable|numeric',
-            'total' => 'nullable|numeric',
-            'volume' => 'nullable|string',
-            'satuan' => 'nullable|string|max:50',
-            'koefisien' => 'nullable|string|max:50',
+            'id_akun' => 'required|integer|exists:akun,id',
+            'keterangan' => 'nullable|string|max:500',
+            'nilai' => 'required|numeric|min:0',
         ]);
 
-        $akun = Akun::find($request->id_akun);
+        $akun = Akun::findOrFail($request->id_akun);
+        $now = now();
 
-        DB::table('data_pendapatan')
+        $affected = DB::table('data_pendapatan')
             ->where('id', $id)
             ->where('id_skpd', $id_skpd)
+            ->where('active', 1)
             ->update([
-                'id_akun' => $request->id_akun,
-                'kode_akun' => $akun?->kode_akun,
-                'nama_akun' => $akun?->nama_akun,
-                'rekening' => $akun ? ($akun->kode_akun.' - '.$akun->nama_akun) : null,
-                'uraian' => $request->uraian,
+                // ── akun ────────────────────────────────────────────────
+                'id_akun' => $akun->id,
+                'kode_akun' => $akun->kode_akun,
+                'nama_akun' => $akun->nama_akun,
+                'rekening' => $akun->kode_akun.' - '.$akun->nama_akun,
+
+                // ── input pengguna ───────────────────────────────────────
                 'keterangan' => $request->keterangan,
-                'nilaimurni' => $request->nilaimurni ?? 0,
-                'total' => $request->total ?? 0,
-                'volume' => $request->volume,
-                'satuan' => $request->satuan,
-                'koefisien' => $request->koefisien,
-                'update_at' => now(),
+                'uraian' => $request->keterangan, // keterangan → uraian & keterangan
+                'nilaimurni' => $request->nilai,
+                'total' => $request->nilai,
+
+                // ── audit trail ──────────────────────────────────────────
                 'updated_user' => auth()->id(),
-                'updateddate' => now()->format('Y-m-d'),
-                'updatedtime' => now()->format('H:i:s'),
+                'updateddate' => $now->format('Y-m-d'),
+                'updatedtime' => $now->format('H:i:s'),
+                'update_at' => $now,
             ]);
 
-        return redirect()->route('pendapatan.rincian', $id_skpd)
+        abort_if($affected === 0, 404, 'Data pendapatan tidak ditemukan atau sudah tidak aktif.');
+
+        return redirect()
+            ->route('pendapatan.rincian', $id_skpd)
             ->with('success', 'Data pendapatan berhasil diperbarui.');
     }
 

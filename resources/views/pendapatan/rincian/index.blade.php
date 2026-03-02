@@ -384,7 +384,7 @@
         document.querySelectorAll('[data-kt-rincian-filter="delete_row"]').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var id = this.dataset.id;
-            var uraian = this.dataset.uraian || '—'; // ← uraian, bukan kode rekening
+            var uraian = this.dataset.uraian || '—';
 
             Swal.fire({
               title: 'Hapus Data?',
