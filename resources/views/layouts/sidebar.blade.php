@@ -433,7 +433,7 @@
         </div>
         {{-- pendapatan --}}
         <div class="menu-item">
-          <a href="#" class="menu-link {{-- {{ Request::is('home') ? 'active' : '' }} --}}">
+          <a href="{{ route('pendapatan.index') }}" class="menu-link {{ Request::routeIs('pendapatan.index') ? 'active' : '' }}">
             <span class="menu-icon">
               <i class="ki-outline ki-wallet fs-2"></i>
             </span>
