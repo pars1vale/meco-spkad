@@ -148,7 +148,7 @@ class PendapatanController extends Controller
                 'a.nama_akun as akun_nama'
             )
             ->where('dp.id_skpd', $id_skpd)
-            ->where('dp.tahun_anggaran', 2025) // masih pakai hardcode untuk value tahun anggaran
+            ->where('dp.tahun_anggaran', 2025) //
             ->where('dp.active', 1)
             ->orderBy('dp.kode_akun', 'ASC')
             ->get();
@@ -157,13 +157,21 @@ class PendapatanController extends Controller
         $totalSebelum = $pendapatanList->sum('nilaimurni');
         $jumlahRekening = $pendapatanList->count();
 
-        return view('pendapatan.rincian', compact(
+        // Data untuk modal create
+        $akunList = Akun::where('is_pendapatan', 1)
+            ->where('active', 1)
+            ->where('tahun_anggaran', 2025)
+            ->orderBy('kode_akun')
+            ->get();
+
+        return view('pendapatan.rincian.index', compact(
             'skpd',
             'totalSetelah',
             'totalSebelum',
             'jumlahRekening',
             'tahunAnggaran',
-            'id_skpd'
+            'id_skpd',
+            'akunList'
         ));
     }
 
@@ -203,7 +211,7 @@ class PendapatanController extends Controller
             }
 
             $recordsTotal = Pendapatan::where('id_skpd', $id_skpd)
-                ->where('tahun_anggaran', 2025) // masih pakai hardcode untuk value tahun anggaran
+                ->where('tahun_anggaran', 2025)
                 ->where('active', 1)
                 ->count();
 
@@ -230,7 +238,7 @@ class PendapatanController extends Controller
                 : $query->get();
 
             $grandTotal = Pendapatan::where('id_skpd', $id_skpd)
-                ->where('tahun_anggaran', 2025) // masih pakai hardcode untuk value tahun anggaran
+                ->where('tahun_anggaran', 2025)
                 ->where('active', 1)
                 ->selectRaw('SUM(nilaimurni) as total_sebelum, SUM(total) as total_setelah, COUNT(id) as jumlah')
                 ->first();
@@ -257,61 +265,73 @@ class PendapatanController extends Controller
         }
     }
 
-    public function create($id_skpd)
-    {
-        $tahunAnggaran = session('tahun_anggaran', date('Y'));
-
-        $skpd = DataUnit::where('id_skpd', $id_skpd)
-            ->where('ispendapatan', 1)
-            ->firstOrFail();
-
-        $akunList = Akun::where('is_pendapatan', 1)
-            ->where('active', 1)
-            ->where('tahun_anggaran', $tahunAnggaran)
-            ->orderBy('kode_akun')
-            ->get();
-
-        return view('pendapatan.create', compact('skpd', 'akunList', 'id_skpd', 'tahunAnggaran'));
-    }
-
     public function store(Request $request, $id_skpd)
     {
         $request->validate([
-            'id_akun' => 'required|integer',
-            'uraian' => 'nullable|string',
-            'keterangan' => 'nullable|string',
-            'nilaimurni' => 'nullable|numeric',
-            'total' => 'nullable|numeric',
-            'volume' => 'nullable|string',
-            'satuan' => 'nullable|string|max:50',
-            'koefisien' => 'nullable|string|max:50',
+            'id_akun' => 'required|integer|exists:akun,id',
+            'keterangan' => 'nullable|string|max:500',
+            'nilai' => 'required|numeric|min:0',
         ]);
 
-        $tahunAnggaran = session('tahun_anggaran', date('Y'));
-        $akun = Akun::find($request->id_akun);
+        $tahunAnggaran = session('tahun_anggaran', 2025);
+        $akun = Akun::findOrFail($request->id_akun);
+        $now = now();
+
+        // id_pendapatan: ambil nilai terbesar lalu +1
+        $maxIdPendapatan = DB::table('data_pendapatan')->max('id_pendapatan');
+        $newIdPendapatan = ($maxIdPendapatan ?? 0) + 1;
 
         DB::table('data_pendapatan')->insert([
+            // ── auto-generated ──────────────────────────────────────────
+            'id_pendapatan' => $newIdPendapatan,
+            'createddate' => $now->format('Y-m-d'),
+            'createdtime' => $now->format('H:i:s'),
+            'updateddate' => $now->format('Y-m-d'),
+            'updatedtime' => $now->format('H:i:s'),
+            'update_at' => $now,
+            // 'created_user' => auth()->id(),
+            // 'updated_user' => auth()->id(),
+            'created_user' => null,
+            'updated_user' => null,
+
+            // ── relasi SKPD ──────────────────────────────────────────────
             'id_skpd' => $id_skpd,
-            'id_akun' => $request->id_akun,
-            'kode_akun' => $akun?->kode_akun,
-            'nama_akun' => $akun?->nama_akun,
-            'rekening' => $akun ? ($akun->kode_akun.' - '.$akun->nama_akun) : null,
-            'uraian' => $request->uraian,
+
+            // ── akun (dari dropdown) ─────────────────────────────────────
+            'id_akun' => $akun->id,
+            'kode_akun' => $akun->kode_akun,
+            'nama_akun' => $akun->nama_akun,
+            'rekening' => $akun->kode_akun.' - '.$akun->nama_akun,
+
+            // ── input pengguna ───────────────────────────────────────────
             'keterangan' => $request->keterangan,
-            'nilaimurni' => $request->nilaimurni ?? 0,
-            'total' => $request->total ?? 0,
-            'volume' => $request->volume,
-            'satuan' => $request->satuan,
-            'koefisien' => $request->koefisien,
-            'tahun_anggaran' => $tahunAnggaran,
+            'uraian' => $request->keterangan, // keterangan → uraian & keterangan
+            'nilaimurni' => $request->nilai,
+            'total' => $request->nilai,
+
+            // ── defaults ─────────────────────────────────────────────────
+            'volume' => 0,
             'active' => 1,
-            'update_at' => now(),
-            'created_user' => auth()->id(),
-            'createddate' => now()->format('Y-m-d'),
-            'createdtime' => now()->format('H:i:s'),
+            'tahun_anggaran' => $tahunAnggaran,
+
+            // ── field lain: null ─────────────────────────────────────────
+            'id_jadwal_murni' => null,
+            'program_koordinator' => null,
+            'skpd_koordinator' => null,
+            'urusan_koordinator' => null,
+            'pagu_fmis' => null,
+            'koefisien' => null,
+            'kua_murni' => null,
+            'kua_pak' => null,
+            'rkpd_murni' => null,
+            'rkpd_pak' => null,
+            'satuan' => null,
+            'user1' => null,
+            'user2' => null,
         ]);
 
-        return redirect()->route('pendapatan.rincian', $id_skpd)
+        return redirect()
+            ->route('pendapatan.rincian', $id_skpd)
             ->with('success', 'Data pendapatan berhasil ditambahkan.');
     }
 

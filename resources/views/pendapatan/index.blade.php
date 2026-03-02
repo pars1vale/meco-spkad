@@ -58,28 +58,7 @@
             </div>
           </div>
         </div>
-        {{-- <div class="col-xl-5">
-          <div class="card card-flush h-100">
-            <div class="card-body d-flex flex-column justify-content-between py-5">
-              <div class="d-flex align-items-center mb-3">
-                <span class="symbol symbol-40px me-3">
-                  <span class="symbol-label bg-light-success">
-                    <i class="ki-duotone ki-paper-clip fs-2 text-success"></i>
-                  </span>
-                </span>
-                <span class="text-muted fw-semibold fs-7">Total Setelah Perubahan</span>
-              </div>
-              <div>
-                <span class="text-gray-800 fw-bolder fs-3 d-block lh-1">
 
-                </span>
-                <span class="text-muted fw-semibold fs-8 mt-1 d-block">
-
-                </span>
-              </div>
-            </div>
-          </div>
-        </div> --}}
 
       </div>
 

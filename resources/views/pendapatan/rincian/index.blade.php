@@ -130,9 +130,9 @@
           <div class="card-toolbar">
             {{-- Toolbar: default --}}
             <div class="d-flex justify-content-end gap-2" data-kt-rincian-table-toolbar="base">
-              <a href="{{ route('pendapatan.create', $id_skpd) }}" class="btn btn-primary btn-sm fw-semibold">
+              <button type="button" class="btn btn-primary btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#modal_tambah_pendapatan">
                 <i class="ki-outline ki-plus fs-6 me-1"></i>Tambah Pendapatan
-              </a>
+              </button>
             </div>
             {{-- Toolbar: selected (bulk) --}}
             <div class="d-flex justify-content-end align-items-center d-none gap-2" data-kt-rincian-table-toolbar="selected">
@@ -173,17 +173,16 @@
     </div>
   </div>
 
-  {{-- Hidden form: hapus satu baris --}}
+  @include('pendapatan.rincian.partials.modal-create')
+
   <form id="delete-single-form" method="POST" style="display:none;">
     @csrf
     @method('DELETE')
   </form>
 
-  {{-- Hidden form: bulk delete – submit biasa agar redirect ke rincian() --}}
-  {{-- sehingga card total dihitung ulang dari server (bukan AJAX/JS) --}}
+  {{-- Hidden form: bulk delete --}}
   <form id="bulk-delete-form" method="POST" action="{{ route('pendapatan.bulk-delete', $id_skpd) }}" style="display:none;">
     @csrf
-    {{-- ids[] diisi oleh JS sebelum submit --}}
   </form>
 
   <script>
@@ -192,9 +191,7 @@
     var KTPendapatanRincian = function() {
       var dt;
       var idSkpd = "{{ $id_skpd }}";
-      // Menyimpan grandTotal terakhir dari AJAX response.
-      // Diisi di dataSrc, dibaca di drawCallback – menghindari nilai kembali 0
-      // setelah DataTables selesai render.
+
       // ── Helpers ──────────────────────────────────────────────────────
       var rupiah = function(v) {
         if (v === null || v === undefined || v === '') return '—';
@@ -273,8 +270,8 @@
               orderable: false,
               render: function(data) {
                 return `<div class="form-check form-check-sm form-check-custom form-check-solid">
-                        <input class="form-check-input" type="checkbox" value="${data}" />
-                      </div>`;
+                          <input class="form-check-input" type="checkbox" value="${data}" />
+                        </div>`;
               }
             },
             // Nomor urut
@@ -287,16 +284,15 @@
               }
             },
             // Rekening (kode + nama)
-            // akun_kode/akun_nama dari join tabel akun; fallback ke kode_akun/nama_akun di dp
             {
               targets: 2,
               render: function(data, type, row) {
                 var kode = row.akun_kode || row.kode_akun || '—';
                 var nama = row.akun_nama || row.nama_akun || '—';
                 return `<div class="d-flex flex-column">
-                        <span class="badge badge-light-primary fs-8 fw-bold mb-1">${kode}</span>
-                        <span class="text-gray-800 fw-semibold fs-7 text-wrap">${nama}</span>
-                      </div>`;
+                          <span class="badge badge-light-primary fs-8 fw-bold mb-1">${kode}</span>
+                          <span class="text-gray-800 fw-semibold fs-7 text-wrap">${nama}</span>
+                        </div>`;
               }
             },
             // Uraian
@@ -331,40 +327,41 @@
                 var icon = selisih >= 0 ? 'ki-arrow-up' : 'ki-arrow-down';
                 var selisihEl = (row.nilaimurni && selisih !== 0) ?
                   `<span class="text-${color} fs-8 fw-semibold">
-                     <i class="ki-outline ${icon} fs-9 text-${color}"></i>
-                     Rp ${Math.abs(selisih).toLocaleString('id-ID')}
-                   </span>` :
+                       <i class="ki-outline ${icon} fs-9 text-${color}"></i>
+                       Rp ${Math.abs(selisih).toLocaleString('id-ID')}
+                     </span>` :
                   '';
                 return `<div class="d-flex flex-column align-items-end">
-                        <span class="text-gray-800 fw-bold fs-6">${rupiah(data)}</span>
-                        ${selisihEl}
-                      </div>`;
+                          <span class="text-gray-800 fw-bold fs-6">${rupiah(data)}</span>
+                          ${selisihEl}
+                        </div>`;
               }
             },
-            // Aksi
+            // Aksi — data-uraian diisi dari kolom uraian (fallback ke keterangan)
             {
               targets: 7,
               className: 'text-end',
               render: function(data, type, row) {
+                var uraian = (row.uraian || row.keterangan || '—')
+                  .replace(/"/g, '&quot;'); // escape untuk atribut HTML
                 return `
-                <div class="d-flex justify-content-end gap-1">
-                  <a href="{{ url('pendapatan') }}/${idSkpd}/${row.id}/edit"
-                     class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="Edit">
-                    <i class="ki-outline ki-pencil fs-4"></i>
-                  </a>
-                  <button type="button"
-                    class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
-                    data-kt-rincian-filter="delete_row"
-                    data-id="${row.id}"
-                    data-kode="${row.akun_kode ?? ''}"
-                    title="Hapus">
-                    <i class="ki-outline ki-trash fs-4"></i>
-                  </button>
-                </div>`;
+                  <div class="d-flex justify-content-end gap-1">
+                    <a href="{{ url('pendapatan') }}/${idSkpd}/${row.id}/edit"
+                       class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="Edit">
+                      <i class="ki-outline ki-pencil fs-4"></i>
+                    </a>
+                    <button type="button"
+                      class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
+                      data-kt-rincian-filter="delete_row"
+                      data-id="${row.id}"
+                      data-uraian="${uraian}"
+                      title="Hapus">
+                      <i class="ki-outline ki-trash fs-4"></i>
+                    </button>
+                  </div>`;
               }
             },
           ],
-          // drawCallback: re-init handler setiap DataTable di-render ulang
           drawCallback: function() {
             initToggleToolbar();
             toggleToolbars();
@@ -372,8 +369,6 @@
             KTMenu.createInstances();
           }
         });
-
-
       };
 
       // ── Search ───────────────────────────────────────────────────────
@@ -389,11 +384,11 @@
         document.querySelectorAll('[data-kt-rincian-filter="delete_row"]').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var id = this.dataset.id;
-            var kode = this.dataset.kode;
+            var uraian = this.dataset.uraian || '—'; // ← uraian, bukan kode rekening
 
             Swal.fire({
               title: 'Hapus Data?',
-              html: `Anda akan menghapus rekening <strong>${kode}</strong>.`,
+              html: `Anda akan menghapus data pendapatan:<br><strong>${uraian}</strong>`,
               icon: 'warning',
               showCancelButton: true,
               buttonsStyling: false,
@@ -446,16 +441,10 @@
             }).then(function(result) {
               if (!result.isConfirmed) return;
 
-              // Gunakan form submit biasa (bukan AJAX) agar server redirect
-              // kembali ke rincian() dan card total dihitung ulang dari PHP.
               var form = document.getElementById('bulk-delete-form');
-
-              // Hapus hidden inputs lama jika ada
               form.querySelectorAll('input[name="ids[]"]').forEach(function(el) {
                 el.remove();
               });
-
-              // Tambahkan id yang dipilih sebagai hidden inputs
               Array.from(checked).forEach(function(cb) {
                 var input = document.createElement('input');
                 input.type = 'hidden';
@@ -463,7 +452,6 @@
                 input.value = cb.value;
                 form.appendChild(input);
               });
-
               form.submit();
             });
           });
@@ -492,7 +480,6 @@
         }
       };
 
-      // ── Public ───────────────────────────────────────────────────────
       return {
         init: function() {
           initDatatable();
