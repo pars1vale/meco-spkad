@@ -34,8 +34,9 @@
           <div data-type="error" data-message="{{ session('error') }}"></div>
         @endif
       </div>
-
+      {{-- header card --}}
       <div class="row gx-5 gx-xl-10 mb-xl-10">
+        {{-- inputan, batasan, validasi PAGU --}}
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
           <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
             style="background-color: #080655; min-height: 200px;">
@@ -52,13 +53,13 @@
                   <span>72%</span>
                 </div>
                 <div class="h-8px w-100 bg-light-danger rounded">
-                  <div class="bg-danger rounded h-8px" role="progressbar" style="width: 72%;" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="bg-danger rounded h-8px" role="progressbar" style="width: 72%;" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100">
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
           <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
             style="background-color: #1C325E; min-height: 200px;">
@@ -75,13 +76,13 @@
                   <span>85%</span>
                 </div>
                 <div class="h-8px w-100 bg-light-success rounded">
-                  <div class="bg-success rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="bg-success rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
           <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
             style="background-color: #7239EA; min-height: 200px;">
@@ -98,13 +99,14 @@
                   <span>63%</span>
                 </div>
                 <div class="h-8px w-100 bg-light-primary rounded">
-                  <div class="bg-primary rounded h-8px" role="progressbar" style="width: 63%;" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="bg-primary rounded h-8px" role="progressbar" style="width: 63%;" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100">
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
+        {{-- rincian, realisasi, persentase  --}}
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
           <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
             style="background-color: #F1416C; min-height: 200px;">
@@ -121,13 +123,13 @@
                   <span>54%</span>
                 </div>
                 <div class="h-8px w-100 bg-light-warning rounded">
-                  <div class="bg-warning rounded h-8px" role="progressbar" style="width: 54%;" aria-valuenow="54" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="bg-warning rounded h-8px" role="progressbar" style="width: 54%;" aria-valuenow="54" aria-valuemin="0" aria-valuemax="100">
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
           <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
             style="background-color: #00A3FF; min-height: 200px;">
@@ -144,13 +146,13 @@
                   <span>61%</span>
                 </div>
                 <div class="h-8px w-100 bg-light-info rounded">
-                  <div class="bg-info rounded h-8px" role="progressbar" style="width: 61%;" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="bg-info rounded h-8px" role="progressbar" style="width: 61%;" aria-valuenow="61" aria-valuemin="0"
+                    aria-valuemax="100"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
           <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
             style="background-color: #50CD89; min-height: 200px;">
@@ -167,14 +169,15 @@
                   <span>85%</span>
                 </div>
                 <div class="h-8px w-100 bg-white bg-opacity-25 rounded">
-                  <div class="bg-white rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="bg-white rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0"
+                    aria-valuemax="100"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
+      {{-- content card --}}
       <div class="card">
         <div class="card-header border-0 pt-6">
           <div class="card-title">
@@ -208,24 +211,24 @@
             </div>
           @else
             <table id="kt_datatable_column_rendering" class="table table-striped table-row-bordered gy-5 gs-7">
-             <thead>
-               <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
-                 <th class="min-w-10px" style="display:none;">Check</th>
-                 <th class="min-w-10px" style="display:none;">SKPD</th>
-                 <th class="min-w-10px" style="display:none;">Urusan</th>
-                 <th class="min-w-10px" style="display:none;">Program</th>
-                 <th class="min-w-10px" style="display:none;">Kegiatan</th>
-                 <th class="min-w-300px">Sub Kegiatan</th>
-                 <th class="min-w-100px">Status Sub Kegiatan</th>
-                 <th class="min-w-100px">Status Rincian</th>
-                 <th class="min-w-150px">Sebelum Perubahan</th>
-                 <th class="min-w-150px">Pagu Validasi Setelah Perubahan</th>
-                 <th class="min-w-150px">Total Rincian Setelah Perubahan</th>
-                 <th class="min-w-100px">Total Realisasi</th>
-                 <th class="min-w-100px">Persentase</th>
-                 <th class="min-w-100px">Aksi</th>
-               </tr>
-             </thead>
+              <thead>
+                <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                  <th class="min-w-10px" style="display:none;">Check</th>
+                  <th class="min-w-10px" style="display:none;">SKPD</th>
+                  <th class="min-w-10px" style="display:none;">Urusan</th>
+                  <th class="min-w-10px" style="display:none;">Program</th>
+                  <th class="min-w-10px" style="display:none;">Kegiatan</th>
+                  <th class="min-w-300px">Sub Kegiatan</th>
+                  <th class="min-w-100px">Status Sub Kegiatan</th>
+                  <th class="min-w-100px">Status Rincian</th>
+                  <th class="min-w-150px">Sebelum Perubahan</th>
+                  <th class="min-w-150px">Pagu Validasi Setelah Perubahan</th>
+                  <th class="min-w-150px">Total Rincian Setelah Perubahan</th>
+                  <th class="min-w-100px">Total Realisasi</th>
+                  <th class="min-w-100px">Persentase</th>
+                  <th class="min-w-100px">Aksi</th>
+                </tr>
+              </thead>
             </table>
           @endif
         </div>
@@ -251,17 +254,17 @@
 
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Pilih SKPD/Sub Unit</label>
-                <select class="form-select form-select-solid @error('id_skpd') is-invalid @enderror" name="id_skpd"
-                  id="select_skpd" data-control="select2" data-dropdown-parent="#kt_modal_add_kegiatan" required>
+                <select class="form-select form-select-solid @error('id_skpd') is-invalid @enderror" name="id_skpd" id="select_skpd"
+                  data-control="select2" data-dropdown-parent="#kt_modal_add_kegiatan" required>
                   <option value="">Pilih SKPD</option>
                   @foreach ($data_unit as $skpd)
-                  <option value="{{ $skpd->id_skpd }}" {{ old('id_skpd') == $skpd->id_skpd ? 'selected' : '' }}>
-                    {{ $skpd->kode_skpd }} - {{ $skpd->nama_skpd }}
-                  </option>
+                    <option value="{{ $skpd->id_skpd }}" {{ old('id_skpd') == $skpd->id_skpd ? 'selected' : '' }}>
+                      {{ $skpd->kode_skpd }} - {{ $skpd->nama_skpd }}
+                    </option>
                   @endforeach
                 </select>
                 @error('id_skpd')
-                <div class="invalid-feedback">{{ $message }}</div>
+                  <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>
 
@@ -276,13 +279,12 @@
               <!-- Sub Kegiatan List -->
               <div class="fv-row mb-7" id="sub_kegiatan_container" style="display: none;">
                 <label class="required fs-6 fw-semibold mb-2">Sub Kegiatan</label>
-                <select class="form-select form-select-solid @error('id_sub_kegiatan') is-invalid @enderror"
-                  name="id_sub_kegiatan" id="select_sub_kegiatan" data-control="select2"
-                  data-dropdown-parent="#kt_modal_add_kegiatan" required>
+                <select class="form-select form-select-solid @error('id_sub_kegiatan') is-invalid @enderror" name="id_sub_kegiatan"
+                  id="select_sub_kegiatan" data-control="select2" data-dropdown-parent="#kt_modal_add_kegiatan" required>
                   <option value="">Pilih Sub Kegiatan</option>
                 </select>
                 @error('id_sub_kegiatan')
-                <div class="invalid-feedback">{{ $message }}</div>
+                  <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
                 <div class="form-text">
                   Total: <span id="total_sub_kegiatan">0</span> sub kegiatan
@@ -368,7 +370,7 @@
                   <select id="id_lokasi" class="form-select form-select-solid" name="id_lokasi" required>
                     <option value="">Pilih Daerah</option>
                     @foreach ($daerah as $kab)
-                    <option value="{{ $kab->id_daerah }}">{{ $kab->nama_daerah }}</option>
+                      <option value="{{ $kab->id_daerah }}">{{ $kab->nama_daerah }}</option>
                     @endforeach
                   </select>
 
@@ -376,7 +378,7 @@
                   <select id="kecamatan" class="form-select form-select-solid" name="id_camat">
                     <option value="">Pilih Kecamatan</option>
                     @foreach ($kec as $kc)
-                    <option value="{{ $kc->id_camat }}">{{ $kc->camat_teks }}</option>
+                      <option value="{{ $kc->id_camat }}">{{ $kc->camat_teks }}</option>
                     @endforeach
                   </select>
 
@@ -384,7 +386,7 @@
                   <select id="kelurahan" class="form-select form-select-solid" name="id_lurah">
                     <option value="">Pilih Kelurahan</option>
                     @foreach ($kel as $kl)
-                    <option value="{{ $kl->id_lurah }}">{{ $kl->lurah_teks }}</option>
+                      <option value="{{ $kl->id_lurah }}">{{ $kl->lurah_teks }}</option>
                     @endforeach
                   </select>
                 </div>
@@ -397,15 +399,15 @@
                   <select id="waktu_awal" class="form-select form-select-solid" name="waktu_awal" required>
                     <option value="">Pilih Waktu Awal</option>
                     @foreach ($bln as $bl)
-                    <option value="{{ $bl->id }}">{{ $bl->nama }}</option>
+                      <option value="{{ $bl->id }}">{{ $bl->nama }}</option>
                     @endforeach
                   </select>
                   <span>S/D</span>
                   {{-- Waktu Akhir --}}
                   <select id="waktu_akhir" class="form-select form-select-solid" name="waktu_akhir">
                     <option value="">Pilih Waktu Akhir</option>
-                     @foreach ($bln as $bl)
-                    <option value="{{ $bl->id }}">{{ $bl->nama }}</option>
+                    @foreach ($bln as $bl)
+                      <option value="{{ $bl->id }}">{{ $bl->nama }}</option>
                     @endforeach
                   </select>
                 </div>
@@ -415,8 +417,7 @@
                 <label class=" fs-6 fw-semibold mb-2">Anggaran N+1 Sub Kegiatan</label>
                 <div class="input-group">
                   <span class="input-group-text">Rp</span>
-                  <input type="text" class="form-control form-control-solid input-pagu" name="pagu_n_depan"
-                    placeholder="0" >
+                  <input type="text" class="form-control form-control-solid input-pagu" name="pagu_n_depan" placeholder="0">
                 </div>
               </div>
 
@@ -438,57 +439,57 @@
   </div>
 
   <style>
-/* Custom styling untuk grouping hierarki */
-.dtrg-group {
-    background-color: #f5f8fa !important;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 12px 15px !important;
-    border-left: 4px solid #3699FF;
-}
+    /* Custom styling untuk grouping hierarki */
+    .dtrg-group {
+      background-color: #f5f8fa !important;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 15px !important;
+      border-left: 4px solid #3699FF;
+    }
 
-.dtrg-level-0 {
-    background-color: #E8F5E9 !important;
-    border-left-color: #4CAF50 !important;
-    font-size: 15px;
-}
+    .dtrg-level-0 {
+      background-color: #E8F5E9 !important;
+      border-left-color: #4CAF50 !important;
+      font-size: 15px;
+    }
 
-.dtrg-level-1 {
-    background-color: #E3F2FD !important;
-    border-left-color: #2196F3 !important;
-    padding-left: 30px !important;
-}
+    .dtrg-level-1 {
+      background-color: #E3F2FD !important;
+      border-left-color: #2196F3 !important;
+      padding-left: 30px !important;
+    }
 
-.dtrg-level-2 {
-    background-color: #FFF3E0 !important;
-    border-left-color: #FF9800 !important;
-    padding-left: 50px !important;
-}
+    .dtrg-level-2 {
+      background-color: #FFF3E0 !important;
+      border-left-color: #FF9800 !important;
+      padding-left: 50px !important;
+    }
 
-.dtrg-level-3 {
-    background-color: #F3E5F5 !important;
-    border-left-color: #9C27B0 !important;
-    padding-left: 70px !important;
-}
+    .dtrg-level-3 {
+      background-color: #F3E5F5 !important;
+      border-left-color: #9C27B0 !important;
+      padding-left: 70px !important;
+    }
 
-/* Sub kegiatan row styling */
-table.dataTable tbody tr {
-    background-color: #ffffff;
-}
+    /* Sub kegiatan row styling */
+    table.dataTable tbody tr {
+      background-color: #ffffff;
+    }
 
-table.dataTable tbody tr:hover {
-    background-color: #f8f9fa !important;
-}
+    table.dataTable tbody tr:hover {
+      background-color: #f8f9fa !important;
+    }
 
-/* Collapse button */
-.btn-collapse {
-    transition: transform 0.3s;
-}
+    /* Collapse button */
+    .btn-collapse {
+      transition: transform 0.3s;
+    }
 
-.btn-collapse.collapsed {
-    transform: rotate(-90deg);
-}
-</style>
+    .btn-collapse.collapsed {
+      transform: rotate(-90deg);
+    }
+  </style>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -563,72 +564,72 @@ table.dataTable tbody tr:hover {
 
               $('#select_sub_kegiatan').html(options);
               $('#total_sub_kegiatan').text(response.count);
-$('#sub_kegiatan_container').show();
-        } else {
-          $('#select_sub_kegiatan').html('<option value="">Tidak ada data</option>');
-          $('#total_sub_kegiatan').text('0');
+              $('#sub_kegiatan_container').show();
+            } else {
+              $('#select_sub_kegiatan').html('<option value="">Tidak ada data</option>');
+              $('#total_sub_kegiatan').text('0');
 
-          Swal.fire({
-            icon: 'info',
-            title: 'Tidak ada data',
-            text: 'Tidak ada sub kegiatan untuk SKPD yang dipilih',
-            confirmButtonText: 'OK',
-            buttonsStyling: false,
-            customClass: {
-              confirmButton: "btn btn-primary"
+              Swal.fire({
+                icon: 'info',
+                title: 'Tidak ada data',
+                text: 'Tidak ada sub kegiatan untuk SKPD yang dipilih',
+                confirmButtonText: 'OK',
+                buttonsStyling: false,
+                customClass: {
+                  confirmButton: "btn btn-primary"
+                }
+              });
             }
-          });
-        }
-      },
-      error: function(xhr, status, error) {
-        $('#loading_sub_kegiatan').addClass('d-none');
-        $('#select_sub_kegiatan').html('<option value="">Error memuat data</option>');
+          },
+          error: function(xhr, status, error) {
+            $('#loading_sub_kegiatan').addClass('d-none');
+            $('#select_sub_kegiatan').html('<option value="">Error memuat data</option>');
 
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal',
-          text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengambil data sub kegiatan',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengambil data sub kegiatan',
+              confirmButtonText: 'OK',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-primary"
+              }
+            });
+
+            console.error('Error:', xhr.responseJSON || error);
           }
         });
+      });
 
-        console.error('Error:', xhr.responseJSON || error);
-      }
-    });
-  });
+      $('#select_sub_kegiatan').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
 
-  $('#select_sub_kegiatan').on('change', function() {
-    const selectedOption = $(this).find('option:selected');
+        if (selectedOption.val()) {
+          $('#detail_bidang_urusan').text(selectedOption.data('bidang') || '-');
+          $('#detail_program').text(selectedOption.data('program') || '-');
+          $('#detail_kegiatan').text(selectedOption.data('kegiatan') || '-');
+          $('#detail_sub_keg').text(selectedOption.data('subkeg') || '-');
 
-    if (selectedOption.val()) {
-      $('#detail_bidang_urusan').text(selectedOption.data('bidang') || '-');
-      $('#detail_program').text(selectedOption.data('program') || '-');
-      $('#detail_kegiatan').text(selectedOption.data('kegiatan') || '-');
-      $('#detail_sub_keg').text(selectedOption.data('subkeg') || '-');
-      
-      const idSubKegiatan = selectedOption.val();
-      displayIndikator(idSubKegiatan);
-      
-      $('#detail_sub_kegiatan').removeClass('d-none');
-    } else {
-      $('#detail_sub_kegiatan').addClass('d-none');
-      $('#indikator_section').addClass('d-none');
-    }
-  });
+          const idSubKegiatan = selectedOption.val();
+          displayIndikator(idSubKegiatan);
 
-  function displayIndikator(idSubKegiatan) {
-    const indikatorData = subKegiatanData.filter(item =>
-      item.id_sub_kegiatan == idSubKegiatan && item.indikator
-    );
+          $('#detail_sub_kegiatan').removeClass('d-none');
+        } else {
+          $('#detail_sub_kegiatan').addClass('d-none');
+          $('#indikator_section').addClass('d-none');
+        }
+      });
 
-    if (indikatorData.length > 0) {
-      let indikatorHtml = '<h6 class="mb-3 fw-bold">Indikator Kinerja</h6>';
+      function displayIndikator(idSubKegiatan) {
+        const indikatorData = subKegiatanData.filter(item =>
+          item.id_sub_kegiatan == idSubKegiatan && item.indikator
+        );
 
-      indikatorData.forEach((item, index) => {
-        indikatorHtml += `
+        if (indikatorData.length > 0) {
+          let indikatorHtml = '<h6 class="mb-3 fw-bold">Indikator Kinerja</h6>';
+
+          indikatorData.forEach((item, index) => {
+            indikatorHtml += `
           <div class="row align-items-center mb-3">
             <div class="col-md-5">
               <div class="fw-semibold text-gray-800">${item.indikator}</div>
@@ -648,47 +649,47 @@ $('#sub_kegiatan_container').show();
             </div>
           </div>
         `;
+          });
+
+          $('#indikator_list').html(indikatorHtml);
+          $('#indikator_section').removeClass('d-none');
+          initializeTargetFormat();
+        } else {
+          $('#indikator_section').addClass('d-none');
+        }
+      }
+
+      function initializeTargetFormat() {
+        $('.input-target').off('input').on('input', function() {
+          let value = $(this).val().replace(/[^\d]/g, '');
+          if (value) {
+            const formatted = new Intl.NumberFormat('id-ID').format(value);
+            $(this).val(formatted);
+          }
+        });
+
+        $('.input-target').off('blur').on('blur', function() {
+          let value = $(this).val().replace(/[^\d]/g, '');
+          if (value) {
+            const formatted = new Intl.NumberFormat('id-ID').format(value);
+            $(this).val(formatted);
+          }
+        });
+      }
+
+      $('#btn_add_sumber_dana').on('click', function() {
+        sumberDanaCounter++;
+        addSumberDanaForm(sumberDanaCounter);
+        updateSumberDanaInfo();
       });
 
-      $('#indikator_list').html(indikatorHtml);
-      $('#indikator_section').removeClass('d-none');
-      initializeTargetFormat();
-    } else {
-      $('#indikator_section').addClass('d-none');
-    }
-  }
+      function addSumberDanaForm(id) {
+        let sumberDanaOptions = '<option value="">Pilih Sumber Dana</option>';
+        sumberDanaList.forEach(item => {
+          sumberDanaOptions += `<option value="${item.id}">${item.kode_dana} - ${item.nama_dana}</option>`;
+        });
 
-  function initializeTargetFormat() {
-    $('.input-target').off('input').on('input', function() {
-      let value = $(this).val().replace(/[^\d]/g, '');
-      if (value) {
-        const formatted = new Intl.NumberFormat('id-ID').format(value);
-        $(this).val(formatted);
-      }
-    });
-    
-    $('.input-target').off('blur').on('blur', function() {
-      let value = $(this).val().replace(/[^\d]/g, '');
-      if (value) {
-        const formatted = new Intl.NumberFormat('id-ID').format(value);
-        $(this).val(formatted);
-      }
-    });
-  }
-
-  $('#btn_add_sumber_dana').on('click', function() {
-    sumberDanaCounter++;
-    addSumberDanaForm(sumberDanaCounter);
-    updateSumberDanaInfo();
-  });
-
-  function addSumberDanaForm(id) {
-    let sumberDanaOptions = '<option value="">Pilih Sumber Dana</option>';
-    sumberDanaList.forEach(item => {
-      sumberDanaOptions += `<option value="${item.id}">${item.kode_dana} - ${item.nama_dana}</option>`;
-    });
-
-    const formHtml = `
+        const formHtml = `
       <div class="card card-bordered mb-5 sumber-dana-item" data-id="${id}">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-5">
@@ -740,222 +741,265 @@ $('#sub_kegiatan_container').show();
       </div>
     `;
 
-    $('#sumber_dana_container').append(formHtml);
+        $('#sumber_dana_container').append(formHtml);
 
-    $(`.select-sumber-dana-${id}`).select2({
-      dropdownParent: $('#kt_modal_add_kegiatan'),
-      placeholder: "Pilih Sumber Dana",
-      allowClear: true
-    });
+        $(`.select-sumber-dana-${id}`).select2({
+          dropdownParent: $('#kt_modal_add_kegiatan'),
+          placeholder: "Pilih Sumber Dana",
+          allowClear: true
+        });
 
-    initializeCurrencyFormat();
-    reorderSumberDana();
-  }
-
-  $(document).on('click', '.btn-remove-sumber-dana', function(e) {
-    e.preventDefault();
-
-    const button = $(this);
-    const id = button.data('id');
-
-    Swal.fire({
-      title: 'Hapus Sumber Dana?',
-      text: "Data sumber dana ini akan dihapus!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Ya, Hapus!',
-      cancelButtonText: 'Batal',
-      buttonsStyling: false,
-      customClass: {
-        confirmButton: "btn btn-danger",
-        cancelButton: "btn btn-light"
+        initializeCurrencyFormat();
+        reorderSumberDana();
       }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const cardElement = button.closest('.sumber-dana-item');
 
-        cardElement.find('select[data-control="select2"]').each(function() {
-          if ($(this).data('select2')) {
-            $(this).select2('destroy');
-          }
-        });
+      $(document).on('click', '.btn-remove-sumber-dana', function(e) {
+        e.preventDefault();
 
-        cardElement.fadeOut(300, function() {
-          $(this).remove();
-          reorderSumberDana();
-          updateSumberDanaInfo();
-          updateTotalPagu();
-        });
+        const button = $(this);
+        const id = button.data('id');
 
         Swal.fire({
-          icon: 'success',
-          title: 'Berhasil!',
-          text: 'Sumber dana telah dihapus',
-          timer: 1500,
-          showConfirmButton: false
+          title: 'Hapus Sumber Dana?',
+          text: "Data sumber dana ini akan dihapus!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Hapus!',
+          cancelButtonText: 'Batal',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: "btn btn-danger",
+            cancelButton: "btn btn-light"
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const cardElement = button.closest('.sumber-dana-item');
+
+            cardElement.find('select[data-control="select2"]').each(function() {
+              if ($(this).data('select2')) {
+                $(this).select2('destroy');
+              }
+            });
+
+            cardElement.fadeOut(300, function() {
+              $(this).remove();
+              reorderSumberDana();
+              updateSumberDanaInfo();
+              updateTotalPagu();
+            });
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: 'Sumber dana telah dihapus',
+              timer: 1500,
+              showConfirmButton: false
+            });
+          }
         });
+      });
+
+      function reorderSumberDana() {
+        $('.sumber-dana-item').each(function(index) {
+          const newNumber = index + 1;
+          $(this).find('.sumber-dana-number').text(`Sumber Dana #${newNumber}`);
+          $(this).find('.sumber-dana-number-text').text(`Sumber Dana #${newNumber}`);
+        });
+        updateSumberDanaCount();
       }
-    });
-  });
 
-  function reorderSumberDana() {
-    $('.sumber-dana-item').each(function(index) {
-      const newNumber = index + 1;
-      $(this).find('.sumber-dana-number').text(`Sumber Dana #${newNumber}`);
-      $(this).find('.sumber-dana-number-text').text(`Sumber Dana #${newNumber}`);
-    });
-    updateSumberDanaCount();
-  }
-
-  function updateSumberDanaCount() {
-    const count = $('.sumber-dana-item').length;
-    let counterBadge = $('#sumber_dana_counter');
-    if (counterBadge.length === 0) {
-      $('label.fs-6.fw-semibold:contains("Sumber Dana")').html(`
+      function updateSumberDanaCount() {
+        const count = $('.sumber-dana-item').length;
+        let counterBadge = $('#sumber_dana_counter');
+        if (counterBadge.length === 0) {
+          $('label.fs-6.fw-semibold:contains("Sumber Dana")').html(`
         Sumber Dana 
         <span id="sumber_dana_counter" class="badge badge-light-primary ms-2">${count} Item</span>
       `);
-    } else {
-      counterBadge.text(`${count} Item`);
-    }
-  }
-
-  function updateSumberDanaInfo() {
-    const count = $('.sumber-dana-item').length;
-    if (count > 0) {
-      $('#no_sumber_dana_info').hide();
-      $('#total_pagu_summary').removeClass('d-none');
-    } else {
-      $('#no_sumber_dana_info').show();
-      $('#total_pagu_summary').addClass('d-none');
-    }
-  }
-
-  function initializeCurrencyFormat() {
-    $('.input-pagu').off('input').on('input', function() {
-      let value = $(this).val().replace(/[^\d]/g, '');
-
-      if (value) {
-        const formatted = new Intl.NumberFormat('id-ID').format(value);
-        $(this).val(formatted);
-        const id = $(this).closest('.sumber-dana-item').data('id');
-        $(`.pagu-display-${id}`).text('Rp ' + formatted);
-      } else {
-        $(this).val('');
-        const id = $(this).closest('.sumber-dana-item').data('id');
-        $(`.pagu-display-${id}`).text('Rp 0');
+        } else {
+          counterBadge.text(`${count} Item`);
+        }
       }
 
-      updateTotalPagu();
-    });
-
-    $('.input-pagu').off('blur').on('blur', function() {
-      let value = $(this).val().replace(/[^\d]/g, '');
-      if (value) {
-        const formatted = new Intl.NumberFormat('id-ID').format(value);
-        $(this).val(formatted);
+      function updateSumberDanaInfo() {
+        const count = $('.sumber-dana-item').length;
+        if (count > 0) {
+          $('#no_sumber_dana_info').hide();
+          $('#total_pagu_summary').removeClass('d-none');
+        } else {
+          $('#no_sumber_dana_info').show();
+          $('#total_pagu_summary').addClass('d-none');
+        }
       }
-    });
-  }
 
-  function updateTotalPagu() {
-    let total = 0;
-    $('.input-pagu').each(function() {
-      const value = $(this).val().replace(/[^\d]/g, '');
-      total += parseInt(value) || 0;
-    });
+      function initializeCurrencyFormat() {
+        $('.input-pagu').off('input').on('input', function() {
+          let value = $(this).val().replace(/[^\d]/g, '');
 
-    const formattedTotal = new Intl.NumberFormat('id-ID').format(total);
-    $('#grand_total_pagu').text('Rp ' + formattedTotal);
-  }
+          if (value) {
+            const formatted = new Intl.NumberFormat('id-ID').format(value);
+            $(this).val(formatted);
+            const id = $(this).closest('.sumber-dana-item').data('id');
+            $(`.pagu-display-${id}`).text('Rp ' + formatted);
+          } else {
+            $(this).val('');
+            const id = $(this).closest('.sumber-dana-item').data('id');
+            $(`.pagu-display-${id}`).text('Rp 0');
+          }
 
-  // === Initialize DataTable ===
-  var table = $('#kt_datatable_column_rendering').DataTable({
-    responsive: true,
-    searchDelay: 500,
-    processing: true,
-    serverSide: true,
-    ajax: {
-      url: '{{ route('renja.data') }}',
-      type: 'GET',
-      error: function(xhr, error, code) {
-        console.error('DataTable Error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal Memuat Data',
-          text: 'Terjadi kesalahan saat mengambil data',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
+          updateTotalPagu();
+        });
+
+        $('.input-pagu').off('blur').on('blur', function() {
+          let value = $(this).val().replace(/[^\d]/g, '');
+          if (value) {
+            const formatted = new Intl.NumberFormat('id-ID').format(value);
+            $(this).val(formatted);
           }
         });
       }
-    },
-    columns: [
-      { data: 'checkbox', orderable: false, searchable: false, visible: false },
-      { data: 'group_skpd', visible: false },
-      { data: 'group_urusan', visible: false },
-      { data: 'group_program', visible: false },
-      { data: 'group_kegiatan', visible: false },
-      { data: 'sub_kegiatan' },
-      { data: 'status_sub_kegiatan' },
-      { data: 'status_rincian' },
-      { data: 'sebelum_perubahan', className: 'text-end' },
-      { data: 'pagu_validasi', className: 'text-end' },
-      { data: 'total_rincian', className: 'text-end' },
-      { data: 'total_realisasi', className: 'text-end' },
-      { data: 'persentase', className: 'text-end' },
-      { data: 'aksi', orderable: false, searchable: false }
-    ],
-    order: [[1, 'asc']],
-    rowGroup: {
-      dataSrc: ['group_skpd', 'group_urusan', 'group_program', 'group_kegiatan'],
-      startRender: function(rows, group, level) {
-        return $('<tr class="dtrg-group dtrg-level-' + level + '"/>')
-          .append('<td colspan="14">' + group + '</td>');
+
+      function updateTotalPagu() {
+        let total = 0;
+        $('.input-pagu').each(function() {
+          const value = $(this).val().replace(/[^\d]/g, '');
+          total += parseInt(value) || 0;
+        });
+
+        const formattedTotal = new Intl.NumberFormat('id-ID').format(total);
+        $('#grand_total_pagu').text('Rp ' + formattedTotal);
       }
-    },
-    dom: "<'row'<'col-sm-12'tr>>" +
-      "<'row mt-4'" +
-      "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
-      "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
-      ">",
-    language: {
-      paginate: {
-        previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
-        next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
-      },
-      processing: '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"></div></div>',
-      emptyTable: 'Tidak ada data yang tersedia',
-      info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
-      infoEmpty: 'Menampilkan 0 sampai 0 dari 0 data',
-      infoFiltered: '(disaring dari _MAX_ total data)',
-      lengthMenu: 'Tampilkan _MENU_ data',
-      zeroRecords: 'Tidak ada data yang cocok'
-    }
-  });
 
-  // Search functionality
-  $('#kt_datatable_search_input').keyup(function() {
-    table.search(this.value).draw();
-  });
+      // === Initialize DataTable ===
+      var table = $('#kt_datatable_column_rendering').DataTable({
+        responsive: true,
+        searchDelay: 500,
+        processing: true,
+        serverSide: true,
+        ajax: {
+          url: '{{ route('renja.data') }}',
+          type: 'GET',
+          error: function(xhr, error, code) {
+            console.error('DataTable Error:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal Memuat Data',
+              text: 'Terjadi kesalahan saat mengambil data',
+              confirmButtonText: 'OK',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-primary"
+              }
+            });
+          }
+        },
+        columns: [{
+            data: 'checkbox',
+            orderable: false,
+            searchable: false,
+            visible: false
+          },
+          {
+            data: 'group_skpd',
+            visible: false
+          },
+          {
+            data: 'group_urusan',
+            visible: false
+          },
+          {
+            data: 'group_program',
+            visible: false
+          },
+          {
+            data: 'group_kegiatan',
+            visible: false
+          },
+          {
+            data: 'sub_kegiatan'
+          },
+          {
+            data: 'status_sub_kegiatan'
+          },
+          {
+            data: 'status_rincian'
+          },
+          {
+            data: 'sebelum_perubahan',
+            className: 'text-end'
+          },
+          {
+            data: 'pagu_validasi',
+            className: 'text-end'
+          },
+          {
+            data: 'total_rincian',
+            className: 'text-end'
+          },
+          {
+            data: 'total_realisasi',
+            className: 'text-end'
+          },
+          {
+            data: 'persentase',
+            className: 'text-end'
+          },
+          {
+            data: 'aksi',
+            orderable: false,
+            searchable: false
+          }
+        ],
+        order: [
+          [1, 'asc']
+        ],
+        rowGroup: {
+          dataSrc: ['group_skpd', 'group_urusan', 'group_program', 'group_kegiatan'],
+          startRender: function(rows, group, level) {
+            return $('<tr class="dtrg-group dtrg-level-' + level + '"/>')
+              .append('<td colspan="14">' + group + '</td>');
+          }
+        },
+        dom: "<'row'<'col-sm-12'tr>>" +
+          "<'row mt-4'" +
+          "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-start'li>" +
+          "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-end'p>" +
+          ">",
+        language: {
+          paginate: {
+            previous: '<i class="ki-outline ki-arrow-left fs-4"></i>',
+            next: '<i class="ki-outline ki-arrow-right fs-4"></i>'
+          },
+          processing: '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"></div></div>',
+          emptyTable: 'Tidak ada data yang tersedia',
+          info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+          infoEmpty: 'Menampilkan 0 sampai 0 dari 0 data',
+          infoFiltered: '(disaring dari _MAX_ total data)',
+          lengthMenu: 'Tampilkan _MENU_ data',
+          zeroRecords: 'Tidak ada data yang cocok'
+        }
+      });
 
-  // Collapse/Expand button functionality
-  $(document).on('click', '.btn-collapse', function(e) {
-    e.preventDefault();
-    $(this).toggleClass('collapsed');
-  });
+      // Search functionality
+      $('#kt_datatable_search_input').keyup(function() {
+        table.search(this.value).draw();
+      });
 
-  // ========== EVENT HANDLER MENU AKSI ==========
-  // 1. Lihat Sub Kegiatan
-  $(document).on('click', '.btn-lihat-sub-kegiatan', function(e) {
-    e.preventDefault();
-    const id = $(this).data('id');
-    
-    Swal.fire({
-      title: 'Lihat Sub Kegiatan',
-      html: `
+      // Collapse/Expand button functionality
+      $(document).on('click', '.btn-collapse', function(e) {
+        e.preventDefault();
+        $(this).toggleClass('collapsed');
+      });
+
+      // ========== EVENT HANDLER MENU AKSI ==========
+      // 1. Lihat Sub Kegiatan
+      $(document).on('click', '.btn-lihat-sub-kegiatan', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+
+        Swal.fire({
+          title: 'Lihat Sub Kegiatan',
+          html: `
         <div class="text-start">
           <p>Menampilkan detail lengkap sub kegiatan dengan ID: <strong>${id}</strong></p>
           <ul class="list-unstyled mt-3">
@@ -966,33 +1010,33 @@ $('#sub_kegiatan_container').show();
           </ul>
         </div>
       `,
-      icon: 'info',
-      confirmButtonText: 'Tutup',
-      buttonsStyling: false,
-      customClass: {
-        confirmButton: "btn btn-primary"
-      }
-    });
-  });
+          icon: 'info',
+          confirmButtonText: 'Tutup',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: "btn btn-primary"
+          }
+        });
+      });
 
-  // 2. Lihat Rincian Belanja
- 
-$(document).on('click', '.btn-lihat-rincian', function(e) {
-  e.preventDefault();
-  const id = $(this).data('id');
-  
-  // Redirect ke halaman rincian belanja
-  window.location.href = `/rkpd/renja/${id}/rincian`;
-});
+      // 2. Lihat Rincian Belanja
 
-  // 3. RKA Paket / Kelompok
-  $(document).on('click', '.btn-rka-paket', function(e) {
-    e.preventDefault();
-    const id = $(this).data('id');
-    
-    Swal.fire({
-      title: 'RKA Paket / Kelompok',
-      html: `
+      $(document).on('click', '.btn-lihat-rincian', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+
+        // Redirect ke halaman rincian belanja
+        window.location.href = `/rkpd/renja/${id}/rincian`;
+      });
+
+      // 3. RKA Paket / Kelompok
+      $(document).on('click', '.btn-rka-paket', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+
+        Swal.fire({
+          title: 'RKA Paket / Kelompok',
+          html: `
         <div class="text-start">
           <p>Mengelola paket/kelompok belanja untuk ID: <strong>${id}</strong></p>
           <ul class="list-unstyled mt-3">
@@ -1002,23 +1046,23 @@ $(document).on('click', '.btn-lihat-rincian', function(e) {
           </ul>
         </div>
       `,
-      icon: 'info',
-      confirmButtonText: 'Tutup',
-      buttonsStyling: false,
-      customClass: {
-        confirmButton: "btn btn-success"
-      }
-    });
-  });
+          icon: 'info',
+          confirmButtonText: 'Tutup',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: "btn btn-success"
+          }
+        });
+      });
 
-  // 4. RKA Rincian Belanja
-  $(document).on('click', '.btn-rka-rincian', function(e) {
-    e.preventDefault();
-    const id = $(this).data('id');
-    
-    Swal.fire({
-      title: 'RKA Rincian Belanja',
-      html: `
+      // 4. RKA Rincian Belanja
+      $(document).on('click', '.btn-rka-rincian', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+
+        Swal.fire({
+          title: 'RKA Rincian Belanja',
+          html: `
         <div class="text-start">
           <p>Input dan edit RKA rincian belanja untuk ID: <strong>${id}</strong></p>
           <ul class="list-unstyled mt-3">
@@ -1029,124 +1073,124 @@ $(document).on('click', '.btn-lihat-rincian', function(e) {
           </ul>
         </div>
       `,
-      icon: 'info',
-      confirmButtonText: 'Tutup',
-      buttonsStyling: false,
-      customClass: {
-        confirmButton: "btn btn-warning"
-      }
-    });
-  });
-
-  // === Session Messages ===
-  const sessionMessages = document.querySelectorAll('#session-messages div');
-  sessionMessages.forEach(msg => {
-    const type = msg.dataset.type;
-    const message = msg.dataset.message;
-    toastr.options = {
-      "closeButton": true,
-      "debug": false,
-      "newestOnTop": false,
-      "progressBar": true,
-      "positionClass": "toastr-top-right",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "5000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
-    };
-    if (type === 'error') toastr.error(message, "GAGAL");
-    else if (type === 'success') toastr.success(message, "BERHASIL");
-    else toastr.info(message);
-  });
-
-  // === Form validation ===
-  const form = document.getElementById('kt_modal_add_kegiatan_form');
-  const submitButton = document.getElementById('kt_modal_add_kegiatan_submit');
-
-  if (form && submitButton) {
-    form.addEventListener('submit', function(e) {
-      const idSkpd = form.querySelector('select[name="id_skpd"]').value;
-      const idSubKegiatan = form.querySelector('select[name="id_sub_kegiatan"]').value;
-      const sumberDanaCount = $('.sumber-dana-item').length;
-
-      if (!idSkpd || !idSubKegiatan) {
-        e.preventDefault();
-        Swal.fire({
-          icon: 'error',
-          title: 'Validasi gagal',
-          text: 'Pilih SKPD dan Sub Kegiatan terlebih dahulu!',
-          confirmButtonText: 'OK',
+          icon: 'info',
+          confirmButtonText: 'Tutup',
           buttonsStyling: false,
           customClass: {
-            confirmButton: "btn btn-primary"
+            confirmButton: "btn btn-warning"
           }
         });
-        return;
+      });
+
+      // === Session Messages ===
+      const sessionMessages = document.querySelectorAll('#session-messages div');
+      sessionMessages.forEach(msg => {
+        const type = msg.dataset.type;
+        const message = msg.dataset.message;
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toastr-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        };
+        if (type === 'error') toastr.error(message, "GAGAL");
+        else if (type === 'success') toastr.success(message, "BERHASIL");
+        else toastr.info(message);
+      });
+
+      // === Form validation ===
+      const form = document.getElementById('kt_modal_add_kegiatan_form');
+      const submitButton = document.getElementById('kt_modal_add_kegiatan_submit');
+
+      if (form && submitButton) {
+        form.addEventListener('submit', function(e) {
+          const idSkpd = form.querySelector('select[name="id_skpd"]').value;
+          const idSubKegiatan = form.querySelector('select[name="id_sub_kegiatan"]').value;
+          const sumberDanaCount = $('.sumber-dana-item').length;
+
+          if (!idSkpd || !idSubKegiatan) {
+            e.preventDefault();
+            Swal.fire({
+              icon: 'error',
+              title: 'Validasi gagal',
+              text: 'Pilih SKPD dan Sub Kegiatan terlebih dahulu!',
+              confirmButtonText: 'OK',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-primary"
+              }
+            });
+            return;
+          }
+
+          if (sumberDanaCount === 0) {
+            e.preventDefault();
+            Swal.fire({
+              icon: 'error',
+              title: 'Validasi gagal',
+              text: 'Tambahkan minimal 1 sumber dana!',
+              confirmButtonText: 'OK',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: "btn btn-primary"
+              }
+            });
+            return;
+          }
+
+          $('.input-pagu').each(function() {
+            const plainValue = $(this).val().replace(/[^\d]/g, '');
+            $(this).val(plainValue);
+          });
+
+          $('.input-target').each(function() {
+            const plainValue = $(this).val().replace(/[^\d]/g, '');
+            $(this).val(plainValue);
+          });
+
+          submitButton.setAttribute('data-kt-indicator', 'on');
+          submitButton.disabled = true;
+        });
       }
 
-      if (sumberDanaCount === 0) {
-        e.preventDefault();
-        Swal.fire({
-          icon: 'error',
-          title: 'Validasi gagal',
-          text: 'Tambahkan minimal 1 sumber dana!',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: "btn btn-primary"
+      // === Reset modal when closed ===
+      $('#kt_modal_add_kegiatan').on('hidden.bs.modal', function() {
+        $('#sumber_dana_container select[data-control="select2"]').each(function() {
+          if ($(this).hasClass("select2-hidden-accessible")) {
+            $(this).select2('destroy');
           }
         });
-        return;
-      }
 
-      $('.input-pagu').each(function() {
-        const plainValue = $(this).val().replace(/[^\d]/g, '');
-        $(this).val(plainValue);
+        form.reset();
+        $('#sub_kegiatan_container').hide();
+        $('#detail_sub_kegiatan').addClass('d-none');
+        $('#indikator_section').addClass('d-none');
+        $('#select_sub_kegiatan').html('<option value="">Pilih Sub Kegiatan</option>');
+        $('#total_sub_kegiatan').text('0');
+        $('#sumber_dana_container').html('');
+        $('#no_sumber_dana_info').show();
+        $('#total_pagu_summary').addClass('d-none');
+        $('#grand_total_pagu').text('Rp 0');
+        sumberDanaCounter = 0;
+        submitButton.removeAttribute('data-kt-indicator');
+        submitButton.disabled = false;
       });
 
-      $('.input-target').each(function () {
-        const plainValue = $(this).val().replace(/[^\d]/g, '');
-        $(this).val(plainValue);
-      });
-
-      submitButton.setAttribute('data-kt-indicator', 'on');
-      submitButton.disabled = true;
+      // === Auto show modal if validation errors exist ===
+      @if ($errors->any() && old('_token'))
+        $('#kt_modal_add_kegiatan').modal('show');
+      @endif
     });
-  }
-
-  // === Reset modal when closed ===
-  $('#kt_modal_add_kegiatan').on('hidden.bs.modal', function() {
-    $('#sumber_dana_container select[data-control="select2"]').each(function() {
-      if ($(this).hasClass("select2-hidden-accessible")) {
-        $(this).select2('destroy');
-      }
-    });
-
-    form.reset();
-    $('#sub_kegiatan_container').hide();
-    $('#detail_sub_kegiatan').addClass('d-none');
-    $('#indikator_section').addClass('d-none');
-    $('#select_sub_kegiatan').html('<option value="">Pilih Sub Kegiatan</option>');
-    $('#total_sub_kegiatan').text('0');
-    $('#sumber_dana_container').html('');
-    $('#no_sumber_dana_info').show();
-    $('#total_pagu_summary').addClass('d-none');
-    $('#grand_total_pagu').text('Rp 0');
-    sumberDanaCounter = 0;
-    submitButton.removeAttribute('data-kt-indicator');
-    submitButton.disabled = false;
-  });
-
-  // === Auto show modal if validation errors exist ===
-  @if ($errors->any() && old('_token'))
-    $('#kt_modal_add_kegiatan').modal('show');
-  @endif
-});
   </script>
 @endsection
