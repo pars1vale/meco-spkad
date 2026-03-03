@@ -1082,6 +1082,96 @@
         });
       });
 
+      //5. hapus
+      $(document).on('click', '.btn-delete-renja', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+
+        Swal.fire({
+          title: 'Hapus Sub Kegiatan?',
+          html: `
+            <div class="text-start">
+                <p class="mb-3">Tindakan ini akan menghapus:</p>
+                <ul class="list-unstyled">
+                    <li><i class="ki-outline ki-cross-circle text-danger me-2"></i> Data sub kegiatan</li>
+                    <li><i class="ki-outline ki-cross-circle text-danger me-2"></i> Sumber dana terkait</li>
+                    <li><i class="ki-outline ki-cross-circle text-danger me-2"></i> Indikator kinerja</li>
+                </ul>
+                <div class="alert alert-warning d-flex align-items-center mt-3">
+                    <i class="ki-outline ki-information-5 fs-2 me-3"></i>
+                    <div>
+                        <strong>Perhatian!</strong><br>
+                        Sub kegiatan yang sudah memiliki rincian belanja tidak dapat dihapus.
+                    </div>
+                </div>
+            </div>
+        `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Hapus!',
+          cancelButtonText: 'Batal',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: "btn btn-danger",
+            cancelButton: "btn btn-light"
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+              title: 'Menghapus...',
+              html: 'Mohon tunggu sebentar',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
+            // AJAX Delete
+            $.ajax({
+              url: `/rkpd/renja/${id}`,
+              type: 'DELETE',
+              data: {
+                _token: '{{ csrf_token() }}'
+              },
+              success: function(response) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  text: response.message || 'Sub kegiatan berhasil dihapus',
+                  confirmButtonText: 'OK',
+                  buttonsStyling: false,
+                  customClass: {
+                    confirmButton: "btn btn-primary"
+                  }
+                }).then(() => {
+                  // Reload DataTable
+                  table.ajax.reload();
+                });
+              },
+              error: function(xhr) {
+                let errorMsg = 'Terjadi kesalahan saat menghapus data';
+
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                  errorMsg = xhr.responseJSON.message;
+                }
+
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal!',
+                  text: errorMsg,
+                  confirmButtonText: 'OK',
+                  buttonsStyling: false,
+                  customClass: {
+                    confirmButton: "btn btn-primary"
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+
       // === Session Messages ===
       const sessionMessages = document.querySelectorAll('#session-messages div');
       sessionMessages.forEach(msg => {

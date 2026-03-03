@@ -114,8 +114,7 @@
           </div>
         </div>
         {{-- pengaturan --}}
-        <div data-kt-menu-trigger="click"
-          class="menu-item {{ Request::routeIs('pengaturan.*') ? 'show' : '' }} menu-accordion">
+        <div data-kt-menu-trigger="click" class="menu-item {{ Request::routeIs('pengaturan.*') ? 'show' : '' }} menu-accordion">
           <span class="menu-link">
             <span class="menu-icon">
               <i class="ki-outline ki-gear fs-2"></i>
@@ -150,8 +149,7 @@
             </div>
 
             {{-- USER --}}
-            <div data-kt-menu-trigger="click"
-              class="menu-item menu-accordion ">
+            <div data-kt-menu-trigger="click" class="menu-item menu-accordion ">
               <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -162,8 +160,7 @@
 
               <div class="menu-sub menu-sub-accordion">
                 <div class="menu-item">
-                  <a class="menu-link "
-                    href="">
+                  <a class="menu-link " href="">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>
@@ -436,7 +433,7 @@
         </div>
         {{-- pendapatan --}}
         <div class="menu-item">
-          <a href="#" class="menu-link {{-- {{ Request::is('home') ? 'active' : '' }} --}}">
+          <a href="{{ route('pendapatan.index') }}" class="menu-link {{ Request::routeIs('pendapatan.index') ? 'active' : '' }}">
             <span class="menu-icon">
               <i class="ki-outline ki-wallet fs-2"></i>
             </span>
@@ -475,7 +472,24 @@
           </div>
         </div>
         {{-- Standar Harga Satuan --}}
-        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+        <div class="menu-item">
+          <a class="menu-link {{ Request::routeIs('data_ssh.index') ? 'active' : '' }}" href="{{ route('data_ssh.index') }}">
+            <span class="menu-icon">
+              <i class="ki-outline ki-price-tag fs-2"></i>
+            </span>
+            <span class="menu-title">Standar Harga Satuan</span>
+          </a>
+        </div>
+        <div class="menu-item">
+          <a class="menu-link {{ Request::routeIs('kelompok_satuan_harga.index') ? 'active' : '' }}"
+            href="{{ route('kelompok_satuan_harga.index') }}">
+            <span class="menu-icon">
+              <i class="ki-outline ki-price-tag fs-2"></i>
+            </span>
+            <span class="menu-title">kelompok barang</span>
+          </a>
+        </div>
+        {{-- <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
           <span class="menu-link">
             <span class="menu-icon">
               <i class="ki-outline ki-price-tag fs-2"></i>
@@ -484,16 +498,6 @@
             <span class="menu-arrow"></span>
           </span>
           <div class="menu-sub menu-sub-accordion">
-            <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('satuan.index') ? 'active' : '' }}" href="{{ route('satuan.index') }}"
-                title="Daftar Satuan untuk Standar Harga" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
-                data-bs-placement="right">
-                <span class="menu-bullet">
-                  <span class="bullet bullet-dot"></span>
-                </span>
-                <span class="menu-title">Daftar Satuan</span>
-              </a>
-            </div>
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('kelompok_satuan_harga.index') ? 'active' : '' }}"
                 href="{{ route('kelompok_satuan_harga.index') }}" title="Kelompok Barang untuk mapping standar harga" data-bs-toggle="tooltip"
@@ -515,7 +519,7 @@
               </a>
             </div>
           </div>
-        </div>
+        </div> --}}
       </div>
     </div>
   </div>
