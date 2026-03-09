@@ -451,8 +451,9 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-              <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('pembiayaan.penerimaan.index') ? 'active' : '' }}"
+                href="{{ route('pembiayaan.penerimaan.index') }}" title="Check out over 200 in-house components" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -460,9 +461,9 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link" {{ Request::routeIs('pembiayaan.pengeluaran.index') ? 'active' : '' }}
+                href="{{ route('pembiayaan.pengeluaran.index') }}" title="Check out the complete documentation" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>

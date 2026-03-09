@@ -347,7 +347,8 @@
                 return `
                   <div class="d-flex justify-content-end gap-1">
                     <a href="{{ url('pendapatan') }}/${idSkpd}/${row.id}/edit"
-                       class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="Edit">
+                       class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" 
+                       title="Edit">
                       <i class="ki-outline ki-pencil fs-4"></i>
                     </a>
                     <button type="button"

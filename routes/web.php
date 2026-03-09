@@ -31,6 +31,7 @@ Route::group(['middleware' => 'auth'], function () {
     require __DIR__.'/dashboard/standarharga.php';
     require __DIR__.'/dashboard/perangkatdaerah.php';
     require __DIR__.'/dashboard/pendapatan.php';
+    require __DIR__.'/dashboard/pembiayaan.php';
 });
 
 require __DIR__.'/auth/auth.php';
