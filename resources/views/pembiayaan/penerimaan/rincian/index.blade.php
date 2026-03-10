@@ -2,11 +2,11 @@
 
 @section('content')
   {{-- Toolbar --}}
-  <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+  <div id="kt_ap_toolbar" class="app-toolbar py-3 py-lg-6">
     <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
       <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
         <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading text-dark fw-bold fs-3 m-0">Rincian Pembiayaan Pengeluaran</h1>
+          <h1 class="page-heading text-dark fw-bold fs-3 m-0">Rincian Pembiayaan penerimaan</h1>
           <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
             <li class="breadcrumb-item text-muted">
               <a href="{{ url('/home') }}" class="text-muted text-hover-primary">Home</a>
@@ -15,7 +15,7 @@
             <li class="breadcrumb-item text-muted">Pembiayaan</li>
             <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
             <li class="breadcrumb-item text-muted">
-              <a href="{{ route('pembiayaan.pengeluaran.index') }}" class="text-muted text-hover-primary">Pengeluaran</a>
+              <a href="{{ route('pembiayaan.penerimaan.index') }}" class="text-muted text-hover-primary">Penerimaan</a>
             </li>
             <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
             <li class="breadcrumb-item text-muted">Rincian</li>
@@ -119,7 +119,7 @@
                 </span>
               </div>
               <div class="d-flex flex-column">
-                <span class="text-muted fw-semibold fs-7 mb-1">Total Pembiayaan Pengeluaran</span>
+                <span class="text-muted fw-semibold fs-7 mb-1">Total Pembiayaan penerimaan</span>
                 <span class="text-gray-800 fw-bold fs-6" id="card-total-setelah">
                   Rp {{ number_format($totalSetelah, 0, ',', '.') }}
                 </span>
@@ -135,33 +135,33 @@
           <div class="card-title">
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" data-kt-pengeluaran-rincian-filter="search" class="form-control form-control-solid w-300px ps-12"
+              <input type="text" data-kt-penerimaan-rincian-filter="search" class="form-control form-control-solid w-300px ps-12"
                 placeholder="Cari rekening, uraian..." />
             </div>
           </div>
           <div class="card-toolbar gap-2">
             {{-- Bulk delete button (tampil saat ada yang dicentang) --}}
-            <div class="d-none" data-kt-pengeluaran-rincian-toolbar="selected">
+            <div class="d-none" data-kt-penerimaan-rincian-toolbar="selected">
               <div class="d-flex justify-content-end align-items-center gap-2">
                 <span class="fw-bold text-gray-600 fs-7">
-                  <span data-kt-pengeluaran-rincian-selected="count">0</span> dipilih
+                  <span data-kt-penerimaan-rincian-selected="count">0</span> dipilih
                 </span>
                 <button type="button" class="btn btn-sm btn-danger fw-semibold" id="btn-bulk-delete">
                   <i class="ki-outline ki-trash fs-5 me-1"></i>Hapus Terpilih
                 </button>
               </div>
             </div>
-            <a href="{{ route('pembiayaan.pengeluaran.index') }}" class="btn btn-sm btn-light fw-semibold">
+            <a href="{{ route('pembiayaan.penerimaan.index') }}" class="btn btn-sm btn-light fw-semibold">
               <i class="ki-outline ki-arrow-left fs-5 me-1"></i>Kembali
             </a>
-            <button type="button" class="btn btn-sm btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#modal_tambah_pengeluaran">
+            <button type="button" class="btn btn-sm btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#modal_tambah_penerimaan">
               <i class="ki-outline ki-plus fs-5 me-1"></i>Tambah Data
             </button>
           </div>
         </div>
 
         <div class="card-body pt-0">
-          <table id="kt_pengeluaran_rincian_table" class="table align-middle table-row-dashed fs-6 gy-5">
+          <table id="kt_penerimaan_rincian_table" class="table align-middle table-row-dashed fs-6 gy-5">
             <thead>
               <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                 <th class="w-10px pe-2">
@@ -187,15 +187,15 @@
   </div>
 
   {{-- Modal Tambah --}}
-  @include('pembiayaan.pengeluaran.rincian.partials.modal-create')
+  @include('pembiayaan.penerimaan.rincian.partials.modal-create')
 
   <script>
     "use strict";
 
-    var KTPengeluaranRincian = function() {
+    var KTPenerimaanRincian = function() {
       var dt;
       var idSkpd = '{{ $id_skpd }}';
-      var bulkUrl = '{{ route('pembiayaan.pengeluaran.bulk-delete', $id_skpd) }}';
+      var bulkUrl = '{{ route('pembiayaan.penerimaan.bulk-delete', $id_skpd) }}';
 
       var formatRupiah = function(value) {
         if (!value && value !== 0) return '<span class="text-muted fs-7">—</span>';
@@ -206,7 +206,7 @@
 
       // ── DataTable ──────────────────────────────────────────────────
       var initDatatable = function() {
-        dt = $('#kt_pengeluaran_rincian_table').DataTable({
+        dt = $('#kt_penerimaan_rincian_table').DataTable({
           searchDelay: 500,
           processing: true,
           serverSide: true,
@@ -216,7 +216,7 @@
           stateSave: false,
           language: {
             processing: '<span class="spinner-border spinner-border-sm align-middle me-2"></span> Memuat data...',
-            emptyTable: 'Belum ada data pembiayaan pengeluaran',
+            emptyTable: 'Belum ada data pembiayaan penerimaan',
             zeroRecords: 'Data tidak ditemukan',
             lengthMenu: '_MENU_',
             info: 'Menampilkan _START_–_END_ dari _TOTAL_ data',
@@ -230,7 +230,7 @@
             }
           },
           ajax: {
-            url: "{{ route('pembiayaan.pengeluaran.rincian.getData', $id_skpd) }}",
+            url: "{{ route('pembiayaan.penerimaan.rincian.getData', $id_skpd) }}",
             type: 'GET',
             dataSrc: function(json) {
               return json.data;
@@ -352,7 +352,7 @@
               className: 'text-end',
               render: function(data, type, row) {
                 return `<div class="d-flex justify-content-end gap-2">
-              <a href="{{ url('pembiayaan/pengeluaran') }}/${idSkpd}/${row.id}/edit"
+              <a href="{{ url('pembiayaan/penerimaan') }}/${idSkpd}/${row.id}/edit"
                 class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" 
                 title="Edit">
                 <i class="ki-outline ki-pencil fs-5"></i>
@@ -372,7 +372,7 @@
 
       // ── Search ─────────────────────────────────────────────────────
       var handleSearch = function() {
-        const el = document.querySelector('[data-kt-pengeluaran-rincian-filter="search"]');
+        const el = document.querySelector('[data-kt-penerimaan-rincian-filter="search"]');
         el.addEventListener('keyup', function(e) {
           dt.search(e.target.value).draw();
         });
@@ -386,7 +386,7 @@
           refreshBulkToolbar();
         });
 
-        $('#kt_pengeluaran_rincian_table').on('change', '.check-item', function() {
+        $('#kt_penerimaan_rincian_table').on('change', '.check-item', function() {
           var total = $('.check-item').length;
           var checked = $('.check-item:checked').length;
           $('#check-all').prop('indeterminate', checked > 0 && checked < total);
@@ -397,19 +397,19 @@
 
       var refreshBulkToolbar = function() {
         var count = $('.check-item:checked').length;
-        $('[data-kt-pengeluaran-rincian-selected="count"]').text(count);
+        $('[data-kt-penerimaan-rincian-selected="count"]').text(count);
         if (count > 0) {
-          $('[data-kt-pengeluaran-rincian-toolbar="selected"]').removeClass('d-none');
+          $('[data-kt-penerimaan-rincian-toolbar="selected"]').removeClass('d-none');
         } else {
-          $('[data-kt-pengeluaran-rincian-toolbar="selected"]').addClass('d-none');
+          $('[data-kt-penerimaan-rincian-toolbar="selected"]').addClass('d-none');
         }
       };
 
       // ── Single Delete ──────────────────────────────────────────────
       var handleSingleDelete = function() {
-        $('#kt_pengeluaran_rincian_table').on('click', '.btn-delete', function() {
+        $('#kt_penerimaan_rincian_table').on('click', '.btn-delete', function() {
           var id = $(this).data('id');
-          var url = `/pembiayaan/pengeluaran/${idSkpd}/${id}/destroy`;
+          var url = `/pembiayaan/penerimaan/${idSkpd}/${id}/destroy`;
 
           Swal.fire({
             text: 'Data yang dihapus tidak dapat dikembalikan!',
@@ -505,7 +505,7 @@
     }();
 
     document.addEventListener("DOMContentLoaded", function() {
-      KTPengeluaranRincian.init();
+      KTPenerimaanRincian.init();
 
       document.querySelectorAll('#session-messages div').forEach(function(msg) {
         toastr.options = {
