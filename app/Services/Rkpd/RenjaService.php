@@ -265,6 +265,80 @@ class RenjaService
         ];
     }
 
+    public function getRingkasanPaket(int $id): array
+    {
+        $subKegiatan = $this->renjaRepo->getSubKegiatanWithUnit($id);
+
+        if (! $subKegiatan) {
+            return ['subKegiatan' => null];
+        }
+
+        $sumberDana = $this->renjaRepo->getSumberDanaBySubKegiatan($id);
+        $indikator  = $this->renjaRepo->getIndikatorBySubKegiatan($id);
+        $rincian    = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id);
+
+        // Buat map sumber dana: id_dana → nama_dana (untuk ditempel ke tiap paket)
+        $sumberDanaMap = $sumberDana->keyBy('iddana');
+
+        // -------------------------------------------------------
+        // Kelompokkan: Paket (subtitle_teks) → Mintag (ket_bl_teks)
+        // -------------------------------------------------------
+        $paketGroup     = [];
+        $totalKeseluruhan = 0;
+
+        foreach ($rincian as $item) {
+            // Skip baris header paket (marker)
+            if ($item->ket_bl_teks === '--- PAKET/KELOMPOK ---') {
+                continue;
+            }
+
+            $paketKey  = $item->idsubtitle ?? 'no_paket_'.$item->id;
+            $mintagKey = $item->ket_bl_teks ?: 'Tanpa Kategori';
+            $itemTotal = $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
+
+            // Init paket
+            if (! isset($paketGroup[$paketKey])) {
+                // Ambil nama sumber dana paket ini
+                $namaDana = '-';
+                if ($item->id_dana && isset($sumberDanaMap[$item->id_dana])) {
+                    $namaDana = $sumberDanaMap[$item->id_dana]->namadana;
+                } elseif (! empty($item->nama_dana)) {
+                    $namaDana = $item->nama_dana;
+                }
+
+                $paketGroup[$paketKey] = [
+                    'idsubtitle'   => $item->idsubtitle,
+                    'title'        => $item->subtitle_teks ?? 'Tanpa Paket',
+                    'nama_dana'    => $namaDana,
+                    'is_paket'     => $item->is_paket,
+                    'jenis_bl'     => $item->jenis_bl,
+                    'total'        => 0,
+                    'mintag'       => [],
+                ];
+            }
+
+            // Init mintag
+            if (! isset($paketGroup[$paketKey]['mintag'][$mintagKey])) {
+                $paketGroup[$paketKey]['mintag'][$mintagKey] = [
+                    'title' => $mintagKey,
+                    'total' => 0,
+                ];
+            }
+
+            $paketGroup[$paketKey]['mintag'][$mintagKey]['total'] += $itemTotal;
+            $paketGroup[$paketKey]['total']                       += $itemTotal;
+            $totalKeseluruhan                                     += $itemTotal;
+        }
+
+        return [
+            'subKegiatan'     => $subKegiatan,
+            'sumberDana'      => $sumberDana,
+            'indikator'       => $indikator,
+            'paketGroup'      => $paketGroup,
+            'totalKeseluruhan'=> $totalKeseluruhan,
+        ];
+    }
+
     public function getAkunByJenisBelanja(string $jenisBelanja, int $tahunAnggaran): array
     {
         if (! isset(self::JENIS_BELANJA_MAPPING[$jenisBelanja])) {
@@ -581,6 +655,13 @@ class RenjaService
                         <a class="dropdown-item btn-lihat-rincian" href="#" data-id="'.$id.'">
                             <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
                             Lihat Rincian Belanja
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" href="/rkpd/renja/'.$id.'/ringkasan-paket">
+                            <i class="ki-outline ki-folder fs-5 me-2 text-primary"></i>
+                            RKA Paket / Kelompok
                         </a>
                     </li>
                     
