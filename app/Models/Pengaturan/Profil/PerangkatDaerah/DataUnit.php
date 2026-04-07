@@ -1,16 +1,18 @@
 <?php
 
 namespace App\Models\Pengaturan\Profil\PerangkatDaerah;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DataUnit extends Model
 {
-     use HasFactory;
+    use HasFactory;
 
     protected $table = 'data_unit';
+
     protected $primaryKey = 'id';
+
     public $timestamps = false;
 
     protected $fillable = [
