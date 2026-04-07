@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder as SeedersRolePermissionSeeder;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,14 +22,17 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // super admin account
-        User::create([
-            'name' => 'it',
-            'email' => 'it@gmail.com',
-            'password' => bcrypt('12345678'),
-        ]);
+        // User::create([
+        //     'name' => 'it',
+        //     'email' => 'it@gmail.com',
+        //     'password' => bcrypt('12345678'),
+        // ]);
 
-        $this->call(DataSatuanSeeder::class);
-        $this->call(KelompokStandartHargaSeeder::class);
-        $this->call(PangkatSeeder::class);
+        // $this->call(DataSatuanSeeder::class);
+        // $this->call(KelompokStandartHargaSeeder::class);
+        // $this->call(PangkatSeeder::class);
+        $this->call([
+            SeedersRolePermissionSeeder::class,
+        ]);
     }
 }
