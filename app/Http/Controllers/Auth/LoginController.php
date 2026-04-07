@@ -2,118 +2,97 @@
 
 namespace App\Http\Controllers\Auth;
 
-use DB;
-use Auth;
-use Session;
-use Carbon\Carbon;
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Auth;
 use Brian2694\Toastr\Facades\Toastr;
-use App\Providers\RouteServiceProvider;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Session;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
     use AuthenticatesUsers;
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/home';
+    // Setelah login → wajib pilih tahun anggaran dulu
+    protected $redirectTo = '/tahun-anggaran/pilih';
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
     }
 
-    /** index login page */
+    /** Tampilkan halaman login */
     public function login()
     {
         return view('auth.login');
     }
 
-    /** login page to check database table users */
+    /** Proses login dengan username ATAU NIP */
     public function authenticate(Request $request)
     {
         $request->validate([
-            'email'       => 'required|string',
-            'password'    => 'required|string',
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ], [
+            'username.required' => 'Username atau NIP wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
         ]);
+
         try {
-            $username = $request->email;
+            $login = $request->username;
             $password = $request->password;
 
-            $dt         = Carbon::now();
-            $todayDate  = $dt->toDayDateTimeString();
+            // Cari user berdasarkan username ATAU nip
+            $user = User::where('username', $login)
+                ->orWhere('nip', $login)
+                ->first();
 
-            if (Auth::attempt(['email' => $username, 'password' => $password])) {
-                /** get session */
-                $user = Auth::User();
-                Session::put('name', $user->name);
-                Session::put('email', $user->email);
-                Session::put('user_id', $user->user_id);
-                Session::put('join_date', $user->join_date);
-                Session::put('last_login', $user->join_date);
-                Session::put('phone_number', $user->phone_number);
-                Session::put('status', $user->status);
-                Session::put('role_name', $user->role_name);
-                Session::put('avatar', $user->avatar);
-                Session::put('position', $user->position);
-                Session::put('department', $user->department);
+            if (! $user) {
+                Toastr::error('Username / NIP tidak ditemukan.', 'Error');
 
-                $updateLastLogin = ['last_login' => $todayDate,];
-                User::where('email', $username)->update($updateLastLogin);
-                Toastr::success('Login successfully :)', 'Success');
-                return redirect()->intended('home');
+                return redirect()->back()->withInput();
+            }
+
+            // Coba auth menggunakan username yang ditemukan
+            if (Auth::attempt(['username' => $user->username, 'password' => $password])) {
+                $dt = Carbon::now();
+                $authUser = Auth::user();
+
+                // Simpan session user
+                Session::put('user_id', $authUser->id);
+                Session::put('username', $authUser->username);
+                Session::put('nip', $authUser->nip);
+
+                // Update last login
+                User::where('id', $authUser->id)->update([
+                    'last_login' => $dt->toDayDateTimeString(),
+                ]);
+
+                Toastr::success('Login berhasil! Silakan pilih tahun anggaran.', 'Success');
+
+                return redirect()->intended('/tahun-anggaran/pilih');
             } else {
-                Toastr::error('fail, Wrong Login :)', 'Error');
-                return redirect('login');
+                Toastr::error('Password salah.', 'Error');
+
+                return redirect()->back()->withInput();
             }
         } catch (\Exception $e) {
-            \Log::info($e);
-            DB::rollback();
-            Toastr::error('Login fail :)', 'Error');
+            \Log::error($e);
+            Toastr::error('Terjadi kesalahan saat login.', 'Error');
+
             return redirect()->back();
         }
     }
 
-    /** logout and forget session */
+    /** Logout dan hapus semua session */
     public function logout(Request $request)
     {
-        // forget login session
-        $request->session()->forget('name');
-        $request->session()->forget('email');
-        $request->session()->forget('user_id');
-        $request->session()->forget('join_date');
-        $request->session()->forget('last_login');
-        $request->session()->forget('phone_number');
-        $request->session()->forget('status');
-        $request->session()->forget('role_name');
-        $request->session()->forget('avatar');
-        $request->session()->forget('position');
-        $request->session()->forget('department');
-        $request->session()->flush();
+        Session::flush();
         Auth::logout();
-        Toastr::success('Logout successfully :)', 'Success');
+        Toastr::success('Logout berhasil.', 'Success');
+
         return redirect('login');
     }
 }

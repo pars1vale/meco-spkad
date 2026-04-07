@@ -79,6 +79,7 @@
   <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
   <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
   <script src="{{ URL::to('assets/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
+  <script src="{{ URL::to('assets/plugins/custom/typedjs/typedjs.bundle.js') }}"></script>
   <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
   <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
   <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
@@ -108,6 +109,7 @@
   <script src="{{ URL::to('assets/js/shared/CheckboxHandler.js') }}"></script> --}}
   <script src="{{ asset('assets/js/shared/shared-components.js') }}"></script>
   @yield('scripts')
+  @stack('scripts')
   <!--end::Custom Javascript-->
   <!--end::Javascript-->
 </body>
