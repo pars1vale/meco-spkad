@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 class InsertSubKegiatan extends Command
 {
     protected $signature = 'insert:sub-kegiatan {--truncate : Kosongkan tabel sub_kegiatan terlebih dulu}';
+
     protected $description = 'Insert sub kegiatan data from SIPD-RI into the sub_kegiatan (SPKAD) table';
 
     public function handle()
@@ -47,7 +48,7 @@ class InsertSubKegiatan extends Command
             ->groupBy('id_urusan');
 
         $totalData = $data->flatten(1)->count();
-        $this->info($totalData . " Data Sub Kegiatan ditemukan.");
+        $this->info($totalData.' Data Sub Kegiatan ditemukan.');
 
         $insertData = [];
         $notFoundKegiatan = [];
@@ -60,8 +61,9 @@ class InsertSubKegiatan extends Command
                     ->where('id', $row->id_giat)
                     ->exists();
 
-                if (!$kegiatanExists) {
+                if (! $kegiatanExists) {
                     $notFoundKegiatan[] = $row->id_giat;
+
                     continue;
                 }
 
@@ -78,7 +80,7 @@ class InsertSubKegiatan extends Command
         }
 
         // Jika ada kegiatan yang tidak ditemukan
-        if (!empty($notFoundKegiatan)) {
+        if (! empty($notFoundKegiatan)) {
             $this->warn('ID Kegiatan berikut tidak ditemukan:');
             foreach (array_unique($notFoundKegiatan) as $id) {
                 $this->warn("- ID: {$id}");
@@ -86,28 +88,34 @@ class InsertSubKegiatan extends Command
         }
 
         // Insert data dengan batch dinamis
-        if (!empty($insertData)) {
+        if (! empty($insertData)) {
             // Hitung jumlah kolom yang diinsert
             $columnCount = count($insertData[0]);
 
             // Batas maksimal placeholder MySQL (default 65535)
             $maxPlaceholders = 65535;
 
-            // Hitung batch size aman
-            $batchSize = floor($maxPlaceholders / $columnCount);
+            // Batas konservatif per baris — jangan bergantung hanya pada placeholder limit
+            $batchSize = 500;
 
-            // Pecah data jadi beberapa chunk sesuai batchSize
             $chunks = array_chunk($insertData, $batchSize);
 
-            foreach ($chunks as $chunk) {
-                DB::connection('mysql')->table('sub_kegiatan')->upsert(
-                    $chunk,
-                    ['id'],
-                    ['id_kegiatan', 'kode_sub_kegiatan', 'nama_sub_kegiatan', 'time_stamp', 'updated_at']
-                );
+            foreach ($chunks as $index => $chunk) {
+                try {
+                    DB::connection('mysql')->table('sub_kegiatan')->upsert(
+                        $chunk,
+                        ['id'],
+                        ['id_kegiatan', 'kode_sub_kegiatan', 'nama_sub_kegiatan', 'time_stamp', 'updated_at']
+                    );
+                } catch (\Illuminate\Database\QueryException $e) {
+                    $this->error("Batch #{$index} gagal: ".$e->getMessage());
+
+                    // opsional: simpan $chunk ke file log biar bisa di-retry manual
+                    continue;
+                }
             }
 
-            $this->info(count($insertData) . " data berhasil dimasukkan/diupdate ke tabel sub_kegiatan (dalam " . count($chunks) . " batch).");
+            $this->info(count($insertData).' data berhasil dimasukkan/diupdate ke tabel sub_kegiatan (dalam '.count($chunks).' batch).');
         }
 
         // Hitung total setelah insert

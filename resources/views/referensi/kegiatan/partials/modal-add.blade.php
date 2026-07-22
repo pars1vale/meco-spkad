@@ -1,7 +1,7 @@
 <div class="modal fade" id="kt_modal_add_kegiatan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered mw-650px">
     <div class="modal-content">
-      <form class="form" action="{{ route('kegiatan.store') }}" method="POST" id="kt_modal_add_kegiatan_form">
+      <form class="form" action="{{ route('referensi.kegiatan.store') }}" method="POST" id="kt_modal_add_kegiatan_form">
         @csrf
         <div class="modal-header" id="kt_modal_add_kegiatan_header">
           <h2 class="fw-bold">Tambah Kegiatan</h2>

@@ -3,262 +3,217 @@
 namespace App\Http\Controllers\Referensi;
 
 use App\Http\Controllers\Controller;
-use App\Models\Referensi\Akun;
+use App\Http\Requests\Referensi\StoreAkunRequest;
+use App\Http\Requests\Referensi\UpdateAkunRequest;
+use App\Services\Referensi\AkunService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Exception;
 
 class AkunController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected AkunService $akunService;
+
+    public function __construct(AkunService $akunService)
     {
-        $data = Akun::orderBy('kode_akun')->get();
-        return view('referensi.akun.index', compact('data'));
+        $this->akunService = $akunService;
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Display listing page
      */
-    public function store(Request $request)
+    public function index(): View
     {
-        $validator = $this->validateAkun($request);
-
-        // Validasi tipe akun
-        $types = $this->getAkunTypes($request);
-        if (!$this->hasAnyTypeSelected($types)) {
-            return $this->handleValidationError(
-                $validator,
-                'tipe_akun',
-                'Minimal satu tipe akun harus dipilih',
-                $request
-            );
-        }
-
-        if ($validator->fails()) {
-            return $this->handleValidationError($validator, null, 'Data gagal disimpan. Periksa kembali input Anda.', $request);
-        }
-
-        try {
-            $akun = $this->createOrUpdateAkun(new Akun(), $request, $types);
-            $akun->id = Akun::getNextId();
-            $akun->save();
-
-            return $this->successResponse($request, 'Data akun berhasil ditambahkan', $akun);
-        } catch (\Exception $e) {
-            return $this->errorResponse($request, $e);
-        }
+        return view('referensi.akun.index');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Get data for DataTables
      */
-    public function edit(string $id)
-    {
-        $akun = Akun::findOrFail($id);
-        return view('referensi.akun.edit', compact('akun'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        $akun = Akun::findOrFail($id);
-        $validator = $this->validateAkun($request, $id);
-
-        // Validasi tipe akun
-        $types = $this->getAkunTypes($request);
-        if (!$this->hasAnyTypeSelected($types)) {
-            return redirect()->back()
-                ->withErrors(['tipe_akun' => 'Minimal satu tipe akun harus dipilih'])
-                ->withInput()
-                ->with('error', 'Minimal satu tipe akun harus dipilih.');
-        }
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('error', 'Data gagal diperbarui. Periksa kembali input Anda.');
-        }
-
-        try {
-            $this->createOrUpdateAkun($akun, $request, $types);
-            $akun->save();
-
-            return redirect()->route('referensi.akun.index')
-                ->with('success', 'Data akun berhasil diperbarui');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function getData(Request $request): JsonResponse
     {
         try {
-            $akun = Akun::findOrFail($id);
-            $nama_akun = $akun->nama_akun;
-            $akun->delete();
-
-            return redirect()->route('referensi.akun.index')
-                ->with('success', "Data akun '{$nama_akun}' berhasil dihapus");
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Remove multiple resources from storage.
-     */
-    public function bulkDelete(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'ids' => 'required|array|min:1',
-            'ids.*' => 'required|integer|exists:akun,id',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->with('error', 'Data yang dipilih tidak valid');
-        }
-
-        try {
-            $deletedCount = Akun::whereIn('id', $request->ids)->delete();
-
-            return redirect()->route('referensi.akun.index')
-                ->with('success', "{$deletedCount} data akun berhasil dihapus");
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Validate akun data
-     */
-    private function validateAkun(Request $request, $id = null)
-    {
-        $uniqueRule = $id ? "unique:akun,kode_akun,{$id}" : 'unique:akun,kode_akun';
-
-        return Validator::make($request->all(), [
-            'kode_akun' => "required|string|max:255|{$uniqueRule}",
-            'nama_akun' => 'required|string',
-            'keterangan_akun' => 'nullable|string',
-        ], [
-            'kode_akun.required' => 'Kode akun wajib diisi',
-            'kode_akun.unique' => 'Kode akun sudah ada',
-            'nama_akun.required' => 'Nama akun wajib diisi',
-        ]);
-    }
-
-    /**
-     * Get akun types from request
-     */
-    private function getAkunTypes(Request $request)
-    {
-        return [
-            'is_pendapatan' => $request->has('is_pendapatan') ? 1 : 0,
-            'is_belanja' => $request->has('is_belanja') ? 1 : 0,
-            'is_pembiayaan' => $request->has('is_pembiayaan') ? 1 : 0,
-        ];
-    }
-
-    /**
-     * Check if any type is selected
-     */
-    private function hasAnyTypeSelected(array $types)
-    {
-        return array_sum($types) > 0;
-    }
-
-    /**
-     * Create or update akun instance
-     */
-    private function createOrUpdateAkun(Akun $akun, Request $request, array $types)
-    {
-        $akun->kode_akun = $request->kode_akun;
-        $akun->nama_akun = $request->nama_akun;
-        $akun->keterangan_akun = $request->keterangan_akun;
-
-        // Set boolean flags
-        $akun->is_pendapatan = $types['is_pendapatan'];
-        $akun->is_belanja = $types['is_belanja'];
-        $akun->is_pembiayaan = $types['is_pembiayaan'];
-
-        // Set text fields
-        $akun->pendapatan = $types['is_pendapatan'] ? 'Ya' : 'Tidak';
-        $akun->belanja = $types['is_belanja'] ? 'Ya' : 'Tidak';
-        $akun->pembiayaan = $types['is_pembiayaan'] ? 'Ya' : 'Tidak';
-
-        return $akun;
-    }
-
-    /**
-     * Handle validation error response
-     */
-    private function handleValidationError($validator, $errorKey, $errorMessage, Request $request)
-    {
-        if ($errorKey) {
-            $validator->errors()->add($errorKey, $errorMessage);
-        }
-
-        if ($request->ajax() || $request->wantsJson()) {
+            $data = $this->akunService->getDatatablesData($request->all());
+            return response()->json($data);
+        } catch (Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        return redirect()->back()
-            ->withErrors($validator)
-            ->withInput()
-            ->with('error', $errorMessage);
-    }
-
-    /**
-     * Success response handler
-     */
-    private function successResponse(Request $request, $message, $data = null)
-    {
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'data' => $data
-            ], 201);
-        }
-
-        return redirect()->route('referensi.akun.index')->with('success', $message);
-    }
-
-    /**
-     * Error response handler
-     */
-    private function errorResponse(Request $request, \Exception $e)
-    {
-        \Log::error('Error in AkunController: ' . $e->getMessage());
-
-        $message = 'Terjadi kesalahan saat menyimpan data';
-        $error = config('app.debug') ? $e->getMessage() : 'Internal server error';
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => $message,
-                'error' => $error
+                'error' => 'Gagal memuat data: ' . $e->getMessage()
             ], 500);
         }
+    }
 
-        return redirect()->back()
-            ->withInput()
-            ->with('error', "{$message}: {$e->getMessage()}");
+    /**
+     * Store new akun
+     */
+    public function store(StoreAkunRequest $request): JsonResponse
+    {
+        try {
+            $akun = $this->akunService->create($request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data akun berhasil ditambahkan',
+                'data' => $akun
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan data akun: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show akun detail (encrypted ID)
+     */
+    public function show(string $id): View|RedirectResponse
+    {
+        try {
+            $decryptedId = decrypt($id);
+            $akun = $this->akunService->getForEdit($decryptedId);
+            $akun->load('standarHarga');
+
+            return view('referensi.akun.show', compact('akun'));
+        } catch (Exception $e) {
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('error', 'Data akun tidak ditemukan');
+        }
+    }
+
+    /**
+     * Get akun detail for modal (AJAX)
+     */
+    public function detail(int $id): JsonResponse
+    {
+        try {
+            $data = $this->akunService->getDetail($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data akun tidak ditemukan'
+            ], 404);
+        }
+    }
+
+    /**
+     * Show edit form
+     */
+    public function edit(int $id): View|RedirectResponse
+    {
+        try {
+            $akun = $this->akunService->getForEdit($id);
+            return view('referensi.akun.edit', compact('akun'));
+        } catch (Exception $e) {
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Update akun
+     */
+    public function update(UpdateAkunRequest $request, int $id): RedirectResponse
+    {
+        try {
+            $this->akunService->update($id, $request->validated());
+
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('success', 'Data akun berhasil diperbarui');
+        } catch (Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete akun (soft delete)
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        try {
+            $this->akunService->delete($id);
+
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('success', 'Data akun berhasil dihapus');
+        } catch (Exception $e) {
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Bulk delete akun
+     */
+    public function bulkDelete(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:akun,id',
+        ]);
+
+        try {
+            $count = $this->akunService->bulkDelete($request->ids);
+
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('success', "Berhasil menghapus {$count} data akun");
+        } catch (Exception $e) {
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('error', 'Gagal menghapus data akun: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Restore deleted akun
+     */
+    public function restore(int $id): RedirectResponse
+    {
+        try {
+            $this->akunService->restore($id);
+
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('success', 'Data akun berhasil dipulihkan');
+        } catch (Exception $e) {
+            return redirect()
+                ->route('referensi.akun.index')
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Get statistics
+     */
+    public function statistics(Request $request): JsonResponse
+    {
+        try {
+            $tahunAnggaran = $request->get('tahun_anggaran');
+            $stats = $this->akunService->getStatistics($tahunAnggaran);
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat statistik: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -1,27 +1,6 @@
 @extends('layouts.master')
 @section('content')
-  <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
-    <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
-      <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
-        <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading d-flex flex-column justify-content-center text-dark fw-bold fs-3 m-0">Sub Tahap Penjadwalan</h1>
-          <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
-            <li class="breadcrumb-item text-muted">
-              <a href="{{ url('/') }}" class="text-muted text-hover-primary">Home</a>
-            </li>
-            <li class="breadcrumb-item">
-              <span class="bullet bg-gray-400 w-5px h-2px"></span>
-            </li>
-            <li class="breadcrumb-item text-muted">RKPD</li>
-            <li class="breadcrumb-item">
-              <span class="bullet bg-gray-400 w-5px h-2px"></span>
-            </li>
-            <li class="breadcrumb-item text-muted">Sub Tahap</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+  <x-toolbar title="Sub Tahap" :breadcrumbs="[['label' => 'Home', 'url' => url('/')], ['label' => 'RKPD'], ['label' => 'Sub Tahap']]" />
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
@@ -39,8 +18,7 @@
           <div class="card-title">
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12"
-                placeholder="Cari Sub Tahap">
+              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Sub Tahap">
             </div>
           </div>
           <div class="card-toolbar">
@@ -71,8 +49,8 @@
                 <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                   <th class="w-10px pe-2">
                     <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
-                      <input class="form-check-input" type="checkbox" data-kt-check="true"
-                        data-kt-check-target="#kt_sub_tahap_table .form-check-input" value="1" />
+                      <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_sub_tahap_table .form-check-input"
+                        value="1" />
                     </div>
                   </th>
                   <th class="min-w-250px">Nama Sub Tahap</th>
@@ -98,20 +76,17 @@
                       <td>
                         <div class="d-flex justify-content-end">
                           <!-- Edit button -->
-                            <a href="{{ route('rkpd.sub-tahap.edit', $subTahap->id_sub_tahap) }}"
-                                class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit Sub Tahap">
-                                <i class="ki-outline ki-pencil fs-2"></i>
-                            </a>
-                          <form
-                              action="{{ route('rkpd.sub-tahap.destroy', $subTahap->id_sub_tahap) }}"
-                              method="POST" class="d-inline delete-form">
-                              @csrf
-                              @method('DELETE')
-                              <button type="submit"
-                                  class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn"
-                                  title="Hapus Sub Tahap" data-name="{{ $subTahap->nama_sub_tahap }}">
-                                  <i class="ki-outline ki-trash fs-2"></i>
-                              </button>
+                          <a href="{{ route('rkpd.sub-tahap.edit', $subTahap->id_sub_tahap) }}"
+                            class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit Sub Tahap">
+                            <i class="ki-outline ki-pencil fs-2"></i>
+                          </a>
+                          <form action="{{ route('rkpd.sub-tahap.destroy', $subTahap->id_sub_tahap) }}" method="POST" class="d-inline delete-form">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus Sub Tahap"
+                              data-name="{{ $subTahap->nama_sub_tahap }}">
+                              <i class="ki-outline ki-trash fs-2"></i>
+                            </button>
                           </form>
                         </div>
                       </td>
@@ -130,7 +105,7 @@
   <div class="modal fade" id="kt_modal_add_sub_tahap" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-650px">
       <div class="modal-content">
-       <form class="form" action="{{ route('rkpd.sub-tahap.store') }}" method="POST" id="kt_modal_add_sub_tahap_form">
+        <form class="form" action="{{ route('rkpd.sub-tahap.store') }}" method="POST" id="kt_modal_add_sub_tahap_form">
           @csrf
           <div class="modal-header" id="kt_modal_add_sub_tahap_header">
             <h2 class="fw-bold">Tambah Sub Tahap</h2>
@@ -162,8 +137,7 @@
               <div class="fv-row mb-7">
                 <label class="required fs-6 fw-semibold mb-2">Nama Sub Tahap</label>
                 <input type="text" class="form-control form-control-solid @error('nama_sub_tahap') is-invalid @enderror"
-                  placeholder="Masukkan nama sub tahap" name="nama_sub_tahap" value="{{ old('nama_sub_tahap') }}" maxlength="255"
-                  required />
+                  placeholder="Masukkan nama sub tahap" name="nama_sub_tahap" value="{{ old('nama_sub_tahap') }}" maxlength="255" required />
                 @error('nama_sub_tahap')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -197,11 +171,24 @@
           [2, 'asc'],
           [1, 'asc']
         ],
-        columnDefs: [
-          { targets: [0], orderable: false, className: 'text-center' },
-          { targets: [2], visible: false },
-          { targets: [1], className: 'fs-6' },
-          { targets: [3], orderable: false, className: 'text-end' }
+        columnDefs: [{
+            targets: [0],
+            orderable: false,
+            className: 'text-center'
+          },
+          {
+            targets: [2],
+            visible: false
+          },
+          {
+            targets: [1],
+            className: 'fs-6'
+          },
+          {
+            targets: [3],
+            orderable: false,
+            className: 'text-end'
+          }
         ],
         dom: "<'row'<'col-sm-12'tr>>" +
           "<'row mt-4'" +
@@ -216,10 +203,14 @@
         },
         drawCallback: function(settings) {
           var api = this.api();
-          var rows = api.rows({ page: 'current' }).nodes();
+          var rows = api.rows({
+            page: 'current'
+          }).nodes();
           var lastTahap = null;
 
-          api.column(2, { page: 'current' }).data().each(function(tahap, i) {
+          api.column(2, {
+            page: 'current'
+          }).data().each(function(tahap, i) {
             if (lastTahap !== tahap) {
               $(rows[i]).before(
                 '<tr class="group bg-light-primary">' +
@@ -244,7 +235,9 @@
           text: msg.dataset.message,
           confirmButtonText: 'OK',
           buttonsStyling: false,
-          customClass: { confirmButton: "btn btn-primary" }
+          customClass: {
+            confirmButton: "btn btn-primary"
+          }
         });
       });
 
@@ -277,7 +270,12 @@
       document.getElementById('bulk_delete_btn')?.addEventListener('click', function() {
         const checkedBoxes = document.querySelectorAll('#kt_sub_tahap_table tbody input[type="checkbox"]:checked');
         if (checkedBoxes.length === 0) {
-          Swal.fire({ icon: 'info', title: 'Tidak ada data dipilih', text: 'Pilih minimal satu sub tahap.', confirmButtonText: 'OK' });
+          Swal.fire({
+            icon: 'info',
+            title: 'Tidak ada data dipilih',
+            text: 'Pilih minimal satu sub tahap.',
+            confirmButtonText: 'OK'
+          });
           return;
         }
 
@@ -289,7 +287,10 @@
           confirmButtonText: 'Ya, hapus!',
           cancelButtonText: 'Batal',
           buttonsStyling: false,
-          customClass: { confirmButton: "btn btn-danger", cancelButton: "btn btn-secondary" }
+          customClass: {
+            confirmButton: "btn btn-danger",
+            cancelButton: "btn btn-secondary"
+          }
         }).then((result) => {
           if (result.isConfirmed) {
             const form = document.createElement('form');

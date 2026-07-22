@@ -1,24 +1,7 @@
 @extends('layouts.master')
 
 @section('content')
-  <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
-    <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
-      <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
-        <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading text-dark fw-bold fs-3 m-0">Tahap Penjadwalan</h1>
-          <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
-            <li class="breadcrumb-item text-muted">
-              <a href="{{ url('/home') }}" class="text-muted text-hover-primary">Home</a>
-            </li>
-            <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-            <li class="breadcrumb-item text-muted">Rkpd</li>
-            <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-            <li class="breadcrumb-item text-muted">Tahap Penjadwalan</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+  <x-toolbar title="Tahap Penjadwalan" :breadcrumbs="[['label' => 'Home', 'url' => url('/')], ['label' => 'RKPD'], ['label' => 'Tahap Penjadwalan']]" />
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
@@ -35,12 +18,14 @@
           <div class="card-title">
             <div class="d-flex align-items-center position-relative my-1">
               <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari Tahap Penjadwalan">
+              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12"
+                placeholder="Cari Tahap Penjadwalan">
             </div>
           </div>
           <div class="card-toolbar">
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_tahap_penjadwalan">Tambah Tahap</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_tahap_penjadwalan">Tambah
+                Tahap</button>
             </div>
             <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
               <div class="fw-bold me-5">
@@ -85,15 +70,15 @@
                     <td>{{ $item->nama_tahap }}</td>
                     <td>
                       <div class="d-flex justify-content-end">
-                        <a href="{{ route('tahap-penjadwalan.edit', $item->id_tahap) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                          title="Edit Tahap Penjadwalan">
+                        <a href="{{ route('tahap-penjadwalan.edit', $item->id_tahap) }}"
+                          class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Edit Tahap Penjadwalan">
                           <i class="ki-outline ki-pencil fs-2"></i>
                         </a>
                         <form action="{{ route('tahap-penjadwalan.destroy', $item->id_tahap) }}" method="POST" class="d-inline delete-form">
                           @csrf
                           @method('DELETE')
-                          <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn" title="Hapus Tahap Penjadwalan"
-                            data-name="{{ $item->nama_tahap }}">
+                          <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm delete-btn"
+                            title="Hapus Tahap Penjadwalan" data-name="{{ $item->nama_tahap }}">
                             <i class="ki-outline ki-trash fs-2"></i>
                           </button>
                         </form>
@@ -157,11 +142,23 @@
         searchDelay: 500,
         processing: true,
         serverSide: false,
-        order: [[1, 'asc']],
-        columnDefs: [
-          { targets: [0], orderable: false, className: 'text-center' },
-          { targets: [1], className: 'fs-6' },
-          { targets: [2], orderable: false, className: 'text-end' }
+        order: [
+          [1, 'asc']
+        ],
+        columnDefs: [{
+            targets: [0],
+            orderable: false,
+            className: 'text-center'
+          },
+          {
+            targets: [1],
+            className: 'fs-6'
+          },
+          {
+            targets: [2],
+            orderable: false,
+            className: 'text-end'
+          }
         ],
         dom: "<'row'<'col-sm-12'tr>>" +
           "<'row mt-4'" +
@@ -189,7 +186,9 @@
           text: msg.dataset.message,
           confirmButtonText: 'OK',
           buttonsStyling: false,
-          customClass: { confirmButton: "btn btn-primary" }
+          customClass: {
+            confirmButton: "btn btn-primary"
+          }
         });
       });
 
@@ -262,7 +261,9 @@
             text: 'Pilih minimal satu tahap penjadwalan untuk dihapus.',
             confirmButtonText: 'OK',
             buttonsStyling: false,
-            customClass: { confirmButton: "btn btn-primary" }
+            customClass: {
+              confirmButton: "btn btn-primary"
+            }
           });
           return;
         }
@@ -313,4 +314,3 @@
     });
   </script>
 @endsection
-

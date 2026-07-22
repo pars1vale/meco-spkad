@@ -12,22 +12,55 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('akun', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary();
-            $table->string('kode_akun');
-            $table->text('nama_akun');
-            $table->text('keterangan_akun')->nullable();
-            $table->tinyInteger('is_pendapatan');
-            $table->tinyInteger('is_belanja');
-            $table->tinyInteger('is_pembiayaan');
-            $table->string('pendapatan', 50);
-            $table->string('belanja', 50);
-            $table->string('pembiayaan', 50);
+            $table->id();
+            $table->string('belanja', 10)->nullable();
+            $table->integer('id_akun')->nullable();
+            $table->tinyInteger('is_bagi_hasil')->nullable();
+            $table->tinyInteger('is_bankeu_khusus')->nullable();
+            $table->tinyInteger('is_bankeu_umum')->nullable();
+            $table->tinyInteger('is_barjas')->nullable();
+            $table->tinyInteger('is_bl')->nullable();
+            $table->tinyInteger('is_bos')->nullable();
+            $table->tinyInteger('is_btt')->nullable();
+            $table->tinyInteger('is_bunga')->nullable();
+            $table->tinyInteger('is_gaji_asn')->nullable();
+            $table->tinyInteger('is_hibah_brg')->nullable();
+            $table->tinyInteger('is_hibah_uang')->nullable();
+            $table->tinyInteger('is_locked')->nullable();
+            $table->tinyInteger('is_modal_tanah')->nullable();
+            $table->tinyInteger('is_pembiayaan')->nullable();
+            $table->tinyInteger('is_pendapatan')->nullable();
+            $table->tinyInteger('is_sosial_brg')->nullable();
+            $table->tinyInteger('is_sosial_uang')->nullable();
+            $table->tinyInteger('is_subsidi')->nullable();
+            $table->string('kode_akun', 50)->nullable();
+            $table->text('nama_akun')->nullable();
+            $table->tinyInteger('set_input')->nullable();
+            $table->tinyInteger('set_lokus')->nullable();
+            $table->string('ket_akun', 255)->nullable();
+            $table->string('kode_akun_lama', 50)->nullable();
+            $table->string('kode_akun_revisi', 50)->nullable();
+            $table->tinyInteger('kunci_tahun')->nullable();
+            $table->tinyInteger('level')->nullable();
+            $table->text('mulai_tahun')->nullable();
+            $table->string('pembiayaan', 50)->nullable();
+            $table->string('pendapatan', 50)->nullable();
+            $table->tinyInteger('set_kab_kota')->nullable();
+            $table->tinyInteger('set_prov')->nullable();
+            $table->string('status', 20)->nullable();
+            $table->tinyInteger('active')->default(1)->comment('0=hapus, 1=aktif');
+            $table->datetime('update_at')->nullable();
+            $table->year('tahun_anggaran')->default(2021);
             $table->timestamps();
 
-            $table->index(['kode_akun']);
-            $table->index(['is_belanja']);
-            $table->index(['is_pendapatan']);
-            $table->index(['is_pembiayaan']);
+            // Indexes
+            $table->index('tahun_anggaran');
+            $table->index('kode_akun');
+            $table->index('id_akun');
+            $table->index('active');
+            $table->index('is_bl');
+            $table->index('is_pendapatan');
+            $table->index('is_pembiayaan');
         });
     }
 

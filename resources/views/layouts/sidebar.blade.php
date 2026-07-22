@@ -114,8 +114,7 @@
           </div>
         </div>
         {{-- pengaturan --}}
-        <div data-kt-menu-trigger="click"
-          class="menu-item {{ Request::routeIs('pengaturan.*') ? 'show' : '' }} menu-accordion">
+        <div data-kt-menu-trigger="click" class="menu-item {{ Request::routeIs('pengaturan.*') ? 'show' : '' }} menu-accordion">
           <span class="menu-link">
             <span class="menu-icon">
               <i class="ki-outline ki-gear fs-2"></i>
@@ -150,8 +149,7 @@
             </div>
 
             {{-- USER --}}
-            <div data-kt-menu-trigger="click"
-              class="menu-item menu-accordion ">
+            <div data-kt-menu-trigger="click" class="menu-item menu-accordion ">
               <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
@@ -162,19 +160,37 @@
 
               <div class="menu-sub menu-sub-accordion">
                 <div class="menu-item">
-                  <a class="menu-link "
-                    href="">
+                  <a class="menu-link " href="#" title="Seluruh Data User dengan filter sebagai penyelia keuangan" data-bs-toggle="tooltip"
+                    data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>
                     <span class="menu-title">Penyelia Keuangan</span>
                   </a>
                 </div>
+                <div class="menu-item">
+                  <a class="menu-link " href="#">
+                    <span class="menu-bullet">
+                      <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">Manage User</span>
+                  </a>
+                </div>
               </div>
+            </div>
+
+            <div class="menu-item">
+              <a href="{{ route('pengaturan.akses.role.index') }}"
+                class="menu-link {{ Request::is('pengaturan.akses.role.index') ? 'active' : '' }}" title="Manage user roles and permissions"
+                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+                <span class="menu-bullet">
+                  <span class="bullet bullet-dot"></span>
+                </span>
+                <span class="menu-title">Role</span>
+              </a>
             </div>
           </div>
         </div>
-
         {{-- analisis dan rekap datas --}}
         <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
           <span class="menu-link">
@@ -436,7 +452,7 @@
         </div>
         {{-- pendapatan --}}
         <div class="menu-item">
-          <a href="#" class="menu-link {{-- {{ Request::is('home') ? 'active' : '' }} --}}">
+          <a href="{{ route('pendapatan.index') }}" class="menu-link {{ Request::routeIs('pendapatan.index') ? 'active' : '' }}">
             <span class="menu-icon">
               <i class="ki-outline ki-wallet fs-2"></i>
             </span>
@@ -454,8 +470,9 @@
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-              <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link {{ Request::routeIs('pembiayaan.penerimaan.index') ? 'active' : '' }}"
+                href="{{ route('pembiayaan.penerimaan.index') }}" title="Check out over 200 in-house components" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -463,9 +480,9 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+              <a class="menu-link" {{ Request::routeIs('pembiayaan.pengeluaran.index') ? 'active' : '' }}
+                href="{{ route('pembiayaan.pengeluaran.index') }}" title="Check out the complete documentation" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -474,44 +491,34 @@
             </div>
           </div>
         </div>
-        {{-- Standar Harga Satuan --}}
+        {{-- Standar Harga --}}
         <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
           <span class="menu-link">
             <span class="menu-icon">
               <i class="ki-outline ki-price-tag fs-2"></i>
             </span>
-            <span class="menu-title">Standar Harga Satuan</span>
+            <span class="menu-title">Standar harga</span>
             <span class="menu-arrow"></span>
           </span>
           <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('satuan.index') ? 'active' : '' }}" href="{{ route('satuan.index') }}"
-                title="Daftar Satuan untuk Standar Harga" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
+              <a class="menu-link {{ Request::routeIs('data_ssh.index') ? 'active' : '' }}" href="{{ route('data_ssh.index') }}"
+                title="Data Pembiayaan Penerimaan" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
                 data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
-                <span class="menu-title">Daftar Satuan</span>
+                <span class="menu-title">Standar Harga Satuan</span>
               </a>
             </div>
             <div class="menu-item">
               <a class="menu-link {{ Request::routeIs('kelompok_satuan_harga.index') ? 'active' : '' }}"
-                href="{{ route('kelompok_satuan_harga.index') }}" title="Kelompok Barang untuk mapping standar harga" data-bs-toggle="tooltip"
+                href="{{ route('kelompok_satuan_harga.index') }}" title="Check out the complete documentation" data-bs-toggle="tooltip"
                 data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
                 <span class="menu-title">Kelompok Barang</span>
-              </a>
-            </div>
-            <div class="menu-item">
-              <a class="menu-link {{ Request::routeIs('standar_harga.index') ? 'active' : '' }}" href="{{ route('standar_harga.index') }}"
-                title="Pastikan Data Satuan & Kelompok Barnag sudah terdaftar sebelum menambahkan Standar Harga baru" data-bs-toggle="tooltip"
-                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
-                <span class="menu-bullet">
-                  <span class="bullet bullet-dot"></span>
-                </span>
-                <span class="menu-title">Standar Harga</span>
               </a>
             </div>
           </div>

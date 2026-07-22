@@ -7,49 +7,70 @@ use Illuminate\Support\Facades\DB;
 
 class InsertSumberDana extends Command
 {
-    protected $signature = 'insert:sumberdana {--truncate : Kosongkan tabel sumber_dana terlebih dulu}';
-    protected $description = 'Insert sumber dana data from SIPD-RI into the sumber_dana (SPKAD) table';
+    protected $signature = 'insert:sumber-dana
+        {--truncate : Kosongkan tabel sumber_dana terlebih dulu}
+        {--tahun=2025 : Tahun anggaran snapshot}';
+
+    protected $description = 'Mirror data sumber dana dari SIPD-RI ke tabel sumber_dana (SPKAD) - FULL CLONE';
 
     public function handle()
     {
         try {
+            // 1. TRUNCATE (OPSIONAL)
             if ($this->option('truncate')) {
-                DB::connection('mysql')->table('sumber_dana')->truncate();
-                $this->warn('Truncated sumber_dana table.');
+                DB::connection('mysql')
+                    ->table('sumber_dana')
+                    ->truncate();
+
+                $this->warn('✓ Tabel sumber_dana dikosongkan.');
             }
 
-            // Check if data_sources connection is available
-            if (!$this->checkSourceConnection()) {
-                $this->error('Cannot connect to data_sources database.');
+            // 2. CEK KONEKSI SOURCE
+            if (! $this->checkSourceConnection()) {
+                $this->error('✗ Tidak dapat terhubung ke database data_sources.');
+
                 return Command::FAILURE;
             }
 
-            $data = $this->fetchSourceData();
+            $this->info('✓ Koneksi ke SIPD-RI berhasil.');
 
-            if ($data->isEmpty()) {
-                $this->info('No data found in source table.');
+            // 3. AMBIL DATA SOURCE (SEMUA KOLOM)
+            $sourceData = $this->fetchSourceData();
+
+            if ($sourceData->isEmpty()) {
+                $this->info('⚠ Tidak ada data di SIPD source.');
+
                 return Command::SUCCESS;
             }
 
-            $this->info($data->count() . " records found.");
+            $this->info("✓ {$sourceData->count()} records ditemukan di SIPD-RI.");
 
-            $insertData = $this->prepareInsertData($data);
+            // 4. PREPARE DATA MIRROR (FULL CLONE)
+            $insertData = $this->prepareInsertData($sourceData);
+
+            // 5. UPSERT BATCH
             $this->insertDataInBatches($insertData);
 
-            $this->info('Insert sumber dana command completed successfully.');
+            $this->newLine();
+            $this->info('✓ Mirror SIPD-RI → SPKAD selesai dengan sempurna.');
+
             return Command::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Error occurred: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            $this->error('✗ ERROR: '.$e->getMessage());
+            $this->error('Line: '.$e->getLine());
+
             return Command::FAILURE;
         }
     }
 
+    // KONEKSI SOURCE
     private function checkSourceConnection(): bool
     {
         try {
             DB::connection('data_sources')->getPdo();
+
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable) {
             return false;
         }
     }
@@ -60,62 +81,78 @@ class InsertSumberDana extends Command
             ->table('u405304318_yahukimo2025.data_sumber_dana')
             ->select(
                 'id',
+                'created_at',
+                'created_user',
+                'id_daerah',
+                'id_dana',
+                'id_unik',
+                'is_locked',
                 'kode_dana',
                 'nama_dana',
                 'sumber_dana',
                 'set_input',
-                'created_at',
-                'updated_at'
+                'status',
+                'tahun',
+                'updated_at',
+                'active',
+                'updated_user',
+                'tahun_anggaran'
             )
-            ->where('active', 1) // Only get active records
-            ->orderBy('kode_dana', 'asc')
+            ->orderBy('id')
             ->get();
     }
 
+    // NORMALIZE VALUE (HANDLE ARRAY/OBJECT/NULL)
+    private function normalizeValue($value)
+    {
+        // Jika null, return null
+        if (is_null($value)) {
+            return null;
+        }
+
+        // Jika array atau object, convert ke JSON
+        if (is_array($value) || is_object($value)) {
+            return json_encode($value);
+        }
+
+        return $value;
+    }
+
+    // SIAPKAN DATA UNTUK MIRROR (CLONE EXACT)
     private function prepareInsertData($data): array
     {
-        $insertData = [];
+        $tahunOption = (int) $this->option('tahun');
+        $result = [];
 
         foreach ($data as $row) {
-            $insertData[] = [
-                'id'           => $row->id,
-                'kode_dana'    => $row->kode_dana,
-                'nama_dana'    => $row->nama_dana,
-                'sumber_dana'  => $row->sumber_dana ?? null,
-                'set_input'    => $this->normalizeSetInput($row->set_input),
-                'time_stamp'   => $row->created_at ?? now(),
-                'updated_at'   => $row->updated_at ?? now(),
+            $result[] = [
+                'id' => $row->id,
+                'created_at' => $this->normalizeValue($row->created_at),
+                'created_user' => $this->normalizeValue($row->created_user),
+                'id_daerah' => $this->normalizeValue($row->id_daerah),
+                'id_dana' => $this->normalizeValue($row->id_dana),
+                'id_unik' => $this->normalizeValue($row->id_unik),
+                'is_locked' => $this->normalizeValue($row->is_locked),
+                'kode_dana' => $this->normalizeValue($row->kode_dana),
+                'nama_dana' => $this->normalizeValue($row->nama_dana),
+                'sumber_dana' => $this->normalizeValue($row->sumber_dana),
+                'set_input' => $this->normalizeValue($row->set_input),
+                'status' => $this->normalizeValue($row->status),
+                'tahun' => $this->normalizeValue($row->tahun) ?? $tahunOption,
+                'tahun_anggaran' => $this->normalizeValue($row->tahun_anggaran) ?? $tahunOption,
+                'updated_at' => $this->normalizeValue($row->updated_at),
+                'active' => $this->normalizeValue($row->active) ?? 1,
+                'updated_user' => $this->normalizeValue($row->updated_user) ?? 0,
             ];
         }
 
-        return $insertData;
+        return $result;
     }
 
-    private function normalizeSetInput($value): string
-    {
-        // Normalize set_input to match your database structure
-        if (empty($value)) {
-            return 'Ya';
-        }
-
-        $value = strtolower(trim($value));
-
-        // Convert various inputs to 'Ya' or 'Tidak'
-        if (in_array($value, ['ya', 'yes', '1', 'true', 'aktif'])) {
-            return 'Ya';
-        }
-
-        if (in_array($value, ['tidak', 'no', '0', 'false', 'tidak aktif'])) {
-            return 'Tidak';
-        }
-
-        return 'Ya'; // Default to 'Ya'
-    }
-
+    // INSERT / UPDATE BATCH
     private function insertDataInBatches(array $insertData): void
     {
         if (empty($insertData)) {
-            $this->info("No data to insert.");
             return;
         }
 
@@ -125,25 +162,38 @@ class InsertSumberDana extends Command
 
         $chunks = array_chunk($insertData, $batchSize);
 
+        $this->newLine();
+        $this->info('Memproses '.count($insertData).' records dalam '.count($chunks).' batch...');
         $this->output->progressStart(count($chunks));
 
         foreach ($chunks as $chunk) {
-            DB::connection('mysql')->table('sumber_dana')->upsert(
-                $chunk,
-                ['id'], // Unique key for upsert
-                [
-                    'kode_dana',
-                    'nama_dana',
-                    'sumber_dana',
-                    'set_input',
-                    'updated_at',
-                ]
-            );
+            DB::connection('mysql')
+                ->table('sumber_dana')
+                ->upsert(
+                    $chunk,
+                    ['id_dana', 'tahun_anggaran'],
+                    [
+                        'created_at',
+                        'created_user',
+                        'id_daerah',
+                        'id_unik',
+                        'is_locked',
+                        'kode_dana',
+                        'nama_dana',
+                        'sumber_dana',
+                        'set_input',
+                        'status',
+                        'tahun',
+                        'updated_at',
+                        'active',
+                        'updated_user',
+                    ]
+                );
 
             $this->output->progressAdvance();
         }
 
         $this->output->progressFinish();
-        $this->info(count($insertData) . " records successfully inserted/updated in " . count($chunks) . " batches.");
+        $this->info('✓ '.count($insertData).' records berhasil disinkronkan.');
     }
 }
