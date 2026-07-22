@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Database\Seeders\RolePermissionSeeder as SeedersRolePermissionSeeder;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -32,7 +31,10 @@ class DatabaseSeeder extends Seeder
         // $this->call(KelompokStandartHargaSeeder::class);
         // $this->call(PangkatSeeder::class);
         $this->call([
-            SeedersRolePermissionSeeder::class,
+            RolePermissionSeeder::class,
+            DataSatuanSeeder::class,
+            KelompokStandartHargaSeeder::class,
+            PangkatSeeder::class,
         ]);
     }
 }
