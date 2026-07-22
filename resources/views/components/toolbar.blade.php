@@ -35,5 +35,11 @@
         </div>
       @endif
     </div>
+    <div class="d-flex align-items-center gap-2 gap-lg-3">
+      <span class="badge badge-light-primary fs-7 fw-bold px-4 py-2">
+        <i class="ki-outline ki-calendar fs-6 me-1"></i>
+        Tahun Anggaran: {{ session('tahun_anggaran', '-') }}
+      </span>
+    </div>
   </div>
 </div>

@@ -21,14 +21,20 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // super admin account
-        User::create([
-            'name' => 'it',
-            'email' => 'it@gmail.com',
-            'password' => bcrypt('12345678'),
-        ]);
+        // User::create([
+        //     'name' => 'it',
+        //     'email' => 'it@gmail.com',
+        //     'password' => bcrypt('12345678'),
+        // ]);
 
-        $this->call(DataSatuanSeeder::class);
-        $this->call(KelompokStandartHargaSeeder::class);
-        $this->call(PangkatSeeder::class);
+        // $this->call(DataSatuanSeeder::class);
+        // $this->call(KelompokStandartHargaSeeder::class);
+        // $this->call(PangkatSeeder::class);
+        $this->call([
+            RolePermissionSeeder::class,
+            DataSatuanSeeder::class,
+            KelompokStandartHargaSeeder::class,
+            PangkatSeeder::class,
+        ]);
     }
 }

@@ -1,28 +1,7 @@
 @extends('layouts.master')
 
 @section('content')
-  <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
-    <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex align-items-stretch">
-      <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
-        <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
-          <h1 class="page-heading text-dark fw-bold fs-3 m-0">Renja</h1>
-          <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
-            <li class="breadcrumb-item text-muted">
-              <a href="{{ url('/home') }}" class="text-muted text-hover-primary">Home</a>
-            </li>
-            <li class="breadcrumb-item">
-              <span class="bullet bg-gray-400 w-5px h-2px"></span>
-            </li>
-            <li class="breadcrumb-item text-muted">Rkpd</li>
-            <li class="breadcrumb-item">
-              <span class="bullet bg-gray-400 w-5px h-2px"></span>
-            </li>
-            <li class="breadcrumb-item text-muted">Renja</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+  <x-toolbar title="Renja" :breadcrumbs="[['label' => 'Home', 'url' => url('/')], ['label' => 'RKPD'], ['label' => 'Renja']]" />
 
   <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid">
@@ -146,8 +125,8 @@
                   <span>61%</span>
                 </div>
                 <div class="h-8px w-100 bg-light-info rounded">
-                  <div class="bg-info rounded h-8px" role="progressbar" style="width: 61%;" aria-valuenow="61" aria-valuemin="0"
-                    aria-valuemax="100"></div>
+                  <div class="bg-info rounded h-8px" role="progressbar" style="width: 61%;" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100">
+                  </div>
                 </div>
               </div>
             </div>
