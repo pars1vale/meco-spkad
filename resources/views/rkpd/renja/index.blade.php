@@ -166,6 +166,33 @@
             </div>
           </div>
           <div class="card-toolbar">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="btnExportPdfDropdown" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="ki-outline ki-file-down fs-3"></i>
+                Export PDF
+              </button>
+              <div class="dropdown-menu p-4" style="min-width: 280px;" aria-labelledby="btnExportPdfDropdown">
+                <div class="mb-3">
+                  <label class="form-label fs-7 fw-semibold">Pilih SKPD</label>
+                  <select class="form-select form-select-sm" id="export_pdf_id_skpd">
+                    <option value="">-- Pilih SKPD --</option>
+                    @foreach ($data_unit as $unit)
+                      <option value="{{ $unit->id_skpd }}">{{ $unit->kode_skpd }} - {{ $unit->nama_skpd }}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fs-7 fw-semibold">Tahun Anggaran</label>
+                  <input type="number" class="form-control form-control-sm" id="export_pdf_tahun" value="{{ date('Y') }}" min="2020"
+                    max="2100">
+                </div>
+                <button type="button" class="btn btn-sm btn-primary w-100" id="btnDoExportPdf">
+                  <i class="ki-outline ki-file-down fs-4"></i>
+                  Download PDF
+                </button>
+              </div>
+            </div>
             <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
               <div class="w-150px me-3"></div>
               <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_kegiatan">Tambah</button>
@@ -471,6 +498,22 @@
   </style>
 
   <script>
+    document.getElementById('btnDoExportPdf').addEventListener('click', function() {
+      const idSkpd = document.getElementById('export_pdf_id_skpd').value;
+      const tahun = document.getElementById('export_pdf_tahun').value;
+
+      if (!idSkpd) {
+        // Ganti dengan Swal.fire(...) kalau SweetAlert2 sudah dipakai di project ini
+        alert('Silakan pilih SKPD terlebih dahulu');
+        return;
+      }
+
+      const baseUrl = "{{ route('renja.export-pdf', ['id_skpd' => '__ID_SKPD__']) }}";
+      const url = baseUrl.replace('__ID_SKPD__', idSkpd) + '?tahun_anggaran=' + encodeURIComponent(tahun);
+
+      window.open(url, '_blank');
+    });
+
     document.addEventListener("DOMContentLoaded", function() {
       // Store data globally
       let subKegiatanData = [];

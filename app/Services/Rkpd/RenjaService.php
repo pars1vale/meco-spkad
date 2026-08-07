@@ -223,6 +223,159 @@ class RenjaService
         }
     }
 
+    /**
+     * Susun data RENJA 1 SKPD penuh (semua Urusan/Program/Kegiatan/Sub Kegiatan) untuk export PDF,
+     * mengikuti struktur laporan RENJA OPD standar (Urusan > Bidang Urusan > Program > Kegiatan > Sub Kegiatan).
+     *
+     * CATATAN KETERBATASAN DATA: Beberapa kolom di format laporan RENJA OPD standar
+     * (Target Akhir Periode Renstra, Realisasi Capaian Renja Tahun Lalu, Prakiraan Capaian
+     * Tahun Berjalan, Prioritas Nasional, Prioritas Daerah, Kelompok Sasaran, Target Prakiraan
+     * Maju Tahun Depan) TIDAK memiliki kolom yang jelas pemetaannya di skema data_sub_keg_bl
+     * saat ini. Field-field tersebut akan ditampilkan sebagai '-' dan ditandai dengan komentar
+     * HTML `<!-- UNMAPPED: nama_field -->` pada hasil render (lihat helper flaggedValue()),
+     * supaya mudah dicari & dipetakan ulang begitu kolom sumber datanya sudah jelas.
+     */
+    public function getExportPdfData(int $idSkpd, int $tahunAnggaran): array
+    {
+        $skpd = $this->renjaRepo->getDataUnitById($idSkpd, $tahunAnggaran);
+
+        if (! $skpd) {
+            return ['skpd' => null];
+        }
+
+        $rows = $this->renjaRepo->getRenjaRowsForExport($idSkpd, $tahunAnggaran);
+
+        if ($rows->isEmpty()) {
+            return [
+                'skpd' => $skpd,
+                'tahunAnggaran' => $tahunAnggaran,
+                'grouped' => [],
+                'grandTotalPagu' => 0,
+                'grandTotalPaguMurni' => 0,
+            ];
+        }
+
+        $ids = $rows->pluck('id')->all();
+        $sumberDanaMap = $this->renjaRepo->getSumberDanaByIds($ids);
+        $indikatorMap = $this->renjaRepo->getIndikatorByIds($ids);
+
+        $grouped = $this->groupRowsForExportPdf($rows, $sumberDanaMap, $indikatorMap);
+
+        return [
+            'skpd' => $skpd,
+            'tahunAnggaran' => $tahunAnggaran,
+            'grouped' => $grouped,
+            'grandTotalPagu' => $rows->sum('pagu'),
+            'grandTotalPaguMurni' => $rows->sum('pagumurni'),
+        ];
+    }
+
+    /**
+     * Kelompokkan baris flat data_sub_keg_bl menjadi struktur nested:
+     * Urusan -> Bidang Urusan -> Program -> Kegiatan -> [Sub Kegiatan...]
+     * beserta subtotal pagu di tiap level.
+     */
+    private function groupRowsForExportPdf($rows, $sumberDanaMap, $indikatorMap): array
+    {
+        $grouped = [];
+
+        foreach ($rows as $row) {
+            $urusanKey = $row->kode_urusan;
+            $bidangKey = $row->kode_bidang_urusan;
+            $programKey = $row->kode_program;
+            $kegiatanKey = $row->kode_giat;
+
+            if (! isset($grouped[$urusanKey])) {
+                $grouped[$urusanKey] = [
+                    'kode' => $row->kode_urusan,
+                    'nama' => $row->nama_urusan,
+                    'total_pagu' => 0,
+                    'bidang' => [],
+                ];
+            }
+
+            if (! isset($grouped[$urusanKey]['bidang'][$bidangKey])) {
+                $grouped[$urusanKey]['bidang'][$bidangKey] = [
+                    'kode' => $row->kode_bidang_urusan,
+                    'nama' => $row->nama_bidang_urusan,
+                    'total_pagu' => 0,
+                    'program' => [],
+                ];
+            }
+
+            if (! isset($grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey])) {
+                $grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey] = [
+                    'kode' => $row->kode_program,
+                    'nama' => $row->nama_program,
+                    'total_pagu' => 0,
+                    'kegiatan' => [],
+                ];
+            }
+
+            if (! isset($grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey]['kegiatan'][$kegiatanKey])) {
+                $grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey]['kegiatan'][$kegiatanKey] = [
+                    'kode' => $row->kode_giat,
+                    'nama' => $row->nama_giat,
+                    'total_pagu' => 0,
+                    'sub_kegiatan' => [],
+                ];
+            }
+
+            $sumberDanaText = isset($sumberDanaMap[$row->id])
+                ? $sumberDanaMap[$row->id]->pluck('namadana')->filter()->unique()->implode(', ')
+                : null;
+
+            $indikatorText = isset($indikatorMap[$row->id])
+                ? $indikatorMap[$row->id]->map(function ($ind) {
+                    return trim(($ind->output_teks ?? '').' - '.($ind->target_output ?? '').' '.($ind->satuan_output ?? ''));
+                })->filter()->implode('; ')
+                : null;
+
+            $grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey]['kegiatan'][$kegiatanKey]['sub_kegiatan'][] = [
+                'kode_sub_giat' => $row->kode_sub_giat,
+                'nama_sub_giat' => $row->nama_sub_giat,
+                'indikator' => $this->flaggedValue($indikatorText, 'indikator_sub_kegiatan'),
+                'pagu' => $row->pagu ?? 0,
+                'pagu_n_lalu' => $this->flaggedValue($row->pagu_n_lalu ?? null, 'realisasi_capaian_renja_tahun_lalu'),
+                'pagu_n_depan' => $this->flaggedValue($row->pagu_n_depan ?? null, 'prakiraan_maju_pagu_tahun_depan'),
+                'target_akhir_renstra' => $this->flaggedValue(null, 'target_akhir_periode_renstra'),
+                'prakiraan_capaian' => $this->flaggedValue(null, 'prakiraan_capaian_tahun_berjalan'),
+                'lokasi' => $this->flaggedValue($row->nama_lokasi ?? null, 'lokasi'),
+                'sumber_dana' => $this->flaggedValue($sumberDanaText, 'sumber_dana'),
+                'prioritas_nasional' => $this->flaggedValue(null, 'prioritas_nasional'),
+                'prioritas_daerah' => $this->flaggedValue(null, 'prioritas_daerah'),
+                'kelompok_sasaran' => $this->flaggedValue($row->sasaran ?? null, 'kelompok_sasaran'),
+                'target_maju_2027' => $this->flaggedValue(null, 'target_prakiraan_maju_tahun_depan'),
+                'pd_penanggung_jawab' => $row->nama_skpd,
+                'waktu_awal' => $row->waktu_awal ?? null,
+                'waktu_akhir' => $row->waktu_akhir ?? null,
+            ];
+
+            $grouped[$urusanKey]['total_pagu'] += ($row->pagu ?? 0);
+            $grouped[$urusanKey]['bidang'][$bidangKey]['total_pagu'] += ($row->pagu ?? 0);
+            $grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey]['total_pagu'] += ($row->pagu ?? 0);
+            $grouped[$urusanKey]['bidang'][$bidangKey]['program'][$programKey]['kegiatan'][$kegiatanKey]['total_pagu'] += ($row->pagu ?? 0);
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Helper flag untuk kolom yang belum ada pemetaan sumber data yang jelas.
+     * Mengembalikan '-' (ditampilkan ke user) tapi disisipi komentar HTML sebagai
+     * penanda "field ini belum dipetakan" agar mudah di-grep di source PDF nanti.
+     * Begitu field_name sudah ada mapping-nya di database, cukup isi $value aslinya
+     * dan flag ini otomatis tidak muncul lagi.
+     */
+    private function flaggedValue($value, string $fieldName): string
+    {
+        if ($value === null || $value === '') {
+            return '-<!-- UNMAPPED: '.$fieldName.' -->';
+        }
+
+        return e($value);
+    }
+
     public function getDataTableData(array $params): array
     {
         $searchValue = $params['search']['value'] ?? null;

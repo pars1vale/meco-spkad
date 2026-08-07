@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class InsertSumberDana extends Command
 {
-    protected $signature = 'insert:sumberdana
+    protected $signature = 'insert:sumber-dana
         {--truncate : Kosongkan tabel sumber_dana terlebih dulu}
         {--tahun=2025 : Tahun anggaran snapshot}';
 
@@ -26,8 +26,9 @@ class InsertSumberDana extends Command
             }
 
             // 2. CEK KONEKSI SOURCE
-            if (!$this->checkSourceConnection()) {
+            if (! $this->checkSourceConnection()) {
                 $this->error('✗ Tidak dapat terhubung ke database data_sources.');
+
                 return Command::FAILURE;
             }
 
@@ -38,6 +39,7 @@ class InsertSumberDana extends Command
 
             if ($sourceData->isEmpty()) {
                 $this->info('⚠ Tidak ada data di SIPD source.');
+
                 return Command::SUCCESS;
             }
 
@@ -51,10 +53,12 @@ class InsertSumberDana extends Command
 
             $this->newLine();
             $this->info('✓ Mirror SIPD-RI → SPKAD selesai dengan sempurna.');
+
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->error('✗ ERROR: ' . $e->getMessage());
-            $this->error('Line: ' . $e->getLine());
+            $this->error('✗ ERROR: '.$e->getMessage());
+            $this->error('Line: '.$e->getLine());
+
             return Command::FAILURE;
         }
     }
@@ -64,6 +68,7 @@ class InsertSumberDana extends Command
     {
         try {
             DB::connection('data_sources')->getPdo();
+
             return true;
         } catch (\Throwable) {
             return false;
@@ -109,6 +114,7 @@ class InsertSumberDana extends Command
         if (is_array($value) || is_object($value)) {
             return json_encode($value);
         }
+
         return $value;
     }
 
@@ -121,22 +127,22 @@ class InsertSumberDana extends Command
         foreach ($data as $row) {
             $result[] = [
                 'id' => $row->id,
-                'created_at'     => $this->normalizeValue($row->created_at),
-                'created_user'   => $this->normalizeValue($row->created_user),
-                'id_daerah'      => $this->normalizeValue($row->id_daerah),
-                'id_dana'        => $this->normalizeValue($row->id_dana),
-                'id_unik'        => $this->normalizeValue($row->id_unik),
-                'is_locked'      => $this->normalizeValue($row->is_locked),
-                'kode_dana'      => $this->normalizeValue($row->kode_dana),
-                'nama_dana'      => $this->normalizeValue($row->nama_dana),
-                'sumber_dana'    => $this->normalizeValue($row->sumber_dana),
-                'set_input'      => $this->normalizeValue($row->set_input),
-                'status'         => $this->normalizeValue($row->status),
-                'tahun'          => $this->normalizeValue($row->tahun) ?? $tahunOption,
+                'created_at' => $this->normalizeValue($row->created_at),
+                'created_user' => $this->normalizeValue($row->created_user),
+                'id_daerah' => $this->normalizeValue($row->id_daerah),
+                'id_dana' => $this->normalizeValue($row->id_dana),
+                'id_unik' => $this->normalizeValue($row->id_unik),
+                'is_locked' => $this->normalizeValue($row->is_locked),
+                'kode_dana' => $this->normalizeValue($row->kode_dana),
+                'nama_dana' => $this->normalizeValue($row->nama_dana),
+                'sumber_dana' => $this->normalizeValue($row->sumber_dana),
+                'set_input' => $this->normalizeValue($row->set_input),
+                'status' => $this->normalizeValue($row->status),
+                'tahun' => $this->normalizeValue($row->tahun) ?? $tahunOption,
                 'tahun_anggaran' => $this->normalizeValue($row->tahun_anggaran) ?? $tahunOption,
-                'updated_at'     => $this->normalizeValue($row->updated_at),
-                'active'         => $this->normalizeValue($row->active) ?? 1,
-                'updated_user'   => $this->normalizeValue($row->updated_user) ?? 0,
+                'updated_at' => $this->normalizeValue($row->updated_at),
+                'active' => $this->normalizeValue($row->active) ?? 1,
+                'updated_user' => $this->normalizeValue($row->updated_user) ?? 0,
             ];
         }
 
@@ -157,7 +163,7 @@ class InsertSumberDana extends Command
         $chunks = array_chunk($insertData, $batchSize);
 
         $this->newLine();
-        $this->info("Memproses " . count($insertData) . " records dalam " . count($chunks) . " batch...");
+        $this->info('Memproses '.count($insertData).' records dalam '.count($chunks).' batch...');
         $this->output->progressStart(count($chunks));
 
         foreach ($chunks as $chunk) {
@@ -188,6 +194,6 @@ class InsertSumberDana extends Command
         }
 
         $this->output->progressFinish();
-        $this->info("✓ " . count($insertData) . " records berhasil disinkronkan.");
+        $this->info('✓ '.count($insertData).' records berhasil disinkronkan.');
     }
 }

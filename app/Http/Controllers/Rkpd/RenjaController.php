@@ -122,6 +122,30 @@ class RenjaController extends Controller
         }
     }
 
+    public function exportPdf(Request $request, $idSkpd)
+    {
+        try {
+            $tahunAnggaran = (int) $request->query('tahun_anggaran', now()->year);
+
+            $pdfData = $this->renjaService->getExportPdfData((int) $idSkpd, $tahunAnggaran);
+
+            if (! $pdfData['skpd']) {
+                return redirect()->back()->with('error', 'Data SKPD tidak ditemukan untuk tahun anggaran tersebut');
+            }
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rkpd.renja.pdf', $pdfData)
+                ->setPaper('f4', 'landscape');
+
+            $fileName = 'Renja_'.str_replace(' ', '_', $pdfData['skpd']->nama_skpd).'_'.$tahunAnggaran.'.pdf';
+
+            return $pdf->stream($fileName);
+        } catch (\Exception $e) {
+            Log::error('Error exporting RENJA PDF: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Gagal membuat PDF: '.$e->getMessage());
+        }
+    }
+
     public function getData(Request $request)
     {
         try {

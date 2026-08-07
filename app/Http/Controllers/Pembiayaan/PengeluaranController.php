@@ -17,7 +17,7 @@ class PengeluaranController extends Controller
 
         return view('pembiayaan.pengeluaran.index', compact('tahunAnggaran'));
     }
-
+    
     public function getDataIndex(Request $request)
     {
         try {
