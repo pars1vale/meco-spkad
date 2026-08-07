@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>RKA Belanja SKPD - Pembangunan Sarana, Prasarana dan Utilitas Sekolah</title>
+<style>
+  :root{
+    --border:#000;
+    --label:#000;
+    --value:#000;
+    --grp-title:#000;
+    --grp-sumber:#000;
+    --sub-label:#000;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:Arial, Helvetica, sans-serif;
+    color:#111;
+    max-width:940px;
+    margin:0 auto;
+    padding:20px;
+    font-size:12px;
+    line-height:1.35;
+    background:#fff;
+  }
+
+  .box{ border:1.5px solid var(--border); margin-bottom:16px; }
+  .box-title{
+    text-align:center; font-weight:bold; padding:6px 8px;
+    border-bottom:1.5px solid var(--border); font-size:13px;
+  }
+
+  /* ===== Kop ===== */
+  .kop{ display:flex; }
+  .kop .kop-left{
+    flex:1; text-align:center; padding:14px 10px; font-weight:bold;
+    font-size:14px; line-height:1.5; border-right:1.5px solid var(--border);
+  }
+  .kop .kop-right{ width:170px; text-align:center; padding:10px; font-weight:bold; font-size:13px; line-height:1.5; }
+  .kop-sub{ text-align:center; padding:6px 8px; border-top:1.5px solid var(--border); }
+
+  /* ===== Field rows ===== */
+  table.fields{ width:100%; border-collapse:collapse; }
+  table.fields td{ padding:5px 10px; vertical-align:top; border-top:1px solid #999; }
+  table.fields tr:first-child td{ border-top:none; }
+  table.fields td.label{ width:190px; color:var(--label); font-weight:bold; border-right:1.5px solid var(--border); white-space:nowrap; }
+  table.fields td.value{ color:var(--value); }
+  table.fields td.value .line{ display:block; }
+
+  /* ===== Indikator kinerja ===== */
+  table.kinerja{ width:100%; border-collapse:collapse; }
+  table.kinerja th, table.kinerja td{ border:1px solid var(--border); padding:6px 8px; font-size:12px; vertical-align:top; }
+  table.kinerja th{ text-align:center; font-weight:bold; color:var(--value); background:#fafafa; }
+  table.kinerja td:nth-child(1){ color:var(--label); font-weight:bold; }
+  table.kinerja td:nth-child(2), table.kinerja td:nth-child(3){ color:var(--value); }
+
+  /* ===== Rincian anggaran ===== */
+  table.rincian{ width:100%; border-collapse:collapse; }
+  table.rincian th, table.rincian td{ border:1px solid var(--border); padding:5px 7px; font-size:11.5px; vertical-align:top; }
+  table.rincian th{ text-align:center; font-weight:bold; background:#fafafa; color:var(--value); }
+  table.rincian td.num{ text-align:right; }
+  table.rincian td.center{ text-align:center; white-space:nowrap; }
+
+  table.rincian tr.header-row td{ font-weight:bold; }
+  table.rincian tr.header-row td.num{ font-weight:bold; }
+
+  table.rincian tr.group-row td{ }
+  table.rincian tr.group-row .grp-title{ color:var(--grp-title); font-weight:bold; }
+  table.rincian tr.group-row .grp-sumber{ color:var(--grp-sumber); }
+  table.rincian tr.group-row td.num{ color:var(--grp-title); font-weight:bold; }
+
+  table.rincian tr.sub-row td{ color:var(--sub-label); font-weight:bold; }
+  table.rincian tr.sub-row td.num{ color:var(--sub-label); font-weight:bold; }
+
+  table.rincian tr.detail-row td{ color:#111; }
+  .spesifikasi{ font-style:italic; color:#444; }
+
+  table.rincian tr.total-row td{ font-weight:bold; border-top:2px solid var(--border); }
+
+  /* ===== Signature box ===== */
+  .box.rincian-box{ margin-bottom:0; }
+  .box.ttd-box{ padding:0; border-top:none; }
+  table.ttd-table{ width:100%; border-collapse:collapse; }
+  table.ttd-table td{ vertical-align:top; padding:14px; height:190px; }
+  table.ttd-table td.ttd-empty{ width:54%; border-right:1.5px solid var(--border); }
+  table.ttd-table td.ttd-content{ text-align:center; font-size:12px; }
+  .ttd-content .space{ height:95px; }
+  .ttd-content .nama{ font-weight:bold; text-decoration:underline; }
+
+  /* ===== Pembahasan / catatan ===== */
+  table.catatan{ width:100%; border-collapse:collapse; margin-bottom:16px; }
+  table.catatan td{ border:1px solid var(--border); padding:5px 8px; font-size:12px; vertical-align:top; }
+  table.catatan td.c-label{ width:120px; font-weight:bold; }
+  table.catatan td.c-colon{ width:16px; }
+
+  /* ===== Tim anggaran ===== */
+  table.tim{ width:100%; border-collapse:collapse; }
+  table.tim caption{
+    border:1px solid var(--border); border-bottom:none; padding:5px;
+    font-weight:bold; color:var(--grp-sumber); caption-side:top; font-size:12.5px;
+  }
+  table.tim th, table.tim td{ border:1px solid var(--border); padding:5px 8px; font-size:12px; }
+  table.tim th{ background:#fafafa; text-align:center; font-weight:bold; color:var(--value); }
+  table.tim td.kosong{ text-align:center; font-style:italic; color:var(--value); }
+
+  .print-btn{
+    position:fixed; top:16px; right:16px; padding:8px 14px;
+    font-family:Arial, sans-serif; font-size:13px;
+    background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer;
+  }
+  @media print{ .print-btn{ display:none; } body{ padding:0; } }
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">Cetak / Simpan PDF</button>
+
+<!-- ===== KOP DOKUMEN ===== -->
+<div class="box">
+  <div class="kop">
+    <div class="kop-left">RENCANA KERJA DAN ANGGARAN<br>SATUAN KERJA PERANGKAT DAERAH</div>
+    <div class="kop-right">Formulir<br>RKA-BELANJA<br>SKPD</div>
+  </div>
+  <div class="kop-sub" id="pemerintahan-tahun">Pemerintahan Kab. [KABUPATEN] Tahun Anggaran [TAHUN]</div>
+</div>
+
+<!-- ===== INFO UTAMA ===== -->
+<div class="box">
+  <div class="box-title">Rincian Anggaran Belanja Menurut Program, Kegiatan dan Sub Kegiatan</div>
+  <table class="fields" id="info-table"></table>
+</div>
+
+<!-- ===== INDIKATOR KINERJA ===== -->
+<div class="box">
+  <div class="box-title">Indikator dan Tolak Ukur Kinerja Kegiatan</div>
+  <table class="kinerja">
+    <thead><tr><th style="width:14%;">Indikator</th><th style="width:56%;">Tolok Ukur Kinerja</th><th style="width:30%;">Target Kinerja</th></tr></thead>
+    <tbody id="kinerja-body"></tbody>
+  </table>
+</div>
+
+<!-- ===== SUB INFO RINCIAN BELANJA ===== -->
+<div class="box">
+  <div class="box-title">Rincian Anggaran Belanja Kegiatan<br><span style="font-weight:normal;">Satuan Kerja Perangkat Daerah</span></div>
+  <table class="fields" id="subinfo-table"></table>
+</div>
+
+<!-- ===== TABEL RINCIAN BELANJA ===== -->
+<div class="box rincian-box">
+  <div class="box-title">Rincian Anggaran Belanja Kegiatan<br><span style="font-weight:normal;">Satuan Kerja Perangkat Daerah</span></div>
+  <table class="rincian">
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:9%;">Kode Rekening</th>
+        <th rowspan="2" style="width:37%;">Uraian</th>
+        <th colspan="4">Rinci Perhitungan</th>
+        <th rowspan="2" style="width:15%;">Jumlah</th>
+      </tr>
+      <tr>
+        <th style="width:8%;">Koefisien</th>
+        <th style="width:8%;">Satuan</th>
+        <th style="width:13%;">Harga</th>
+        <th style="width:6%;">PPN</th>
+      </tr>
+    </thead>
+    <tbody id="rincian-body"></tbody>
+  </table>
+</div>
+
+<!-- ===== TANDA TANGAN ===== -->
+<div class="box ttd-box">
+  <table class="ttd-table">
+    <tr>
+      <td class="ttd-empty"></td>
+      <td class="ttd-content">
+        <div id="ttd-tempat-tanggal">Kab. [KABUPATEN], ..............................</div>
+        <div id="ttd-jabatan">Kepala Dinas [NAMA DINAS]</div>
+        <div class="space"></div>
+        <div class="nama" id="ttd-nama">[NAMA PEJABAT]</div>
+        <div id="ttd-nip">NIP. [NOMOR NIP]</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- ===== PEMBAHASAN / CATATAN ===== -->
+<table class="catatan">
+  <tr><td class="c-label">Pembahasan</td><td class="c-colon">:</td><td></td></tr>
+  <tr><td class="c-label">Tanggal</td><td class="c-colon">:</td><td></td></tr>
+  <tr><td class="c-label">Catatan</td><td class="c-colon">:</td><td></td></tr>
+  <tr><td colspan="2">1.</td><td></td></tr>
+  <tr><td colspan="2">2.</td><td></td></tr>
+  <tr><td colspan="2">Dst</td><td></td></tr>
+</table>
+
+<!-- ===== TIM ANGGARAN ===== -->
+<table class="tim">
+  <caption>Tim Anggaran Pemerintahan Daerah</caption>
+  <thead>
+    <tr><th style="width:6%;">No</th><th style="width:26%;">Nama</th><th style="width:20%;">NIP</th><th style="width:24%;">Jabatan</th><th style="width:24%;">Tanda Tangan</th></tr>
+  </thead>
+  <tbody id="tim-body">
+    <tr><td colspan="5" class="kosong">Data Kosong</td></tr>
+  </tbody>
+</table>
+
+<script>
+/* =====================================================================
+   TEMPLATE DATA — replika persis dokumen yang diupload:
+   Sub Kegiatan 1.01.02.2.01.0006 Pembangunan Sarana, Prasarana dan
+   Utilitas Sekolah, Dinas Pendidikan Kab. Yahukimo, TA 2026.
+   Ganti isi objek DATA untuk dokumen sub kegiatan lain.
+   ===================================================================== */
+const DATA = {
+  kabupaten: "Yahukimo",
+  tahunAnggaran: "2026",
+
+  info: [
+    ["Urusan Pemerintahan", "1 URUSAN PEMERINTAHAN WAJIB YANG BERKAITAN DENGAN PELAYANAN DASAR"],
+    ["Bidang Urusan", "1.01 URUSAN PEMERINTAHAN BIDANG PENDIDIKAN"],
+    ["Unit Organisasi", "1.01.5.02.0.00.01.0000 Dinas Pendidikan"],
+    ["Sub Unit Organisasi", "-"],
+    ["Program", "1.01.02 PROGRAM PENGELOLAAN PENDIDIKAN"],
+    ["Kegiatan", "1.01.02.2.01 Pengelolaan Pendidikan Sekolah Dasar"],
+    ["Sub Kegiatan", "1.01.02.2.01.0006 Pembangunan Sarana, Prasarana dan Utilitas Sekolah"],
+    ["SPM", "SPM Bidang Pendidikan"],
+    ["Jenis Layanan", "Angka Partisipasi Sekolah"],
+    ["Sumber Pendanaan", ["Dana Alokasi Umum (DAU)", "DAU yang Ditentukan Penggunaannya Bidang Pendidikan", "Dana Otonomi Khusus 1,25%-Papua-Pendidikan"]],
+    ["Lokasi", ["Kab. Yahukimo, Pasema, Pasema", "Kab. Yahukimo, Dekai, Dekai", "Kab. Yahukimo, Amuma, Amuma", "Kab. Yahukimo, Sela, Sela", "Kab. Yahukimo, Hereapini, Hereapini", "Kab. Yahukimo, Hilipuk, Hilipuk", "Kab. Yahukimo, Kabianggama, Kabianggama"]],
+    ["Waktu Pelaksanaan", "Januari s.d Desember"],
+    ["Kelompok Sasaran", "Kepala Sekolah, Guru, Tenaga Kependidikan, Pengawas Sekolah, Komite Sekolah, Siswa Kab. Yahukimo"],
+    ["Alokasi 2025", "Rp. 0,00"],
+    ["Alokasi 2026", "Rp. 8.730.745.000,00"],
+    ["Alokasi 2027", "Rp. 14.000.000.000,00"]
+  ],
+
+  kinerja: [
+    ["Capaian Program", "Persentase Peningkatan Kualitas dan Akses Pendidikan", "180 Satuan Pendidikan"],
+    ["Masukan", "Dana yang dibutuhkan", "Rp. 8.730.745.000,00"],
+    ["Keluaran", "Jumlah Sarana, Prasarana dan Utilitas Sekolah yang Telah Dibangun", "2 Unit"],
+    ["Hasil", "Jumlah sekolah dasar yang mendapatkan fasilitasi peningkatan mutu pengelolaan pendidikan", "45 Satuan Pendidikan"]
+  ],
+
+  subinfo: [
+    ["Sub Kegiatan", "1.01.02.2.01.0006 Pembangunan Sarana, Prasarana dan Utilitas Sekolah"],
+    ["Sumber Pendanaan", ["Dana Alokasi Umum (DAU)", "DAU yang Ditentukan Penggunaannya Bidang Pendidikan", "Dana Otonomi Khusus 1,25%-Papua-Pendidikan"]],
+    ["Lokasi", ", Kecamatan Pasema, Kelurahan Pasema"],
+    ["Keluaran Sub Kegiatan", "Jumlah Sarana, Prasarana dan Utilitas Sekolah yang Telah Dibangun"],
+    ["Waktu Pelaksanaan", "Januari s.d Desember"],
+    ["Keterangan", ""]
+  ],
+
+  rincianHeader: [
+    { kode: "5", uraian: "BELANJA DAERAH", jumlah: 8730745000 },
+    { kode: "5.1", uraian: "BELANJA OPERASI", jumlah: 8730745000 },
+    { kode: "5.1.02", uraian: "Belanja Barang dan Jasa", jumlah: 8730745000 },
+    { kode: "5.1.02.01", uraian: "Belanja Barang", jumlah: 8730745000 },
+    { kode: "5.1.02.01.001", uraian: "Belanja Barang Pakai Habis", jumlah: 8730745000 },
+    { kode: "5.1.02.01.001.00040", uraian: "Belanja Barang untuk Dijual/Diserahkan kepada Pihak Ketiga/Pihak Lain", jumlah: 8730745000 }
+  ],
+
+  // 19 grup paket pekerjaan, urut persis seperti dokumen asli.
+  // koefisien / satuan dipisah kolom (misal koefisien "1", satuan "Paket").
+  rincian: [
+    {
+      group: "Jasa Pengawasan Teknis Pembangunan Pagar SD Anggen Fano Dekai Tahap III",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 37200000,
+      items: [
+        { subLabel: "Jasa Pengawasan Teknis", subJumlah: 37200000,
+          uraian: "Jasa Pengawasan Teknis Pembangunan Pagar SD Anggen Fano Dekai Tahap III",
+          spesifikasi: "Swasta", koefisien: "1", satuan: "Paket - - -", harga: 37200000, ppn: 0, jumlah: 37200000 }
+      ]
+    },
+    {
+      group: "Jasa Pengawasan Teknis Pembangunan Pagar Sekolah YPK Metanoia",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 153000000,
+      items: [
+        { subLabel: "Jasa Pengawasan Teknis Pembangunan Pagar Sekolah YPK Metanoia", subJumlah: 153000000,
+          uraian: "Pengawasan Teknis Pembangunan Pagar Sekolah YPK Metanoia",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket 0 0 -", harga: 153000000, ppn: 0, jumlah: 153000000 }
+      ]
+    },
+    {
+      group: "Jasa Pengawasan Teknis Pembangunan Toilet (Jamban) beserta Sanitasinya SD JHON D. WILSON HOLUWON ( SILPA 2025 DAU yang Ditentukan Penggunaannya Bidang Pendidikan )",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 21500000,
+      items: [
+        { subLabel: "Jasa Pengawasan Teknis", subJumlah: 9500000,
+          uraian: "Jasa Pengawasan Teknis",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 9500000, ppn: 0, jumlah: 9500000 },
+        { subLabel: "Jasa Perencanaan Teknis", subJumlah: 12000000,
+          uraian: "Jasa Perencanaan Teknis",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 12000000, ppn: 0, jumlah: 12000000 }
+      ]
+    },
+    {
+      group: "Jasa Pengawasan Teknis Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON ( SILPA 2025 DAU yang Ditentukan Penggunaannya Bidang Pendidikan)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 8500000,
+      items: [
+        { subLabel: "Jasa Pengawasan Teknis", subJumlah: 8500000,
+          uraian: "Jasa Pengawasan Teknis Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 8500000, ppn: 0, jumlah: 8500000 }
+      ]
+    },
+    {
+      group: "Jasa Pengawasan Teknis Penimbunan Lokasi Sekolah SDS Elisa Dekai",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 63600000,
+      items: [
+        { subLabel: null, subJumlah: null,
+          uraian: "Jasa Pengawasan Teknis Penimbunan Lokasi Sekolah SDS Elisa Tahap II",
+          spesifikasi: "Swasta", koefisien: "1", satuan: "Paket - - -", harga: 63600000, ppn: 0, jumlah: 63600000 }
+      ]
+    },
+    {
+      group: "Jasa Perencanaan dan Pengawasan Teknis Pembangunan Gorong-gorong SD Anggen Fano Dekai (Silpa DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 7000000,
+      items: [
+        { subLabel: null, subJumlah: null,
+          uraian: "Jasa konsultan pengawas kegiatan kontraktual",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 7000000, ppn: 0, jumlah: 7000000 }
+      ]
+    },
+    {
+      group: "Jasa Perencanaan dan Pengawasan Teknis Pembangunan Portal & POS Jaga SD Anggen Fano Dekai (Silpa DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 8000000,
+      items: [
+        { subLabel: null, subJumlah: null,
+          uraian: "Jasa konsultan pengawas kegiatan kontraktual",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 8000000, ppn: 0, jumlah: 8000000 }
+      ]
+    },
+    {
+      group: "Jasa Perencanaan dan Pengawasan Teknis Pembangunan Ruang Multifungsi beserta Perabotnya SD YPPK Santo Antonius Dekai (SILPA DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 25500000,
+      items: [
+        { subLabel: null, subJumlah: null,
+          uraian: "Jasa Konsultan Pengawas Kegiatan Kontraktual",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 25500000, ppn: 0, jumlah: 25500000 }
+      ]
+    },
+    {
+      group: "Jasa Perencanaan dan Pengawasan Teknis Pembuatan dan Penataan Taman Sekolah SD Anggen Fano Dekai (SILPA DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 20000000,
+      items: [
+        { subLabel: null, subJumlah: null,
+          uraian: "Jasa Konsultan Pengawas Kegiatan Kontraktual",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 8500000, ppn: 0, jumlah: 8500000 },
+        { subLabel: "Jasa Perencanaan Teknis", subJumlah: 11500000,
+          uraian: "Jasa Perencanaan untuk Kegiatan Kontraktual",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 11500000, ppn: 0, jumlah: 11500000 }
+      ]
+    },
+    {
+      group: "Jasa Perencanaan Teknis Pembangunan Pagar Sekolah YPK Metanoia",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 204000000,
+      items: [
+        { subLabel: "Jasa Perencanaan Teknis Pembangunan Pagar Sekolah YPK Metanoia", subJumlah: 204000000,
+          uraian: "Perencanaan Teknis Pembangunan Pagar Sekolah YPK Metanoia",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket 0 0 -", harga: 204000000, ppn: 0, jumlah: 204000000 }
+      ]
+    },
+    {
+      group: "Jasa Perencanaan Teknis Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON (SILPA 2025 DAU yang Ditentukan Penggunaannya Bidang Pendidikan)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 11500000,
+      items: [
+        { subLabel: "Jasa Perencanaan Teknis", subJumlah: 11500000,
+          uraian: "Jasa Perencanaan Teknis Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 11500000, ppn: 0, jumlah: 11500000 }
+      ]
+    },
+    {
+      group: "Pembangunan Gorong-gorong SD Anggen Fano Dekai (Silpa DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 161000000,
+      items: [
+        { subLabel: "Pembangunan Gorong-gorong Sekolah", subJumlah: 161000000,
+          uraian: "Pembangunan Gorong-gorong Sekolah",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 161000000, ppn: 0, jumlah: 161000000 }
+      ]
+    },
+    {
+      group: "Pembangunan Pagar SD Anggen Fano Dekai Tahap III",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 892800000,
+      items: [
+        { subLabel: "Pembangunan Pagar", subJumlah: 892800000,
+          uraian: "Pembangunan Pagar SD Anggen Fano Dekai Tahap III",
+          spesifikasi: "Swasta", koefisien: "1", satuan: "Paket - - -", harga: 892800000, ppn: 0, jumlah: 892800000 }
+      ]
+    },
+    {
+      group: "Pembangunan Pagar Sekolah YPK Metanoia",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 4743000000,
+      items: [
+        { subLabel: "Pembangunan Pagar Sekolah YPK Metanoia", subJumlah: 4743000000,
+          uraian: "Pembangunan Pagar Sekolah YPK Metanoia",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket 0 0 -", harga: 4743000000, ppn: 0, jumlah: 4743000000 }
+      ]
+    },
+    {
+      group: "Pembangunan Portal & POS Jaga SD Anggen Fano Dekai (Silpa DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 192500000,
+      items: [
+        { subLabel: "Pembangunan Portal dan POS Jaga Sekolah", subJumlah: 192500000,
+          uraian: "Pembangunan Portal dan POS Jaga Sekolah",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 192500000, ppn: 0, jumlah: 192500000 }
+      ]
+    },
+    {
+      group: "Pembangunan Toilet (Jamban) beserta Sanitasinya SD JHON D. WILSON HOLUWON (SILPA 2025 DAU yang Ditentukan Penggunaannya Bidang Pendidikan )",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 199745000,
+      items: [
+        { subLabel: "Pembangunan Toilet (Jamban)", subJumlah: 199745000,
+          uraian: "Pembangunan Toilet (Jamban)",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 199745000, ppn: 0, jumlah: 199745000 }
+      ]
+    },
+    {
+      group: "Pembuatan dan Penataan Taman Sekolah SD Anggen Fano Dekai (SILPA DAU DITENTUKAN - BIDANG PENDIDIKAN)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 192500000,
+      items: [
+        { subLabel: "Pembuatan dan Penataan Taman Sekolah", subJumlah: 192500000,
+          uraian: "Pembuatan dan Penataan Taman Sekolah",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 192500000, ppn: 0, jumlah: 192500000 }
+      ]
+    },
+    {
+      group: "Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON ( SILPA 2025 DAU yang Ditentukan Penggunaannya Bidang Pendidikan)",
+      sumberDana: "Dana Alokasi Umum (DAU)",
+      jumlah: 263000000,
+      items: [
+        { subLabel: "Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON", subJumlah: 263000000,
+          uraian: "Penataan Halaman Lokasi SD JHON D. WILSON HOLUWON",
+          spesifikasi: "-", koefisien: "1", satuan: "Paket", harga: 263000000, ppn: 0, jumlah: 263000000 }
+      ]
+    },
+    {
+      group: "Penimbunan Lokasi Sekolah SDS Elisa",
+      sumberDana: "Dana Otonomi Khusus 1,25%-Papua-Pendidikan",
+      jumlah: 1526400000,
+      items: [
+        { subLabel: "Penimbunan Lokasi Sekolah SDS Elisa Dekai", subJumlah: 1526400000,
+          uraian: "Penimbunan Lokasi Sekolah SDS Elisa Tahap II",
+          spesifikasi: "Swasta", koefisien: "1", satuan: "Paket - - -", harga: 1526400000, ppn: 0, jumlah: 1526400000 }
+      ]
+    }
+  ],
+
+  ttd: {
+    tempat: "Kab. Yahukimo",
+    tanggal: "..............................",
+    jabatan: "Kepala Dinas Pendidikan",
+    nama: "AKSO BALINGGA, S.Pd",
+    nip: "197603202003121006"
+  }
+};
+
+/* ===================== RENDER HELPERS ===================== */
+function formatRupiah(n){
+  if (n === undefined || n === null || n === "") return "";
+  const num = Number(n);
+  return "Rp. " + num.toLocaleString("id-ID", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function valueHtml(v){
+  if (Array.isArray(v)) return v.map(l => `<span class="line">${l}</span>`).join("");
+  return v;
+}
+function renderFieldTable(tbodyId, rows){
+  const tbody = document.getElementById(tbodyId);
+  rows.forEach(([label, value]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="label">${label}</td><td class="value">: ${valueHtml(value)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function renderKinerja(){
+  const tbody = document.getElementById("kinerja-body");
+  DATA.kinerja.forEach(([ind, tolok, target]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${ind}</td><td>${tolok}</td><td>${target}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderRincian(){
+  const tbody = document.getElementById("rincian-body");
+  let grandTotal = 0;
+
+  DATA.rincianHeader.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.className = "header-row";
+    tr.innerHTML = `
+      <td>${row.kode}</td>
+      <td colspan="5">${row.uraian}</td>
+      <td class="num">${formatRupiah(row.jumlah)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  DATA.rincian.forEach(row => {
+    const g = document.createElement("tr");
+    g.className = "group-row";
+    g.innerHTML = `
+      <td></td>
+      <td colspan="5"><span class="grp-title">[ # ] ${row.group}</span><br><span class="grp-sumber">Sumber Dana : ${row.sumberDana}</span></td>
+      <td class="num">${formatRupiah(row.jumlah)}</td>
+    `;
+    tbody.appendChild(g);
+
+    row.items.forEach(it => {
+      if (it.subLabel){
+        const s = document.createElement("tr");
+        s.className = "sub-row";
+        s.innerHTML = `
+          <td></td>
+          <td colspan="5">[ - ] ${it.subLabel}</td>
+          <td class="num">${formatRupiah(it.subJumlah)}</td>
+        `;
+        tbody.appendChild(s);
+      }
+      const tr = document.createElement("tr");
+      tr.className = "detail-row";
+      tr.innerHTML = `
+        <td></td>
+        <td>${it.uraian}<br><span class="spesifikasi">Spesifikasi : ${it.spesifikasi || "-"}</span></td>
+        <td class="center">${it.koefisien || ""}</td>
+        <td class="center">${it.satuan || ""}</td>
+        <td class="num">${formatRupiah(it.harga)}</td>
+        <td class="center">${it.ppn || 0} %</td>
+        <td class="num">${formatRupiah(it.jumlah)}</td>
+      `;
+      tbody.appendChild(tr);
+      grandTotal += Number(it.jumlah || 0);
+    });
+  });
+
+  const totalRow = document.createElement("tr");
+  totalRow.className = "total-row";
+  totalRow.innerHTML = `<td colspan="6" style="text-align:right;">Jumlah :</td><td class="num">${formatRupiah(grandTotal)}</td>`;
+  tbody.appendChild(totalRow);
+}
+
+function renderTtd(){
+  document.getElementById("ttd-tempat-tanggal").textContent = `${DATA.ttd.tempat},${DATA.ttd.tanggal}`;
+  document.getElementById("ttd-jabatan").textContent = DATA.ttd.jabatan;
+  document.getElementById("ttd-nama").textContent = DATA.ttd.nama;
+  document.getElementById("ttd-nip").textContent = `NIP. ${DATA.ttd.nip}`;
+}
+
+document.getElementById("pemerintahan-tahun").textContent =
+  `Pemerintahan Kab. ${DATA.kabupaten} Tahun Anggaran ${DATA.tahunAnggaran}`;
+renderFieldTable("info-table", DATA.info);
+renderFieldTable("subinfo-table", DATA.subinfo);
+renderKinerja();
+renderRincian();
+renderTtd();
+</script>
+
+</body>
+</html>
