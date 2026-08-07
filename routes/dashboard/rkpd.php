@@ -40,6 +40,7 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('/renja/{id}/edit', [RenjaController::class, 'edit'])->name('renja.edit');
     Route::put('/renja/{id}', [RenjaController::class, 'update'])->name('renja.update');
     Route::delete('/renja/{id}', [RenjaController::class, 'destroy'])->name('renja.destroy');
+    Route::get('/renja/export-pdf/{id_skpd}', [RenjaController::class, 'exportPdf'])->name('renja.export-pdf');
     // ==================== RINCIAN BELANJA ====================
     // View Rincian Belanja
     Route::get('/renja/{id}/rincian', [RincianBelanjaController::class, 'index'])->name('renja.rincian');

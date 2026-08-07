@@ -5,9 +5,6 @@ namespace App\Repositories\Rkpd;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Repository untuk Data Access RENJA
- */
 class RenjaRepository
 {
     protected const TAHUN_ANGGARAN_DEFAULT = 2025;
@@ -618,6 +615,61 @@ class RenjaRepository
         return DB::table('data_bulan')->get();
     }
 
+    // ==================== EXPORT PDF RENJA ====================
+
+    /**
+     * Ambil seluruh baris Sub Kegiatan (data_sub_keg_bl) untuk 1 SKPD + 1 tahun anggaran,
+     * terurut sesuai struktur laporan: Urusan -> Bidang Urusan -> Program -> Kegiatan -> Sub Kegiatan.
+     * Sengaja tidak pakai JOIN/aggregate di sini supaya query tetap simpel & aman dari
+     * masalah GROUP BY; sumber dana & indikator diambil terpisah lewat getSumberDanaByIds()
+     * dan getIndikatorByIds() lalu digabung di Service.
+     */
+    public function getRenjaRowsForExport(int $idSkpd, int $tahunAnggaran): Collection
+    {
+        return DB::table('data_sub_keg_bl')
+            ->where('id_skpd', $idSkpd)
+            ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('active', 1)
+            ->orderBy('kode_urusan')
+            ->orderBy('kode_bidang_urusan')
+            ->orderBy('kode_program')
+            ->orderBy('kode_giat')
+            ->orderBy('kode_sub_giat')
+            ->get();
+    }
+
+    /**
+     * Sumber dana untuk sekumpulan id sub kegiatan (data_sub_keg_bl.id), dikelompokkan per idsubbl.
+     */
+    public function getSumberDanaByIds(array $idSubBlList): Collection
+    {
+        if (empty($idSubBlList)) {
+            return collect();
+        }
+
+        return DB::table('data_dana_sub_keg')
+            ->whereIn('idsubbl', $idSubBlList)
+            ->where('active', 1)
+            ->get()
+            ->groupBy('idsubbl');
+    }
+
+    /**
+     * Indikator untuk sekumpulan id sub kegiatan (data_sub_keg_bl.id), dikelompokkan per idsubbl.
+     */
+    public function getIndikatorByIds(array $idSubBlList): Collection
+    {
+        if (empty($idSubBlList)) {
+            return collect();
+        }
+
+        return DB::table('data_sub_keg_indikator')
+            ->whereIn('idsubbl', $idSubBlList)
+            ->where('active', 1)
+            ->get()
+            ->groupBy('idsubbl');
+    }
+
     // ==================== DATATABLE ====================
 
     public function getDataTableQuery(?string $searchValue)
@@ -627,6 +679,7 @@ class RenjaRepository
             ->select(
                 'dskb.id',
                 'dskb.id_sub_bl',
+                'dskb.id_skpd',
                 'dskb.kode_sbl',
                 'dskb.kode_skpd',
                 'dskb.nama_skpd',
@@ -651,6 +704,7 @@ class RenjaRepository
             ->groupBy(
                 'dskb.id',
                 'dskb.id_sub_bl',
+                'dskb.id_skpd',
                 'dskb.kode_sbl',
                 'dskb.kode_skpd',
                 'dskb.nama_skpd',
