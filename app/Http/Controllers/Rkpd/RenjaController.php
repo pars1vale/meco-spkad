@@ -169,4 +169,14 @@ class RenjaController extends Controller
             ]);
         }
     }
+    public function ringkasanPaket(int $id)
+    {
+        $data = $this->renjaService->getRingkasanPaket($id);
+
+        if (! $data['subKegiatan']) {
+            abort(404);
+        }
+
+        return view('cetakan.ringkasan_paket_v3', $data);
+    }
 }
