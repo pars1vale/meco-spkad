@@ -41,9 +41,11 @@ class RenjaService
 
     public function getIndexData(): array
     {
+        $tahunAnggaran = $this->getTahunAnggaran();
+
         return [
             'data' => $this->renjaRepo->getAll(),
-            'data_unit' => $this->renjaRepo->getDataUnit(2025),
+            'data_unit' => $this->renjaRepo->getDataUnit($tahunAnggaran),
             'sumberdana' => $this->renjaRepo->getSumberDana(),
             'daerah' => $this->renjaRepo->getDataDaerah(),
             'kec' => $this->renjaRepo->getDataKecamatan(),
@@ -70,9 +72,10 @@ class RenjaService
             return ['subKegiatan' => null];
         }
 
+        $tahunAnggaran = $this->getTahunAnggaran();
         $sumberDana = $this->renjaRepo->getSumberDanaForEdit($subKegiatan->id, $subKegiatan->kode_sbl);
         $indikator = $this->renjaRepo->getIndikatorForEdit($subKegiatan->id, $subKegiatan->kode_sbl);
-        $dataUnit = $this->renjaRepo->getDataUnitById($subKegiatan->id_skpd, 2025);
+        $dataUnit = $this->renjaRepo->getDataUnitById($subKegiatan->id_skpd, $tahunAnggaran);
         $allSumberDana = $this->renjaRepo->getSumberDana();
         $dataBulan = $this->renjaRepo->getDataBulan();
         $dataKecamatan = $this->renjaRepo->getDataKecamatan();
@@ -84,7 +87,7 @@ class RenjaService
             'sumberDana' => $sumberDana,
             'indikator' => $indikator,
             'dataUnit' => $dataUnit,
-            'data_unit' => $this->renjaRepo->getDataUnit(2025),
+            'data_unit' => $this->renjaRepo->getDataUnit($tahunAnggaran),
             'allSumberDana' => $allSumberDana,
             'sumberdana' => $allSumberDana,
             'bln' => $dataBulan,
@@ -99,7 +102,8 @@ class RenjaService
         DB::beginTransaction();
 
         try {
-            $dataUnit = $this->renjaRepo->getDataUnitById($data['id_skpd'], 2025);
+            $tahunAnggaran = $this->getTahunAnggaran();
+            $dataUnit = $this->renjaRepo->getDataUnitById($data['id_skpd'], $tahunAnggaran);
             if (! $dataUnit) {
                 throw new \Exception('Data SKPD tidak ditemukan');
             }
@@ -107,7 +111,7 @@ class RenjaService
             $subKegiatanData = $this->renjaRepo->getSubKegiatanDetailById(
                 $data['id_skpd'],
                 $data['id_sub_kegiatan'],
-                2025
+                $tahunAnggaran
             );
             if (! $subKegiatanData) {
                 throw new \Exception('Data sub kegiatan tidak ditemukan');
@@ -124,7 +128,7 @@ class RenjaService
                 'waktu_awal' => $data['waktu_awal'] ?? null,
                 'waktu_akhir' => $data['waktu_akhir'] ?? null,
                 'pagu_n_depan' => $data['pagu_n_depan'] ?? 0,
-                'tahun_anggaran' => 2025,
+                'tahun_anggaran' => $tahunAnggaran,
             ]);
 
             $this->insertSumberDana($data['sumber_dana'], $idSubKegBl, $codes['kode_sbl']);
@@ -565,6 +569,17 @@ class RenjaService
             Log::error('Error creating rincian: '.$e->getMessage());
             throw $e;
         }
+    }
+
+    private function getTahunAnggaran(): int
+    {
+        $tahunAnggaran = session('tahun_anggaran');
+
+        if (is_numeric($tahunAnggaran) && (int) $tahunAnggaran > 0) {
+            return (int) $tahunAnggaran;
+        }
+
+        return (int) date('Y');
     }
 
     private function generateKodeBelanja($subKegiatan, $dataUnit): array
