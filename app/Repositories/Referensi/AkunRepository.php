@@ -179,4 +179,16 @@ class AkunRepository
     {
         return Akun::where('active', 1)->count();
     }
+
+    /**
+     * Get akun berdasarkan daftar kode_akun (untuk hierarki header rekening cetakan)
+     */
+    public function getByKodeList(array $kodeList, int $tahunAnggaran): Collection
+    {
+        return Akun::where('tahun_anggaran', $tahunAnggaran)
+            ->where('active', 1)
+            ->whereIn('kode_akun', $kodeList)
+            ->get(['kode_akun', 'nama_akun'])
+            ->keyBy('kode_akun');
+    }
 }

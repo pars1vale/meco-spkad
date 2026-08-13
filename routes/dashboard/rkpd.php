@@ -41,6 +41,7 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::put('/renja/{id}', [RenjaController::class, 'update'])->name('renja.update');
     Route::delete('/renja/{id}', [RenjaController::class, 'destroy'])->name('renja.destroy');
     Route::get('/renja/export-pdf/{id_skpd}', [RenjaController::class, 'exportPdf'])->name('renja.export-pdf');
+    Route::get('/renja/{id}/cetak-rincian', [RenjaController::class, 'cetakRincian'])->name('renja.cetak-rincian');
     // ==================== RINCIAN BELANJA ====================
     // View Rincian Belanja
     Route::get('/renja/{id}/rincian', [RincianBelanjaController::class, 'index'])->name('renja.rincian');
@@ -68,4 +69,5 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     // Mintag (Kategori Belanja)
     Route::get('mintag/list', [RincianBelanjaController::class, 'getMintagList'])->name('mintag.list');
     Route::post('mintag/store', [RincianBelanjaController::class, 'storeMintag'])->name('mintag.store');
+
 });

@@ -66,6 +66,17 @@ class RenjaController extends Controller
         }
     }
 
+    public function cetakRincian(int $id)
+    {
+        $data = $this->renjaService->getCetakRincianData($id);
+
+        if (! $data['subKegiatan']) {
+            abort(404, 'Sub kegiatan tidak ditemukan');
+        }
+
+        return view('rkpd.renja.cetak-rincian', $data);
+    }
+
     public function update(UpdateRenjaRequest $request, $id)
     {
         try {

@@ -418,6 +418,175 @@ class RenjaService
         ];
     }
 
+     public function getCetakRincianData(int $idSubBl): array
+{
+    $base = $this->getRincianSubKegiatan($idSubBl);
+
+    if (! $base['subKegiatan']) {
+        return ['subKegiatan' => null];
+    }
+
+    $subKegiatan = $base['subKegiatan'];
+    $rincianBelanja = $base['rincianBelanja'];
+    $tahunAnggaran = $subKegiatan->tahun_anggaran ?? date('Y');
+
+    $spmData = $this->renjaRepo->getSpmBySubGiat($subKegiatan->id_sub_giat, (int) $tahunAnggaran);
+
+    return [
+        'subKegiatan' => $subKegiatan,
+        'sumberDana' => $base['sumberDana'],
+        'indikator' => $base['indikator'],
+        'kabupaten' => config('app.nama_kabupaten', 'Yahukimo'),
+        'tahunAnggaran' => $tahunAnggaran,
+        'waktuPelaksanaan' => $this->formatBulanRange($subKegiatan->waktu_awal ?? null, $subKegiatan->waktu_akhir ?? null),
+        'spm' => $spmData->pluck('spm_teks')->filter()->unique()->implode(', ') ?: '-',
+        'jenisLayanan' => $spmData->pluck('layanan_teks')->filter()->unique()->implode(', ') ?: '-',
+        'rincianRows' => $this->buildRincianRows($rincianBelanja, (int) $tahunAnggaran),
+        'grandTotal' => $rincianBelanja->sum(function ($item) {
+            return $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
+        }),
+        'ttd' => [
+            'tempat' => config('app.nama_kabupaten', 'Yahukimo'),
+            'jabatan' => 'Kepala '.($subKegiatan->nama_skpd ?? ''),
+            'nama' => '-<!-- UNMAPPED: pejabat_penandatangan -->',
+            'nip' => '-<!-- UNMAPPED: nip_pejabat -->',
+        ],
+    ];
+}
+
+    private function formatBulanRange($bulanAwal, $bulanAkhir): string
+    {
+        $namaBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        $awal = $namaBulan[(int) $bulanAwal] ?? '-';
+        $akhir = $namaBulan[(int) $bulanAkhir] ?? '-';
+
+        return "{$awal} s.d {$akhir}";
+    }
+
+    // private function buildAkunHierarchy($rincianBelanja): array
+    // {
+    //     $totals = [];
+
+    //     foreach ($rincianBelanja as $item) {
+    //         $kode = $item->kode_akun;
+    //         $jumlah = ($item->volume ?? 0) * ($item->harga_satuan ?? 0);
+    //         $parts = explode('.', $kode);
+
+    //         $prefix = '';
+    //         foreach ($parts as $i => $part) {
+    //             $prefix = $i === 0 ? $part : $prefix.'.'.$part;
+    //             $totals[$prefix] = ($totals[$prefix] ?? 0) + $jumlah;
+    //         }
+    //     }
+
+    //     $namaAkunMap = $this->akunRepo->getByKodeList(array_keys($totals));
+
+    //     $rows = [];
+    //     foreach ($totals as $kode => $jumlah) {
+    //         $rows[] = [
+    //             'kode' => $kode,
+    //             'uraian' => $namaAkunMap[$kode]->nama_akun ?? '-<!-- UNMAPPED: nama_akun_level -->',
+    //             'jumlah' => $jumlah,
+    //         ];
+    //     }
+
+    //     usort($rows, fn ($a, $b) => strnatcmp($a['kode'], $b['kode']));
+
+    //     return $rows;
+    // }
+
+   private function buildRincianRows($rincianBelanja, int $tahunAnggaran): array
+    {
+        $totals = [];
+        $itemsByKode = [];
+
+        foreach ($rincianBelanja as $item) {
+            $kode = $item->kode_akun;
+            $jumlah = $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
+
+            $parts = explode('.', $kode);
+            $prefix = '';
+            foreach ($parts as $i => $part) {
+                $prefix = $i === 0 ? $part : $prefix.'.'.$part;
+                $totals[$prefix] = ($totals[$prefix] ?? 0) + $jumlah;
+            }
+
+            $itemsByKode[$kode][] = $item;
+        }
+
+        $namaAkunMap = $this->akunRepo->getByKodeList(array_keys($totals), $tahunAnggaran);
+
+        $prefixes = array_keys($totals);
+        usort($prefixes, fn ($a, $b) => strnatcmp($a, $b));
+
+        $rows = [];
+
+        foreach ($prefixes as $kode) {
+            $rows[] = [
+                'type' => 'header',
+                'kode' => $kode,
+                'uraian' => $namaAkunMap[$kode]->nama_akun ?? '-<!-- UNMAPPED: kode akun '.$kode.' -->',
+                'jumlah' => $totals[$kode],
+            ];
+
+            // kalau kode ini persis kode_akun yang dipakai di rincian (leaf),
+            // langsung susulin baris paket > mintag > item di bawahnya
+            if (isset($itemsByKode[$kode])) {
+                $rows = array_merge($rows, $this->buildPaketMintagRows($itemsByKode[$kode]));
+            }
+        }
+
+        return $rows;
+    }
+
+    private function buildPaketMintagRows(array $items): array
+    {
+        $rows = [];
+        $byPaket = collect($items)->groupBy(fn ($i) => $i->idsubtitle ?: 'no_paket_'.$i->id);
+
+        foreach ($byPaket as $paketItems) {
+            $first = $paketItems->first();
+            $totalHarga = fn ($i) => $i->total_harga ?? (($i->volume ?? 0) * ($i->harga_satuan ?? 0));
+
+            $rows[] = [
+                'type' => 'paket',
+                'label' => $first->subtitle_teks ?: 'Tanpa Paket',
+                'sumberDana' => '-<!-- UNMAPPED: sumber_dana_per_paket -->',
+                'jumlah' => $paketItems->sum($totalHarga),
+            ];
+
+            $byMintag = $paketItems->groupBy(fn ($i) => $i->ket_bl_teks ?: 'Tanpa Kategori');
+
+            foreach ($byMintag as $mintagItems) {
+                $rows[] = [
+                    'type' => 'mintag',
+                    'label' => $mintagItems->first()->ket_bl_teks ?: 'Tanpa Kategori',
+                    'jumlah' => $mintagItems->sum($totalHarga),
+                ];
+
+                foreach ($mintagItems as $it) {
+                    $rows[] = [
+                        'type' => 'item',
+                        'uraian' => $it->nama_komponen ?? $it->spek,
+                        'spesifikasi' => $it->spek_komponen ?? $it->spek ?? '-',
+                        'koefisien' => $it->volume,
+                        'satuan' => $it->satuan ?? '',
+                        'harga' => $it->harga_satuan,
+                        'ppn' => 0,
+                        'jumlah' => $totalHarga($it),
+                    ];
+                }
+            }
+        }
+
+        return $rows;
+    }
+
     public function getAkunByJenisBelanja(string $jenisBelanja, int $tahunAnggaran): array
     {
         if (! isset(self::JENIS_BELANJA_MAPPING[$jenisBelanja])) {
@@ -734,6 +903,13 @@ class RenjaService
                         <a class="dropdown-item btn-lihat-rincian" href="#" data-id="'.$id.'">
                             <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
                             Lihat Rincian Belanja
+                        </a>
+                    </li>
+
+                     <li>
+                        <a class="dropdown-item" href="'.route('renja.cetak-rincian', $id).'" target="_blank">
+                            <i class="ki-outline ki-printer fs-5 me-2 text-primary"></i>
+                            Cetak Rincian Belanja
                         </a>
                     </li>
                     
