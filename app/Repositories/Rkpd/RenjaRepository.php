@@ -921,4 +921,16 @@ class RenjaRepository
             'update_at' => now(),
         ]);
     }
+
+    public function getSpmBySubGiat(int $idSubGiat, int $tahunAnggaran): Collection
+    {
+        return DB::table('data_mapping_spm_subgiat as dms')
+            ->join('data_label_spm as dls', 'dls.id_spm', '=', 'dms.id_spm')
+            ->where('dms.id_sub_giat', $idSubGiat)
+            ->where('dms.tahun_anggaran', $tahunAnggaran)
+            ->where('dls.tahun_anggaran', $tahunAnggaran)
+            ->where('dms.active', 1)
+            ->where('dls.active', 1)
+            ->get(['dls.spm_teks', 'dls.layanan_teks']);
+    }
 }
