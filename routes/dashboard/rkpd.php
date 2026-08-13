@@ -40,8 +40,15 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('/renja/{id}/edit', [RenjaController::class, 'edit'])->name('renja.edit');
     Route::put('/renja/{id}', [RenjaController::class, 'update'])->name('renja.update');
     Route::delete('/renja/{id}', [RenjaController::class, 'destroy'])->name('renja.destroy');
+<<<<<<< HEAD
+    Route::get('/renja/{id}/ringkasan-paket', [RenjaController::class, 'ringkasanPaket'])->name('renja.ringkasan-paket');
+=======
     Route::get('/renja/export-pdf/{id_skpd}', [RenjaController::class, 'exportPdf'])->name('renja.export-pdf');
+<<<<<<< HEAD
     Route::get('/renja/{id}/cetak-rincian', [RenjaController::class, 'cetakRincian'])->name('renja.cetak-rincian');
+=======
+>>>>>>> 7ea85dd90c0106f55bcb7e114a74e10987317075
+>>>>>>> fa65b713ddad04c9bdb89087939694b5017d9b9e
     // ==================== RINCIAN BELANJA ====================
     // View Rincian Belanja
     Route::get('/renja/{id}/rincian', [RincianBelanjaController::class, 'index'])->name('renja.rincian');
