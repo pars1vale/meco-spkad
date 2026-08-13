@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class InsertKegiatan extends Command
 {
@@ -16,7 +16,9 @@ class InsertKegiatan extends Command
     protected $description = 'Insert kegiatan data from SIPD-RI into the kegiatan (SPKAD) table';
 
     private $notFoundPrograms = [];
+
     private $duplicateWarnings = [];
+
     private $startTime;
 
     public function handle()
@@ -27,7 +29,7 @@ class InsertKegiatan extends Command
             $this->info("=== INSERT KEGIATAN COMMAND STARTED ===\n");
 
             // 1. Check source connection
-            if (!$this->checkSourceConnection()) {
+            if (! $this->checkSourceConnection()) {
                 return Command::FAILURE;
             }
 
@@ -38,14 +40,15 @@ class InsertKegiatan extends Command
             $rawData = $this->fetchSourceData();
             if ($rawData->isEmpty()) {
                 $this->info('No data found in source table.');
+
                 return Command::SUCCESS;
             }
 
-            $this->info("Total raw records fetched: " . $rawData->count());
+            $this->info('Total raw records fetched: '.$rawData->count());
 
             // 4. Process and deduplicate data
             $processedData = $this->processData($rawData);
-            $this->info("Records after deduplication: " . $processedData->count());
+            $this->info('Records after deduplication: '.$processedData->count());
 
             // 5. Analyze data quality (if debug mode)
             if ($this->option('debug')) {
@@ -57,14 +60,16 @@ class InsertKegiatan extends Command
 
             if (empty($insertData)) {
                 $this->warn('No valid data to insert after processing.');
+
                 return Command::SUCCESS;
             }
 
-            $this->info("Valid records ready for insert: " . count($insertData));
+            $this->info('Valid records ready for insert: '.count($insertData));
 
             // 7. Dry run mode
             if ($this->option('dry-run')) {
                 $this->handleDryRun($insertData);
+
                 return Command::SUCCESS;
             }
 
@@ -84,8 +89,8 @@ class InsertKegiatan extends Command
             return Command::SUCCESS;
         } catch (Exception $e) {
             $this->error("\n=== ERROR OCCURRED ===");
-            $this->error('Message: ' . $e->getMessage());
-            $this->error('File: ' . $e->getFile() . ':' . $e->getLine());
+            $this->error('Message: '.$e->getMessage());
+            $this->error('File: '.$e->getFile().':'.$e->getLine());
 
             if ($this->option('debug')) {
                 $this->error("\nStack Trace:");
@@ -103,11 +108,13 @@ class InsertKegiatan extends Command
     {
         try {
             DB::connection('data_sources')->getPdo();
-            $this->info("✓ Source database connection OK");
+            $this->info('✓ Source database connection OK');
+
             return true;
         } catch (Exception $e) {
-            $this->error("✗ Cannot connect to data_sources database");
-            $this->error("Error: " . $e->getMessage());
+            $this->error('✗ Cannot connect to data_sources database');
+            $this->error('Error: '.$e->getMessage());
+
             return false;
         }
     }
@@ -132,10 +139,11 @@ class InsertKegiatan extends Command
      */
     private function fetchSourceData()
     {
-        $this->info("Fetching data from source...");
+        $this->info('Fetching data from source...');
 
         return DB::connection('data_sources')
-            ->table('u405304318_yahukimo2025.data_prog_keg')
+            // ->table('u405304318_yahukimo2025.data_prog_keg')
+            ->table('yahukimo2026_20260107.data_prog_keg')
             ->select(
                 'nama_urusan',
                 'nama_bidang_urusan',
@@ -162,7 +170,7 @@ class InsertKegiatan extends Command
      */
     private function processData($rawData)
     {
-        $this->info("Processing and deduplicating data...");
+        $this->info('Processing and deduplicating data...');
 
         // Remove duplicates based on id_giat
         $processedData = $rawData->unique(function ($item) {
@@ -193,10 +201,10 @@ class InsertKegiatan extends Command
                 $this->warn("\nCodes with different names:");
                 foreach ($duplicates->take(5) as $code => $group) {
                     $names = $group->pluck('nama_giat')->unique();
-                    $this->line("  Code {$code}: " . $names->implode(' | '));
+                    $this->line("  Code {$code}: ".$names->implode(' | '));
                 }
                 if ($duplicates->count() > 5) {
-                    $this->line("  ... and " . ($duplicates->count() - 5) . " more");
+                    $this->line('  ... and '.($duplicates->count() - 5).' more');
                 }
             }
         }
@@ -233,7 +241,7 @@ class InsertKegiatan extends Command
      */
     private function prepareInsertData($data): array
     {
-        $this->info("Preparing insert data...");
+        $this->info('Preparing insert data...');
 
         $insertData = [];
 
@@ -242,9 +250,10 @@ class InsertKegiatan extends Command
 
         foreach ($data as $row) {
             // Validate program exists
-            if (!$this->validateProgramExists($row->id_program)) {
+            if (! $this->validateProgramExists($row->id_program)) {
                 $this->notFoundPrograms[] = $row->id_program;
                 $bar->advance();
+
                 continue;
             }
 
@@ -274,7 +283,7 @@ class InsertKegiatan extends Command
     {
         static $cache = [];
 
-        if (!isset($cache[$programId])) {
+        if (! isset($cache[$programId])) {
             $cache[$programId] = DB::connection('mysql')
                 ->table('program')
                 ->where('id', $programId)
@@ -290,11 +299,12 @@ class InsertKegiatan extends Command
     private function insertDataInBatches(array $insertData): void
     {
         if (empty($insertData)) {
-            $this->warn("No data to insert.");
+            $this->warn('No data to insert.');
+
             return;
         }
 
-        $this->info("Inserting data in batches...");
+        $this->info('Inserting data in batches...');
 
         // Calculate optimal batch size based on column count
         $columnCount = count($insertData[0]);
@@ -309,7 +319,7 @@ class InsertKegiatan extends Command
 
         try {
             foreach ($chunks as $index => $chunk) {
-                $bar->setMessage("Batch " . ($index + 1) . " of " . count($chunks));
+                $bar->setMessage('Batch '.($index + 1).' of '.count($chunks));
 
                 DB::connection('mysql')->table('kegiatan')->upsert(
                     $chunk,
@@ -319,7 +329,7 @@ class InsertKegiatan extends Command
                         'kode_kegiatan',
                         'nama_kegiatan',
                         'time_stamp',
-                        'updated_at'
+                        'updated_at',
                     ]
                 );
 
@@ -330,11 +340,11 @@ class InsertKegiatan extends Command
             $bar->finish();
             $this->line("\n");
 
-            $this->info("✓ Successfully processed " . count($insertData) . " records in " . count($chunks) . " batches");
+            $this->info('✓ Successfully processed '.count($insertData).' records in '.count($chunks).' batches');
         } catch (Exception $e) {
             $bar->finish();
             $this->line("\n");
-            throw new Exception("Batch insert failed: " . $e->getMessage());
+            throw new Exception('Batch insert failed: '.$e->getMessage());
         }
     }
 
@@ -353,7 +363,7 @@ class InsertKegiatan extends Command
     {
         $this->warn("\n=== DRY RUN MODE - NO DATA WILL BE INSERTED ===\n");
 
-        $this->info("Records that would be inserted: " . count($insertData));
+        $this->info('Records that would be inserted: '.count($insertData));
 
         // Show sample data
         $sample = array_slice($insertData, 0, 10);
@@ -362,7 +372,7 @@ class InsertKegiatan extends Command
                 $item['id'],
                 $item['id_program'],
                 $item['kode_kegiatan'],
-                substr($item['nama_kegiatan'], 0, 50) . '...'
+                substr($item['nama_kegiatan'], 0, 50).'...',
             ];
         }, $sample);
 
@@ -372,7 +382,7 @@ class InsertKegiatan extends Command
         );
 
         if (count($insertData) > 10) {
-            $this->line("... and " . (count($insertData) - 10) . " more records");
+            $this->line('... and '.(count($insertData) - 10).' more records');
         }
 
         $this->info("\nRun without --dry-run flag to insert data");
@@ -383,37 +393,37 @@ class InsertKegiatan extends Command
         $executionTime = round(microtime(true) - $this->startTime, 2);
 
         $this->info("\n╔════════════════════════════════════════╗");
-        $this->info("║         SUMMARY REPORT                 ║");
-        $this->info("╚════════════════════════════════════════╝");
+        $this->info('║         SUMMARY REPORT                 ║');
+        $this->info('╚════════════════════════════════════════╝');
 
-        $this->line("Records before insert: " . number_format($beforeCount));
-        $this->line("Records after insert:  " . number_format($afterCount));
-        $this->line("New records added:     " . number_format($afterCount - $beforeCount));
-        $this->line("Records updated:       " . number_format($processedCount - ($afterCount - $beforeCount)));
-        $this->line("Total processed:       " . number_format($processedCount));
+        $this->line('Records before insert: '.number_format($beforeCount));
+        $this->line('Records after insert:  '.number_format($afterCount));
+        $this->line('New records added:     '.number_format($afterCount - $beforeCount));
+        $this->line('Records updated:       '.number_format($processedCount - ($afterCount - $beforeCount)));
+        $this->line('Total processed:       '.number_format($processedCount));
         $this->line("Execution time:        {$executionTime} seconds");
 
-        if (!empty($this->notFoundPrograms)) {
-            $this->line("Skipped (no program):  " . count(array_unique($this->notFoundPrograms)));
+        if (! empty($this->notFoundPrograms)) {
+            $this->line('Skipped (no program):  '.count(array_unique($this->notFoundPrograms)));
         }
     }
 
     private function showWarnings(): void
     {
-        if (!empty($this->notFoundPrograms)) {
+        if (! empty($this->notFoundPrograms)) {
             $uniquePrograms = array_unique($this->notFoundPrograms);
-            $this->warn("\n⚠ Warning: " . count($uniquePrograms) . " program IDs not found:");
+            $this->warn("\n⚠ Warning: ".count($uniquePrograms).' program IDs not found:');
 
             foreach (array_slice($uniquePrograms, 0, 5) as $id) {
                 $this->warn("  - Program ID: {$id}");
             }
 
             if (count($uniquePrograms) > 5) {
-                $this->warn("  ... and " . (count($uniquePrograms) - 5) . " more");
+                $this->warn('  ... and '.(count($uniquePrograms) - 5).' more');
             }
         }
 
-        if (!empty($this->duplicateWarnings)) {
+        if (! empty($this->duplicateWarnings)) {
             $this->warn("\n⚠ Data Quality Warnings:");
             foreach ($this->duplicateWarnings as $warning) {
                 $this->warn("  - {$warning}");

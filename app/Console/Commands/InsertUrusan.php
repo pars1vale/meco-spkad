@@ -32,7 +32,8 @@ class InsertUrusan extends Command
         }
 
         $data = DB::connection('data_sources')
-            ->table('u405304318_yahukimo2025.data_prog_keg')
+            // ->table('u405304318_yahukimo2025.data_prog_keg')
+            ->table('yahukimo2026_20260107.data_prog_keg')
             ->select('id_urusan', 'kode_urusan', 'nama_urusan')
             ->distinct()
             ->orderBy('kode_urusan', 'asc')
@@ -40,7 +41,7 @@ class InsertUrusan extends Command
             ->get();
 
         // dd($data);
-        $this->info($data->count() . " Data Ditemukan.");
+        $this->info($data->count().' Data Ditemukan.');
 
         $insertData = [];
         foreach ($data as $row) {
@@ -48,11 +49,11 @@ class InsertUrusan extends Command
                 'id' => $row->id_urusan, // Simpan ID dari SIPD-RI
                 'kode_urusan' => $row->kode_urusan,
                 'nama_urusan' => $row->nama_urusan,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
-        if (!empty($insertData)) {
+        if (! empty($insertData)) {
             // gunakan upsert agar tidak error kalau id_urusan sudah ada
             DB::connection('mysql')->table('urusan')->upsert(
                 $insertData,
@@ -61,6 +62,6 @@ class InsertUrusan extends Command
             );
         }
 
-        $this->info("Data -Urusan- has been inserted successfully.");
+        $this->info('Data -Urusan- has been inserted successfully.');
     }
 }

@@ -78,7 +78,8 @@ class InsertSumberDana extends Command
     private function fetchSourceData()
     {
         return DB::connection('data_sources')
-            ->table('u405304318_yahukimo2025.data_sumber_dana')
+            // ->table('u405304318_yahukimo2025.data_sumber_dana')
+            ->table('yahukimo2026_20260107.data_sumber_dana')
             ->select(
                 'id',
                 'created_at',

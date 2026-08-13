@@ -20,7 +20,8 @@ class InsertSubKegiatan extends Command
 
         // Ambil data dari sumber eksternal
         $data = DB::connection('data_sources')
-            ->table('u405304318_yahukimo2025.data_prog_keg')
+            // ->table('u405304318_yahukimo2025.data_prog_keg')
+            ->table('yahukimo2026_20260107.data_prog_keg')
             ->select(
                 'id_urusan',
                 'kode_urusan',

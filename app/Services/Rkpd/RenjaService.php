@@ -431,8 +431,8 @@ class RenjaService
         }
 
         $sumberDana = $this->renjaRepo->getSumberDanaBySubKegiatan($id);
-        $indikator  = $this->renjaRepo->getIndikatorBySubKegiatan($id);
-        $rincian    = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id);
+        $indikator = $this->renjaRepo->getIndikatorBySubKegiatan($id);
+        $rincian = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id);
 
         // Buat map sumber dana: id_dana → nama_dana (untuk ditempel ke tiap paket)
         $sumberDanaMap = $sumberDana->keyBy('iddana');
@@ -440,7 +440,7 @@ class RenjaService
         // -------------------------------------------------------
         // Kelompokkan: Paket (subtitle_teks) → Mintag (ket_bl_teks)
         // -------------------------------------------------------
-        $paketGroup     = [];
+        $paketGroup = [];
         $totalKeseluruhan = 0;
 
         foreach ($rincian as $item) {
@@ -449,7 +449,7 @@ class RenjaService
                 continue;
             }
 
-            $paketKey  = $item->idsubtitle ?? 'no_paket_'.$item->id;
+            $paketKey = $item->idsubtitle ?? 'no_paket_'.$item->id;
             $mintagKey = $item->ket_bl_teks ?: 'Tanpa Kategori';
             $itemTotal = $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
 
@@ -464,13 +464,13 @@ class RenjaService
                 }
 
                 $paketGroup[$paketKey] = [
-                    'idsubtitle'   => $item->idsubtitle,
-                    'title'        => $item->subtitle_teks ?? 'Tanpa Paket',
-                    'nama_dana'    => $namaDana,
-                    'is_paket'     => $item->is_paket,
-                    'jenis_bl'     => $item->jenis_bl,
-                    'total'        => 0,
-                    'mintag'       => [],
+                    'idsubtitle' => $item->idsubtitle,
+                    'title' => $item->subtitle_teks ?? 'Tanpa Paket',
+                    'nama_dana' => $namaDana,
+                    'is_paket' => $item->is_paket,
+                    'jenis_bl' => $item->jenis_bl,
+                    'total' => 0,
+                    'mintag' => [],
                 ];
             }
 
@@ -483,16 +483,16 @@ class RenjaService
             }
 
             $paketGroup[$paketKey]['mintag'][$mintagKey]['total'] += $itemTotal;
-            $paketGroup[$paketKey]['total']                       += $itemTotal;
-            $totalKeseluruhan                                     += $itemTotal;
+            $paketGroup[$paketKey]['total'] += $itemTotal;
+            $totalKeseluruhan += $itemTotal;
         }
 
         return [
-            'subKegiatan'     => $subKegiatan,
-            'sumberDana'      => $sumberDana,
-            'indikator'       => $indikator,
-            'paketGroup'      => $paketGroup,
-            'totalKeseluruhan'=> $totalKeseluruhan,
+            'subKegiatan' => $subKegiatan,
+            'sumberDana' => $sumberDana,
+            'indikator' => $indikator,
+            'paketGroup' => $paketGroup,
+            'totalKeseluruhan' => $totalKeseluruhan,
         ];
     }
 

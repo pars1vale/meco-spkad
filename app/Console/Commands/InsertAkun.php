@@ -21,14 +21,15 @@ class InsertAkun extends Command
         $dryRun = $this->option('dry-run');
 
         try {
-            if ($this->option('truncate') && !$dryRun) {
+            if ($this->option('truncate') && ! $dryRun) {
                 DB::connection('mysql')->table('akun')->truncate();
                 $this->warn('Truncated akun table.');
             }
 
             // Cek koneksi ke sumber data
-            if (!$this->checkSourceConnection()) {
+            if (! $this->checkSourceConnection()) {
                 $this->error('Cannot connect to data_sources database.');
+
                 return Command::FAILURE;
             }
 
@@ -37,6 +38,7 @@ class InsertAkun extends Command
 
             if ($data === null) {
                 $this->error('Failed to fetch data.');
+
                 return Command::FAILURE;
             }
 
@@ -55,7 +57,8 @@ class InsertAkun extends Command
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('❌ Error occurred: ' . $e->getMessage());
+            $this->error('❌ Error occurred: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -64,6 +67,7 @@ class InsertAkun extends Command
     {
         try {
             DB::connection('data_sources')->getPdo();
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -73,7 +77,8 @@ class InsertAkun extends Command
     private function fetchSourceData()
     {
         return DB::connection('data_sources')
-            ->table('u405304318_yahukimo2025.data_akun')
+            // ->table('u405304318_yahukimo2025.data_akun')
+            ->table('yahukimo2026_20260107.data_akun')
             ->select(
                 'id_akun',
                 'belanja',
@@ -126,46 +131,46 @@ class InsertAkun extends Command
 
         foreach ($cursor as $row) {
             $batch[] = [
-                'id_akun'            => $row->id_akun ?? null,
-                'belanja'            => $row->belanja ?? null,
-                'is_bagi_hasil'      => $row->is_bagi_hasil ?? null,
-                'is_bankeu_khusus'   => $row->is_bankeu_khusus ?? null,
-                'is_bankeu_umum'     => $row->is_bankeu_umum ?? null,
-                'is_barjas'          => $row->is_barjas ?? null,
-                'is_bl'              => $this->determineIsBl($row), // Logic bisnis custom
-                'is_bos'             => $row->is_bos ?? null,
-                'is_btt'             => $row->is_btt ?? null,
-                'is_bunga'           => $row->is_bunga ?? null,
-                'is_gaji_asn'        => $row->is_gaji_asn ?? null,
-                'is_hibah_brg'       => $row->is_hibah_brg ?? null,
-                'is_hibah_uang'      => $row->is_hibah_uang ?? null,
-                'is_locked'          => $row->is_locked ?? null,
-                'is_modal_tanah'     => $row->is_modal_tanah ?? null,
-                'is_pembiayaan'      => $row->is_pembiayaan ?? null,
-                'is_pendapatan'      => $row->is_pendapatan ?? null,
-                'is_sosial_brg'      => $row->is_sosial_brg ?? null,
-                'is_sosial_uang'     => $row->is_sosial_uang ?? null,
-                'is_subsidi'         => $row->is_subsidi ?? null,
-                'kode_akun'          => $row->kode_akun ?? null,
-                'nama_akun'          => $row->nama_akun ?? null,
-                'set_input'          => $row->set_input ?? null,
-                'set_lokus'          => $row->set_lokus ?? null,
-                'ket_akun'           => $row->ket_akun ?? null,
-                'kode_akun_lama'     => $row->kode_akun_lama ?? null,
-                'kode_akun_revisi'   => $row->kode_akun_revisi ?? null,
-                'kunci_tahun'        => $row->kunci_tahun ?? null,
-                'level'              => $row->level ?? null,
-                'mulai_tahun'        => $row->mulai_tahun ?? null,
-                'pembiayaan'         => $row->pembiayaan ?? null,
-                'pendapatan'         => $row->pendapatan ?? null,
-                'set_kab_kota'       => $row->set_kab_kota ?? null,
-                'set_prov'           => $row->set_prov ?? null,
-                'status'             => $row->status ?? null,
-                'active'             => $row->active ?? 1,
-                'update_at'          => $row->update_at ?? null,
-                'tahun_anggaran'     => $row->tahun_anggaran ?? 2021,
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'id_akun' => $row->id_akun ?? null,
+                'belanja' => $row->belanja ?? null,
+                'is_bagi_hasil' => $row->is_bagi_hasil ?? null,
+                'is_bankeu_khusus' => $row->is_bankeu_khusus ?? null,
+                'is_bankeu_umum' => $row->is_bankeu_umum ?? null,
+                'is_barjas' => $row->is_barjas ?? null,
+                'is_bl' => $this->determineIsBl($row), // Logic bisnis custom
+                'is_bos' => $row->is_bos ?? null,
+                'is_btt' => $row->is_btt ?? null,
+                'is_bunga' => $row->is_bunga ?? null,
+                'is_gaji_asn' => $row->is_gaji_asn ?? null,
+                'is_hibah_brg' => $row->is_hibah_brg ?? null,
+                'is_hibah_uang' => $row->is_hibah_uang ?? null,
+                'is_locked' => $row->is_locked ?? null,
+                'is_modal_tanah' => $row->is_modal_tanah ?? null,
+                'is_pembiayaan' => $row->is_pembiayaan ?? null,
+                'is_pendapatan' => $row->is_pendapatan ?? null,
+                'is_sosial_brg' => $row->is_sosial_brg ?? null,
+                'is_sosial_uang' => $row->is_sosial_uang ?? null,
+                'is_subsidi' => $row->is_subsidi ?? null,
+                'kode_akun' => $row->kode_akun ?? null,
+                'nama_akun' => $row->nama_akun ?? null,
+                'set_input' => $row->set_input ?? null,
+                'set_lokus' => $row->set_lokus ?? null,
+                'ket_akun' => $row->ket_akun ?? null,
+                'kode_akun_lama' => $row->kode_akun_lama ?? null,
+                'kode_akun_revisi' => $row->kode_akun_revisi ?? null,
+                'kunci_tahun' => $row->kunci_tahun ?? null,
+                'level' => $row->level ?? null,
+                'mulai_tahun' => $row->mulai_tahun ?? null,
+                'pembiayaan' => $row->pembiayaan ?? null,
+                'pendapatan' => $row->pendapatan ?? null,
+                'set_kab_kota' => $row->set_kab_kota ?? null,
+                'set_prov' => $row->set_prov ?? null,
+                'status' => $row->status ?? null,
+                'active' => $row->active ?? 1,
+                'update_at' => $row->update_at ?? null,
+                'tahun_anggaran' => $row->tahun_anggaran ?? 2021,
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
 
             if (count($batch) >= $batchSize) {
@@ -184,7 +189,7 @@ class InsertAkun extends Command
         }
 
         // Sisa batch terakhir
-        if (!empty($batch)) {
+        if (! empty($batch)) {
             $count += count($batch);
             $batchCount++;
 
@@ -259,7 +264,7 @@ class InsertAkun extends Command
 
     /**
      * Logic bisnis untuk menentukan is_bl (belanja)
-     * 
+     *
      * Logic:
      * 1. Jika field 'belanja' = 'ya', maka is_bl = 1
      * 2. Jika bukan pendapatan DAN bukan pembiayaan, maka is_bl = 1
@@ -273,7 +278,7 @@ class InsertAkun extends Command
         }
 
         // Jika bukan pendapatan dan bukan pembiayaan, maka belanja
-        if (!(int)($row->is_pendapatan ?? 0) && !(int)($row->is_pembiayaan ?? 0)) {
+        if (! (int) ($row->is_pendapatan ?? 0) && ! (int) ($row->is_pembiayaan ?? 0)) {
             return 1;
         }
 
