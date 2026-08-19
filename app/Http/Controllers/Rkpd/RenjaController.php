@@ -25,7 +25,7 @@ class RenjaController extends Controller
 
             return view('rkpd.renja.index', $viewData);
         } catch (\Exception $e) {
-            Log::error('Error loading RENJA index: '.$e->getMessage());
+            Log::error('Error loading RENJA index: ' . $e->getMessage());
 
             return redirect()->back()->with('error', 'Gagal memuat halaman RENJA');
         }
@@ -39,10 +39,10 @@ class RenjaController extends Controller
             return redirect()->route('rkpd.renja.index')
                 ->with('success', $result['message']);
         } catch (\Exception $e) {
-            Log::error('Error storing renja: '.$e->getMessage());
+            Log::error('Error storing renja: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: '.$e->getMessage())
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -59,16 +59,32 @@ class RenjaController extends Controller
 
             return view('rkpd.renja.edit', $editData);
         } catch (\Exception $e) {
-            Log::error('Error loading edit page: '.$e->getMessage());
+            Log::error('Error loading edit page: ' . $e->getMessage());
 
             return redirect()->route('rkpd.renja.index')
                 ->with('error', 'Gagal memuat halaman edit');
         }
     }
 
-    public function cetakRincian(int $id)
+    public function cetakRincian(Request $request, int $id)
     {
-        $data = $this->renjaService->getCetakRincianData($id);
+        $tanggalTtd = $request->query('tanggal');
+        $nipTtd = $request->query('nip_ttd');
+
+        if ($tanggalTtd && ! preg_match('/^\d{2}-\d{2}-\d{4}$/', $tanggalTtd)) {
+            abort(422, 'Format tanggal tidak valid, gunakan dd-mm-yyyy');
+        }
+
+        if ($nipTtd && ! preg_match('/^\d{1,18}$/', $nipTtd)) {
+            abort(422, 'NIP tidak valid, hanya boleh angka maksimal 18 digit');
+        }
+
+        $data = $this->renjaService->getCetakRincianData(
+            $id,
+            $tanggalTtd,
+            $request->query('nama_ttd'),
+            $nipTtd
+        );
 
         if (! $data['subKegiatan']) {
             abort(404, 'Sub kegiatan tidak ditemukan');
@@ -85,10 +101,10 @@ class RenjaController extends Controller
             return redirect()->route('rkpd.renja.index')
                 ->with('success', $result['message']);
         } catch (\Exception $e) {
-            Log::error('Error updating RENJA: '.$e->getMessage());
+            Log::error('Error updating RENJA: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: '.$e->getMessage())
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -100,7 +116,7 @@ class RenjaController extends Controller
 
             return response()->json($result);
         } catch (\Exception $e) {
-            Log::error('Error deleting RENJA: '.$e->getMessage());
+            Log::error('Error deleting RENJA: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -113,7 +129,13 @@ class RenjaController extends Controller
     {
         try {
             $idSkpd = $request->input('id_skpd');
-            $tahunAnggaran = $request->input('tahun_anggaran', 2025);
+            $tahunAnggaran = session('tahun_anggaran');
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum dipilih.',
+                ], 422);
+            }
 
             $result = $this->renjaService->getSubKegiatanBySkpd($idSkpd, $tahunAnggaran);
 
@@ -123,7 +145,7 @@ class RenjaController extends Controller
                 'count' => $result['count'],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting sub kegiatan: '.$e->getMessage());
+            Log::error('Error getting sub kegiatan: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -136,8 +158,7 @@ class RenjaController extends Controller
     public function exportPdf(Request $request, $idSkpd)
     {
         try {
-            $tahunAnggaran = (int) $request->query('tahun_anggaran', now()->year);
-
+            $tahunAnggaran = (int) session('tahun_anggaran');
             $pdfData = $this->renjaService->getExportPdfData((int) $idSkpd, $tahunAnggaran);
 
             if (! $pdfData['skpd']) {
@@ -147,13 +168,13 @@ class RenjaController extends Controller
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rkpd.renja.pdf', $pdfData)
                 ->setPaper('f4', 'landscape');
 
-            $fileName = 'Renja_'.str_replace(' ', '_', $pdfData['skpd']->nama_skpd).'_'.$tahunAnggaran.'.pdf';
+            $fileName = 'Renja_' . str_replace(' ', '_', $pdfData['skpd']->nama_skpd) . '_' . $tahunAnggaran . '.pdf';
 
             return $pdf->stream($fileName);
         } catch (\Exception $e) {
-            Log::error('Error exporting RENJA PDF: '.$e->getMessage());
+            Log::error('Error exporting RENJA PDF: ' . $e->getMessage());
 
-            return redirect()->back()->with('error', 'Gagal membuat PDF: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat PDF: ' . $e->getMessage());
         }
     }
 
@@ -169,7 +190,7 @@ class RenjaController extends Controller
                 'data' => $result['data'],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting data: '.$e->getMessage());
+            Log::error('Error getting data: ' . $e->getMessage());
 
             return response()->json([
                 'draw' => intval($request->draw ?? 1),
@@ -179,15 +200,5 @@ class RenjaController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
-    }
-    public function ringkasanPaket(int $id)
-    {
-        $data = $this->renjaService->getRingkasanPaket($id);
-
-        if (! $data['subKegiatan']) {
-            abort(404);
-        }
-
-        return view('cetakan.ringkasan_paket_v3', $data);
     }
 }

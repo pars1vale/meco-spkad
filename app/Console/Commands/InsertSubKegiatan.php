@@ -21,7 +21,7 @@ class InsertSubKegiatan extends Command
         // Ambil data dari sumber eksternal
         $data = DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_prog_keg')
-            ->table('yahukimo2026_20260107.data_prog_keg')
+            ->table('Yahukimo_20260812.data_prog_keg')
             ->select(
                 'id_urusan',
                 'kode_urusan',
@@ -49,7 +49,7 @@ class InsertSubKegiatan extends Command
             ->groupBy('id_urusan');
 
         $totalData = $data->flatten(1)->count();
-        $this->info($totalData.' Data Sub Kegiatan ditemukan.');
+        $this->info($totalData . ' Data Sub Kegiatan ditemukan.');
 
         $insertData = [];
         $notFoundKegiatan = [];
@@ -109,14 +109,14 @@ class InsertSubKegiatan extends Command
                         ['id_kegiatan', 'kode_sub_kegiatan', 'nama_sub_kegiatan', 'time_stamp', 'updated_at']
                     );
                 } catch (\Illuminate\Database\QueryException $e) {
-                    $this->error("Batch #{$index} gagal: ".$e->getMessage());
+                    $this->error("Batch #{$index} gagal: " . $e->getMessage());
 
                     // opsional: simpan $chunk ke file log biar bisa di-retry manual
                     continue;
                 }
             }
 
-            $this->info(count($insertData).' data berhasil dimasukkan/diupdate ke tabel sub_kegiatan (dalam '.count($chunks).' batch).');
+            $this->info(count($insertData) . ' data berhasil dimasukkan/diupdate ke tabel sub_kegiatan (dalam ' . count($chunks) . ' batch).');
         }
 
         // Hitung total setelah insert

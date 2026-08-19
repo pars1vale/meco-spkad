@@ -22,7 +22,7 @@ class InsertBidangUrusan extends Command
         // untuk mendeteksi kasus ID sama tapi nama berbeda
         $rawData = DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_prog_keg')
-            ->table('yahukimo2026_20260107.data_prog_keg')
+            ->table('Yahukimo_20260812.data_prog_keg')
             ->select('nama_urusan', 'id_bidang_urusan', 'kode_bidang_urusan', 'nama_bidang_urusan', 'id_urusan')
             ->whereNotNull('id_bidang_urusan')
             ->whereNotNull('kode_bidang_urusan')
@@ -32,7 +32,7 @@ class InsertBidangUrusan extends Command
             ->orderBy('nama_bidang_urusan')
             ->get();
 
-        $this->info('Total raw data: '.$rawData->count());
+        $this->info('Total raw data: ' . $rawData->count());
 
         // Debug: Analisis kode yang memiliki nama berbeda
         $this->analyzeDuplicateCodes($rawData);
@@ -44,7 +44,7 @@ class InsertBidangUrusan extends Command
             return $item->id_bidang_urusan;
         });
 
-        $this->info('Data setelah unique by ID: '.$processedData->count());
+        $this->info('Data setelah unique by ID: ' . $processedData->count());
 
         // Debug: Analisis data setelah unique
         $this->analyzeProcessedData($processedData);
@@ -52,7 +52,7 @@ class InsertBidangUrusan extends Command
         $data = $processedData->groupBy('nama_urusan');
 
         $totalData = $data->flatten(1)->count();
-        $this->info($totalData.' Data Bidang Urusan ditemukan.');
+        $this->info($totalData . ' Data Bidang Urusan ditemukan.');
 
         // Tampilkan contoh data untuk verifikasi
         $this->info('Contoh data yang ditemukan:');
@@ -113,14 +113,14 @@ class InsertBidangUrusan extends Command
 
                 $afterCount = DB::connection('mysql')->table('bidang_urusan')->count();
                 $this->info("Jumlah data setelah upsert: {$afterCount}");
-                $this->info('Data baru yang ditambahkan: '.($afterCount - $beforeCount));
+                $this->info('Data baru yang ditambahkan: ' . ($afterCount - $beforeCount));
 
                 // Debug data setelah upsert
                 $this->debugAfterUpsert($insertData);
 
-                $this->info(count($insertData).' data berhasil diproses untuk upsert ke tabel bidang_urusan.');
+                $this->info(count($insertData) . ' data berhasil diproses untuk upsert ke tabel bidang_urusan.');
             } catch (\Exception $e) {
-                $this->error('Error saat upsert: '.$e->getMessage());
+                $this->error('Error saat upsert: ' . $e->getMessage());
             }
         }
 
@@ -146,7 +146,7 @@ class InsertBidangUrusan extends Command
             return $group->pluck('nama_bidang_urusan')->unique()->count() > 1;
         });
 
-        $this->info('Kode dengan nama berbeda: '.$duplicateCodes->count());
+        $this->info('Kode dengan nama berbeda: ' . $duplicateCodes->count());
 
         foreach ($duplicateCodes as $kode => $group) {
             $uniqueNames = $group->pluck('nama_bidang_urusan')->unique();
@@ -156,17 +156,17 @@ class InsertBidangUrusan extends Command
             foreach ($uniqueNames as $nama) {
                 $items = $group->where('nama_bidang_urusan', $nama);
                 $ids = $items->pluck('id_bidang_urusan')->unique();
-                $this->line("  - {$nama} (ID: ".$ids->implode(', ').", Records: {$items->count()})");
+                $this->line("  - {$nama} (ID: " . $ids->implode(', ') . ", Records: {$items->count()})");
             }
             $this->line('');
         }
 
         // Statistik keseluruhan
         $this->info('STATISTIK RAW DATA:');
-        $this->line('- Total kode unik: '.$groupedByCodes->count());
-        $this->line('- Kode dengan nama ganda: '.$duplicateCodes->count());
-        $this->line('- Total kombinasi unik (kode+nama): '.$rawData->unique(function ($item) {
-            return $item->kode_bidang_urusan.'|'.$item->nama_bidang_urusan;
+        $this->line('- Total kode unik: ' . $groupedByCodes->count());
+        $this->line('- Kode dengan nama ganda: ' . $duplicateCodes->count());
+        $this->line('- Total kombinasi unik (kode+nama): ' . $rawData->unique(function ($item) {
+            return $item->kode_bidang_urusan . '|' . $item->nama_bidang_urusan;
         })->count());
     }
 
@@ -184,7 +184,7 @@ class InsertBidangUrusan extends Command
             return $group->pluck('nama_bidang_urusan')->unique()->count() > 1;
         });
 
-        $this->info('Kode dengan nama berbeda setelah unique: '.$duplicateCodes->count());
+        $this->info('Kode dengan nama berbeda setelah unique: ' . $duplicateCodes->count());
 
         foreach ($duplicateCodes as $kode => $group) {
             $uniqueNames = $group->pluck('nama_bidang_urusan')->unique();
@@ -202,7 +202,7 @@ class InsertBidangUrusan extends Command
     private function debugBeforeUpsert($insertData)
     {
         $this->info("\n=== DEBUG SEBELUM UPSERT ===");
-        $this->info('Jumlah data yang akan di-insert: '.count($insertData));
+        $this->info('Jumlah data yang akan di-insert: ' . count($insertData));
 
         // Cek apakah ada duplikat ID dalam insertData
         $ids = collect($insertData)->pluck('id');
@@ -261,7 +261,7 @@ class InsertBidangUrusan extends Command
                     ->where('kode_bidang_urusan', $kode)
                     ->get();
 
-                $this->line('Jumlah di database: '.$dbData->count());
+                $this->line('Jumlah di database: ' . $dbData->count());
                 foreach ($dbData as $item) {
                     $this->line("  - ID: {$item->id}, Nama: {$item->nama_bidang_urusan}");
                 }
@@ -314,10 +314,10 @@ class InsertBidangUrusan extends Command
         $this->info("\n=== STATISTIK DATABASE ===");
         $this->line("- Total kode unik di database: {$totalCodes}");
         $this->line("- Total records di database: {$totalRecords}");
-        $this->line('- Kode dengan nama ganda: '.$groupedByCodes->count());
+        $this->line('- Kode dengan nama ganda: ' . $groupedByCodes->count());
 
         if ($totalRecords > $totalCodes) {
-            $this->line('- Ada '.($totalRecords - $totalCodes).' kode dengan nama berbeda');
+            $this->line('- Ada ' . ($totalRecords - $totalCodes) . ' kode dengan nama berbeda');
         }
     }
 }

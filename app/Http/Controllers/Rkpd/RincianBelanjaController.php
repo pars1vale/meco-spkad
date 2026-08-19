@@ -12,25 +12,28 @@ use Illuminate\Support\Facades\Log;
 
 class RincianBelanjaController extends Controller
 {
-    /**
-     * Menampilkan halaman rincian belanja sub kegiatan
-     */
+
     public function index($id)
     {
         try {
-            Log::info('=== SHOW RINCIAN START ===', ['id_sub_bl' => $id]);
+            $tahunAnggaran = (int) session('tahun_anggaran');
+            if (! $tahunAnggaran) {
+                Log::error('Tahun anggaran belum dipilih di session', ['id_sub_bl' => $id]);
 
-            // ===============================
-            // 1. AMBIL DATA SUB KEGIATAN
-            // ===============================
+                return redirect()->route('rkpd.renja.index')
+                    ->with('error', 'Tahun anggaran belum dipilih. Silakan pilih tahun anggaran terlebih dahulu.');
+            }
+
+            Log::info('=== SHOW RINCIAN START ===', ['id_sub_bl' => $id, 'tahun_anggaran' => $tahunAnggaran]);
+
             $subKegiatan = DB::table('data_sub_keg_bl as dskb')
                 ->select('dskb.*', 'du.nama_skpd as nama_unit')
-                ->leftJoin('data_unit as du', function ($join) {
+                ->leftJoin('data_unit as du', function ($join) use ($tahunAnggaran) {
                     $join->on('dskb.id_skpd', '=', 'du.id_skpd')
-                        ->where('du.tahun_anggaran', 2025);
+                        ->where('du.tahun_anggaran', $tahunAnggaran);
                 })
                 ->where('dskb.id_sub_bl', $id)
-                ->where('dskb.tahun_anggaran', 2025)
+                ->where('dskb.tahun_anggaran', $tahunAnggaran)
                 ->where('dskb.active', 1)
                 ->first();
 
@@ -47,46 +50,37 @@ class RincianBelanjaController extends Controller
                 'kode_sbl' => $subKegiatan->kode_sbl,
             ]);
 
-            // ===============================
-            // 2. AMBIL SUMBER DANA
-            // ===============================
             $sumberDana = DB::table('data_dana_sub_keg')
                 ->where('idsubbl', $subKegiatan->id_sub_bl)
-                ->where('tahun_anggaran', 2025)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->get();
 
             if ($sumberDana->isEmpty()) {
                 $sumberDana = DB::table('data_dana_sub_keg')
                     ->where('kode_sbl', $subKegiatan->kode_sbl)
-                    ->where('tahun_anggaran', 2025)
+                    ->where('tahun_anggaran', $tahunAnggaran)
                     ->where('active', 1)
                     ->get();
             }
 
-            // ===============================
-            // 3. AMBIL INDIKATOR
-            // ===============================
             $indikator = DB::table('data_sub_keg_indikator')
                 ->where('idsubbl', $subKegiatan->id_sub_bl)
-                ->where('tahun_anggaran', 2025)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->get();
 
             if ($indikator->isEmpty()) {
                 $indikator = DB::table('data_sub_keg_indikator')
                     ->where('kode_sbl', $subKegiatan->kode_sbl)
-                    ->where('tahun_anggaran', 2025)
+                    ->where('tahun_anggaran', $tahunAnggaran)
                     ->where('active', 1)
                     ->get();
             }
 
-            // ===============================
-            // 4. AMBIL SEMUA DATA RKA
-            // ===============================
             $allRka = DB::table('data_rka')
                 ->where('idsubbl', $subKegiatan->id_sub_bl)
-                ->where('tahun_anggaran', 2025)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->where(function ($q) {
                     $q->whereNull('ket_bl_teks')
@@ -101,7 +95,7 @@ class RincianBelanjaController extends Controller
             if ($allRka->isEmpty()) {
                 $allRka = DB::table('data_rka')
                     ->where('kode_sbl', $subKegiatan->kode_sbl)
-                    ->where('tahun_anggaran', 2025)
+                    ->where('tahun_anggaran', $tahunAnggaran)
                     ->where('active', 1)
                     ->where(function ($q) {
                         $q->whereNull('ket_bl_teks')
@@ -119,9 +113,6 @@ class RincianBelanjaController extends Controller
                 'count' => $allRka->count(),
             ]);
 
-            // ===============================
-            // 5. KELOMPOKKAN DATA HIERARKIS
-            // ===============================
             $dataTerkelompok = [];
             $totalKeseluruhan = 0;
 
@@ -137,7 +128,7 @@ class RincianBelanjaController extends Controller
             }
 
             foreach ($allRka as $item) {
-                $hashtagKey = $item->idsubtitle ?: 'no_paket_'.$item->id;
+                $hashtagKey = $item->idsubtitle ?: 'no_paket_' . $item->id;
                 $hashtagInfo = $hashtagMap[$hashtagKey] ?? [
                     'subtitle_teks' => $item->subtitle_teks ?? 'Tanpa Paket',
                     'is_paket' => $item->is_paket,
@@ -145,7 +136,7 @@ class RincianBelanjaController extends Controller
                 ];
 
                 $mintag = $item->ket_bl_teks ?: 'Tanpa Kategori';
-                $kodeRekening = $item->kode_akun.' '.$item->nama_akun;
+                $kodeRekening = $item->kode_akun . ' ' . $item->nama_akun;
 
                 if (! isset($dataTerkelompok[$hashtagKey])) {
                     $dataTerkelompok[$hashtagKey] = [
@@ -206,9 +197,6 @@ class RincianBelanjaController extends Controller
                 'total_keseluruhan' => $totalKeseluruhan,
             ]);
 
-            // ===============================
-            // 6. RETURN VIEW
-            // ===============================
             return view('rkpd.renja.rincian.index', compact(
                 'subKegiatan',
                 'sumberDana',
@@ -217,11 +205,11 @@ class RincianBelanjaController extends Controller
                 'totalKeseluruhan'
             ));
         } catch (\Exception $e) {
-            Log::error('Error showRincian: '.$e->getMessage());
+            Log::error('Error showRincian: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return redirect()->route('rkpd.renja.index')
-                ->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -230,7 +218,16 @@ class RincianBelanjaController extends Controller
     {
         try {
             $jenisBelanja = $request->input('jenis_bl');
-            $tahunAnggaran = $request->input('tahun_anggaran', 2025);
+            // Sebelumnya fallback ke 2025 hardcode. Sekarang: kalau request tidak kirim
+            // tahun_anggaran eksplisit, pakai tahun aktif di session (bukan hardcode).
+            $tahunAnggaran = $request->input('tahun_anggaran', session('tahun_anggaran'));
+
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum ditentukan',
+                ], 422);
+            }
 
             // Mapping jenis belanja ke field akun
             $jenisBelanjaMapping = [
@@ -254,7 +251,7 @@ class RincianBelanjaController extends Controller
             if (! isset($jenisBelanjaMapping[$jenisBelanja])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jenis belanja tidak valid: '.$jenisBelanja,
+                    'message' => 'Jenis belanja tidak valid: ' . $jenisBelanja,
                 ], 400);
             }
 
@@ -271,7 +268,7 @@ class RincianBelanjaController extends Controller
                     'id' => $akun->id,
                     'kode_akun' => $akun->kode_akun,
                     'nama_akun' => $akun->nama_akun,
-                    'text' => $akun->kode_akun.' - '.$akun->nama_akun,
+                    'text' => $akun->kode_akun . ' - ' . $akun->nama_akun,
                     'level' => $akun->level,
                 ];
             });
@@ -282,11 +279,11 @@ class RincianBelanjaController extends Controller
                 'count' => $data->count(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Error loading akun: '.$e->getMessage());
+            Log::error('Error loading akun: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -318,7 +315,7 @@ class RincianBelanjaController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting detail akun: '.$e->getMessage());
+            Log::error('Error getting detail akun: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -334,6 +331,15 @@ class RincianBelanjaController extends Controller
         try {
             $idRinciSubBl = $request->input('id_rinci_sub_bl');
             $tipePaket = $request->input('tipe_paket');
+            $tahunAnggaran = (int) session('tahun_anggaran');
+
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum dipilih',
+                    'data' => [],
+                ], 422);
+            }
 
             Log::info('GET PAKET REQUEST', [
                 'id_rinci_sub_bl' => $idRinciSubBl,
@@ -371,7 +377,7 @@ class RincianBelanjaController extends Controller
                     'idsubtitle'
                 )
                 ->where('kode_sbl', $subKegiatan->kode_sbl)
-                ->where('tahun_anggaran', 2025)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->where('is_paket', $tipePaket)
                 ->whereNotNull('subtitle_teks')
@@ -419,7 +425,7 @@ class RincianBelanjaController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
                 'data' => [],
             ], 500);
         }
@@ -450,7 +456,7 @@ class RincianBelanjaController extends Controller
                 ], 404);
             }
 
-            $tempPaketId = 'new_'.uniqid();
+            $tempPaketId = 'new_' . uniqid();
 
             Log::info('PAKET METADATA CREATED', [
                 'temp_id' => $tempPaketId,
@@ -476,11 +482,11 @@ class RincianBelanjaController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error storing paket: '.$e->getMessage());
+            Log::error('Error storing paket: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -492,6 +498,15 @@ class RincianBelanjaController extends Controller
         try {
             $idPaketBelanja = $request->input('id_paket_belanja');
             $subtitleTeks = $request->input('subtitle_teks');
+            $tahunAnggaran = (int) session('tahun_anggaran');
+
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum dipilih',
+                    'data' => [],
+                ], 422);
+            }
 
             if (! $idPaketBelanja) {
                 return response()->json([
@@ -531,7 +546,7 @@ class RincianBelanjaController extends Controller
             $mintagList = DB::table('data_rka')
                 ->select('ket_bl_teks')
                 ->where('subtitle_teks', $paketSubtitle)
-                ->where('tahun_anggaran', 2025)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->whereNotNull('ket_bl_teks')
                 ->where('ket_bl_teks', '!=', '')
@@ -569,7 +584,7 @@ class RincianBelanjaController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
                 'data' => [],
             ], 500);
         }
@@ -585,7 +600,7 @@ class RincianBelanjaController extends Controller
 
             $mintag = $request->nama_mintag;
             if (! preg_match('/^\[\-\]/', $mintag)) {
-                $mintag = '[-] '.$mintag;
+                $mintag = '[-] ' . $mintag;
             }
 
             $displayText = preg_replace('/^\[\-\]\s*/', '', $mintag);
@@ -599,11 +614,11 @@ class RincianBelanjaController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('ERROR STORE MINTAG: '.$e->getMessage());
+            Log::error('ERROR STORE MINTAG: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -613,6 +628,14 @@ class RincianBelanjaController extends Controller
     {
         try {
             // Validasi input sudah dilakukan oleh StoreRincianRequest
+            $tahunAnggaran = (int) session('tahun_anggaran');
+
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum dipilih',
+                ], 422);
+            }
 
             DB::beginTransaction();
 
@@ -644,7 +667,7 @@ class RincianBelanjaController extends Controller
                 ], 404);
             }
 
-            $namaAkunLengkap = $akun->kode_akun.' '.$akun->nama_akun;
+            $namaAkunLengkap = $akun->kode_akun . ' ' . $akun->nama_akun;
 
             // ================================================
             // 3. GET SUMBER DANA
@@ -695,7 +718,7 @@ class RincianBelanjaController extends Controller
                 $existingPaket = DB::table('data_rka')
                     ->where('subtitle_teks', $subtitleTeks)
                     ->where('kode_sbl', $subKegiatan->kode_sbl)
-                    ->where('tahun_anggaran', 2025)
+                    ->where('tahun_anggaran', $tahunAnggaran)
                     ->where('active', 1)
                     ->whereNotNull('idsubtitle')
                     ->where(function ($q) {
@@ -782,11 +805,11 @@ class RincianBelanjaController extends Controller
                     if ($koefisienStr) {
                         $koefisienStr .= ' / ';
                     }
-                    $koefisienStr .= $koef.($satuan ? ' '.$satuan : '');
+                    $koefisienStr .= $koef . ($satuan ? ' ' . $satuan : '');
                 }
             }
             if (empty($koefisienStr)) {
-                $koefisienStr = $volume.' '.$request->satuan;
+                $koefisienStr = $volume . ' ' . $request->satuan;
             }
 
             // ================================================
@@ -807,7 +830,7 @@ class RincianBelanjaController extends Controller
                 'id_rinci_sub_bl' => $request->id_rinci_sub_bl,
                 'kode_sbl' => $subKegiatan->kode_sbl,
                 'kode_bl' => $subKegiatan->kode_bl,
-                'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? 2025,
+                'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? $tahunAnggaran,
                 'id_daerah' => 604,
                 'idsubbl' => $subKegiatan->id_sub_bl,
 
@@ -978,7 +1001,7 @@ class RincianBelanjaController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -987,6 +1010,7 @@ class RincianBelanjaController extends Controller
     {
         try {
             $idStandarHarga = $request->input('id_standar_harga');
+            $tahunAnggaran = (int) session('tahun_anggaran');
 
             if (! $idStandarHarga) {
                 return response()->json([
@@ -995,9 +1019,16 @@ class RincianBelanjaController extends Controller
                 ], 400);
             }
 
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum dipilih',
+                ], 422);
+            }
+
             $sshData = DB::table('data_ssh')
                 ->where('id_standar_harga', $idStandarHarga)
-                ->where('tahun', 2025)
+                ->where('tahun', $tahunAnggaran)
                 ->where('id_daerah', 604)
                 ->first();
 
@@ -1022,11 +1053,11 @@ class RincianBelanjaController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting SSH data: '.$e->getMessage());
+            Log::error('Error getting SSH data: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -1036,6 +1067,14 @@ class RincianBelanjaController extends Controller
         try {
             $jenisStandarHarga = $request->input('jenis_standar_harga');
             $search = $request->input('q', '');
+            $tahunAnggaran = (int) session('tahun_anggaran');
+
+            if (! $tahunAnggaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun anggaran belum dipilih',
+                ], 422);
+            }
 
             Log::info('SEARCH KOMPONEN', [
                 'jenis' => $jenisStandarHarga,
@@ -1061,7 +1100,7 @@ class RincianBelanjaController extends Controller
                     'tipe_standar_harga',
                     DB::raw("CONCAT(kode_standar_harga, ' - ', nama_standar_harga) as text")
                 )
-                ->where('tahun', 2025)
+                ->where('tahun', $tahunAnggaran)
                 ->where('id_daerah', 604);
 
             if ($jenisStandarHarga && isset($tipeMapping[$jenisStandarHarga])) {
@@ -1087,11 +1126,11 @@ class RincianBelanjaController extends Controller
                 'count' => $results->count(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Error searching komponen: '.$e->getMessage());
+            Log::error('Error searching komponen: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -1117,23 +1156,23 @@ class RincianBelanjaController extends Controller
             ]);
 
             // Get sub kegiatan info
+            // Catatan: sengaja pakai tahun_anggaran milik baris rincian itu sendiri
+            // ($rincian->tahun_anggaran), bukan session — supaya edit rincian lama
+            // (tahun sebelumnya) tetap bisa dibuka meski session sedang di tahun lain.
             $subKegiatan = DB::table('data_sub_keg_bl')
                 ->where('id_sub_bl', $rincian->idsubbl)
-                ->where('tahun_anggaran', 2025)
+                ->where('tahun_anggaran', $rincian->tahun_anggaran)
                 ->first();
 
             return view('rkpd.renja.rincian.edit', compact('rincian', 'subKegiatan'));
         } catch (\Exception $e) {
-            Log::error('Error editRincian: '.$e->getMessage());
+            Log::error('Error editRincian: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Update rincian belanja
-     */
     public function updateRincian(UpdateRincianRequest $request, $id)
     {
         try {
@@ -1169,8 +1208,8 @@ class RincianBelanjaController extends Controller
                 $satData = [];
 
                 for ($i = 0; $i < 4; $i++) {
-                    $volumField = 'volum'.($i + 1);
-                    $satField = 'sat'.($i + 1);
+                    $volumField = 'volum' . ($i + 1);
+                    $satField = 'sat' . ($i + 1);
 
                     if (isset($koefisien[$i]) && $koefisien[$i] !== null && $koefisien[$i] !== '') {
                         $volumData[$volumField] = $koefisien[$i];
@@ -1273,7 +1312,7 @@ class RincianBelanjaController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
                 ], 500);
             }
         } catch (\Exception $e) {
@@ -1285,12 +1324,11 @@ class RincianBelanjaController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    // Delete rincian - placeholder untuk future implementation
     public function destroyRincian($id)
     {
         try {
@@ -1340,7 +1378,7 @@ class RincianBelanjaController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
                 ], 500);
             }
 
@@ -1349,11 +1387,11 @@ class RincianBelanjaController extends Controller
                 'message' => 'Method belum diimplementasikan',
             ], 501);
         } catch (\Exception $e) {
-            Log::error('Error deleting rincian: '.$e->getMessage());
+            Log::error('Error deleting rincian: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }

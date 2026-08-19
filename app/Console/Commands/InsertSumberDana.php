@@ -56,8 +56,8 @@ class InsertSumberDana extends Command
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->error('✗ ERROR: '.$e->getMessage());
-            $this->error('Line: '.$e->getLine());
+            $this->error('✗ ERROR: ' . $e->getMessage());
+            $this->error('Line: ' . $e->getLine());
 
             return Command::FAILURE;
         }
@@ -79,7 +79,7 @@ class InsertSumberDana extends Command
     {
         return DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_sumber_dana')
-            ->table('yahukimo2026_20260107.data_sumber_dana')
+            ->table('Yahukimo_20260812.data_sumber_dana')
             ->select(
                 'id',
                 'created_at',
@@ -164,7 +164,7 @@ class InsertSumberDana extends Command
         $chunks = array_chunk($insertData, $batchSize);
 
         $this->newLine();
-        $this->info('Memproses '.count($insertData).' records dalam '.count($chunks).' batch...');
+        $this->info('Memproses ' . count($insertData) . ' records dalam ' . count($chunks) . ' batch...');
         $this->output->progressStart(count($chunks));
 
         foreach ($chunks as $chunk) {
@@ -195,6 +195,6 @@ class InsertSumberDana extends Command
         }
 
         $this->output->progressFinish();
-        $this->info('✓ '.count($insertData).' records berhasil disinkronkan.');
+        $this->info('✓ ' . count($insertData) . ' records berhasil disinkronkan.');
     }
 }

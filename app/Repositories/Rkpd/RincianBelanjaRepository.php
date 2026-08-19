@@ -6,53 +6,51 @@ use Illuminate\Support\Facades\DB;
 
 class RincianBelanjaRepository
 {
-    protected const TAHUN_ANGGARAN_DEFAULT = 2025;
+    protected const ID_DAERAH = 604; // TODO: sama seperti tahun, ini juga hardcode. Belum diminta, saya biarkan — tapi tandai di sini biar tidak lupa.
 
-    protected const ID_DAERAH = 604;
-
-    public function getSubKegiatanBelanjaById(int $id)
+    public function getSubKegiatanBelanjaById(int $id, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_bl')
             ->where('id', $id)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->first();
     }
 
-    public function getSubKegiatanBelanjaByIdSubBl(int $idSubBl)
+    public function getSubKegiatanBelanjaByIdSubBl(int $idSubBl, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_bl')
             ->where('id_sub_bl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->first();
     }
 
-    public function getSumberDanaBySubKegiatan(int $idSubBl, string $kodeSbl)
+    public function getSumberDanaBySubKegiatan(int $idSubBl, string $kodeSbl, int $tahunAnggaran)
     {
         return DB::table('data_dana_sub_keg')
             ->where('idsubbl', $idSubBl)
             ->where('kode_sbl', $kodeSbl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
     }
 
-    public function getIndikatorBySubKegiatan(int $idSubBl, string $kodeSbl)
+    public function getIndikatorBySubKegiatan(int $idSubBl, string $kodeSbl, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_indikator')
             ->where('idsubbl', $idSubBl)
             ->where('kode_sbl', $kodeSbl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
     }
 
-    public function getRincianBelanjaBySubKegiatan(int $idSubBl)
+    public function getRincianBelanjaBySubKegiatan(int $idSubBl, int $tahunAnggaran)
     {
         return DB::table('data_rka')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->orderBy('kode_akun')
             ->orderBy('is_paket')
@@ -61,7 +59,7 @@ class RincianBelanjaRepository
             ->get();
     }
 
-    public function getPaketBelanjaList(string $kodeSbl, int $tipePaket)
+    public function getPaketBelanjaList(string $kodeSbl, int $tipePaket, int $tahunAnggaran)
     {
         return DB::table('data_rka')
             ->select(
@@ -74,7 +72,7 @@ class RincianBelanjaRepository
                 'idsubtitle'
             )
             ->where('kode_sbl', $kodeSbl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->where('is_paket', $tipePaket)
             ->whereNotNull('subtitle_teks')
@@ -88,14 +86,17 @@ class RincianBelanjaRepository
             ->get();
     }
 
+    // getPaketBelanjaById, getRincianBelanjaById: sengaja TIDAK saya tambah filter tahun_anggaran,
+    // karena keduanya query by primary key `id` — kalau id sudah unik & tidak reused lintas tahun,
+    // filter tahun di sini redundant. TAPI kalau `id` bisa collide antar tahun anggaran (unlikely
+    // tapi saya tidak tahu skema Anda), ini jadi lubang. Konfirmasi struktur PK-nya.
+
     public function getPaketBelanjaById(int $id)
     {
-        return DB::table('data_rka')
-            ->where('id', $id)
-            ->first();
+        return DB::table('data_rka')->where('id', $id)->first();
     }
 
-    public function createPaketBelanja(array $data): int
+    public function createPaketBelanja(array $data, int $tahunAnggaran): int
     {
         $subKegiatan = $data['sub_kegiatan'];
         $akun = $data['akun'];
@@ -105,7 +106,7 @@ class RincianBelanjaRepository
             'id_rinci_sub_bl' => $subKegiatan->id,
             'kode_sbl' => $subKegiatan->kode_sbl,
             'kode_bl' => $subKegiatan->kode_bl,
-            'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $tahunAnggaran, // sebelumnya: $subKegiatan->tahun_anggaran ?? default konstan
             'jenis_bl' => $data['jenis_bl'],
             'kode_akun' => $akun->kode_akun,
             'nama_akun' => $akun->nama_akun,
@@ -141,7 +142,7 @@ class RincianBelanjaRepository
         ]);
     }
 
-    public function createRincianBelanja(array $data): int
+    public function createRincianBelanja(array $data, int $tahunAnggaran): int
     {
         $subKegiatan = $data['sub_kegiatan'];
         $akun = $data['akun'];
@@ -152,7 +153,7 @@ class RincianBelanjaRepository
             'id_rinci_sub_bl' => $subKegiatan->id,
             'kode_sbl' => $subKegiatan->kode_sbl,
             'kode_bl' => $subKegiatan->kode_bl,
-            'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $tahunAnggaran,
             'jenis_bl' => $data['jenis_bl'],
             'kode_akun' => $akun->kode_akun,
             'nama_akun' => $akun->nama_akun,
@@ -199,10 +200,7 @@ class RincianBelanjaRepository
 
     public function getRincianBelanjaById(int $id)
     {
-        return DB::table('data_rka')
-            ->where('id', $id)
-            ->where('active', 1)
-            ->first();
+        return DB::table('data_rka')->where('id', $id)->where('active', 1)->first();
     }
 
     public function updateRincianBelanja(int $id, array $data): bool
@@ -242,9 +240,7 @@ class RincianBelanjaRepository
 
     public function getSumberDanaById(int $id)
     {
-        return DB::table('data_dana_sub_keg')
-            ->where('id', $id)
-            ->first();
+        return DB::table('data_dana_sub_keg')->where('id', $id)->first();
     }
 
     public function calculateTotalRincian(int $idSubBl): float

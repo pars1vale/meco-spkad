@@ -44,11 +44,11 @@ class InsertKegiatan extends Command
                 return Command::SUCCESS;
             }
 
-            $this->info('Total raw records fetched: '.$rawData->count());
+            $this->info('Total raw records fetched: ' . $rawData->count());
 
             // 4. Process and deduplicate data
             $processedData = $this->processData($rawData);
-            $this->info('Records after deduplication: '.$processedData->count());
+            $this->info('Records after deduplication: ' . $processedData->count());
 
             // 5. Analyze data quality (if debug mode)
             if ($this->option('debug')) {
@@ -64,7 +64,7 @@ class InsertKegiatan extends Command
                 return Command::SUCCESS;
             }
 
-            $this->info('Valid records ready for insert: '.count($insertData));
+            $this->info('Valid records ready for insert: ' . count($insertData));
 
             // 7. Dry run mode
             if ($this->option('dry-run')) {
@@ -89,8 +89,8 @@ class InsertKegiatan extends Command
             return Command::SUCCESS;
         } catch (Exception $e) {
             $this->error("\n=== ERROR OCCURRED ===");
-            $this->error('Message: '.$e->getMessage());
-            $this->error('File: '.$e->getFile().':'.$e->getLine());
+            $this->error('Message: ' . $e->getMessage());
+            $this->error('File: ' . $e->getFile() . ':' . $e->getLine());
 
             if ($this->option('debug')) {
                 $this->error("\nStack Trace:");
@@ -113,7 +113,7 @@ class InsertKegiatan extends Command
             return true;
         } catch (Exception $e) {
             $this->error('✗ Cannot connect to data_sources database');
-            $this->error('Error: '.$e->getMessage());
+            $this->error('Error: ' . $e->getMessage());
 
             return false;
         }
@@ -143,7 +143,7 @@ class InsertKegiatan extends Command
 
         return DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_prog_keg')
-            ->table('yahukimo2026_20260107.data_prog_keg')
+            ->table('Yahukimo_20260812.data_prog_keg')
             ->select(
                 'nama_urusan',
                 'nama_bidang_urusan',
@@ -201,10 +201,10 @@ class InsertKegiatan extends Command
                 $this->warn("\nCodes with different names:");
                 foreach ($duplicates->take(5) as $code => $group) {
                     $names = $group->pluck('nama_giat')->unique();
-                    $this->line("  Code {$code}: ".$names->implode(' | '));
+                    $this->line("  Code {$code}: " . $names->implode(' | '));
                 }
                 if ($duplicates->count() > 5) {
-                    $this->line('  ... and '.($duplicates->count() - 5).' more');
+                    $this->line('  ... and ' . ($duplicates->count() - 5) . ' more');
                 }
             }
         }
@@ -319,7 +319,7 @@ class InsertKegiatan extends Command
 
         try {
             foreach ($chunks as $index => $chunk) {
-                $bar->setMessage('Batch '.($index + 1).' of '.count($chunks));
+                $bar->setMessage('Batch ' . ($index + 1) . ' of ' . count($chunks));
 
                 DB::connection('mysql')->table('kegiatan')->upsert(
                     $chunk,
@@ -340,11 +340,11 @@ class InsertKegiatan extends Command
             $bar->finish();
             $this->line("\n");
 
-            $this->info('✓ Successfully processed '.count($insertData).' records in '.count($chunks).' batches');
+            $this->info('✓ Successfully processed ' . count($insertData) . ' records in ' . count($chunks) . ' batches');
         } catch (Exception $e) {
             $bar->finish();
             $this->line("\n");
-            throw new Exception('Batch insert failed: '.$e->getMessage());
+            throw new Exception('Batch insert failed: ' . $e->getMessage());
         }
     }
 
@@ -363,7 +363,7 @@ class InsertKegiatan extends Command
     {
         $this->warn("\n=== DRY RUN MODE - NO DATA WILL BE INSERTED ===\n");
 
-        $this->info('Records that would be inserted: '.count($insertData));
+        $this->info('Records that would be inserted: ' . count($insertData));
 
         // Show sample data
         $sample = array_slice($insertData, 0, 10);
@@ -372,7 +372,7 @@ class InsertKegiatan extends Command
                 $item['id'],
                 $item['id_program'],
                 $item['kode_kegiatan'],
-                substr($item['nama_kegiatan'], 0, 50).'...',
+                substr($item['nama_kegiatan'], 0, 50) . '...',
             ];
         }, $sample);
 
@@ -382,7 +382,7 @@ class InsertKegiatan extends Command
         );
 
         if (count($insertData) > 10) {
-            $this->line('... and '.(count($insertData) - 10).' more records');
+            $this->line('... and ' . (count($insertData) - 10) . ' more records');
         }
 
         $this->info("\nRun without --dry-run flag to insert data");
@@ -396,15 +396,15 @@ class InsertKegiatan extends Command
         $this->info('║         SUMMARY REPORT                 ║');
         $this->info('╚════════════════════════════════════════╝');
 
-        $this->line('Records before insert: '.number_format($beforeCount));
-        $this->line('Records after insert:  '.number_format($afterCount));
-        $this->line('New records added:     '.number_format($afterCount - $beforeCount));
-        $this->line('Records updated:       '.number_format($processedCount - ($afterCount - $beforeCount)));
-        $this->line('Total processed:       '.number_format($processedCount));
+        $this->line('Records before insert: ' . number_format($beforeCount));
+        $this->line('Records after insert:  ' . number_format($afterCount));
+        $this->line('New records added:     ' . number_format($afterCount - $beforeCount));
+        $this->line('Records updated:       ' . number_format($processedCount - ($afterCount - $beforeCount)));
+        $this->line('Total processed:       ' . number_format($processedCount));
         $this->line("Execution time:        {$executionTime} seconds");
 
         if (! empty($this->notFoundPrograms)) {
-            $this->line('Skipped (no program):  '.count(array_unique($this->notFoundPrograms)));
+            $this->line('Skipped (no program):  ' . count(array_unique($this->notFoundPrograms)));
         }
     }
 
@@ -412,14 +412,14 @@ class InsertKegiatan extends Command
     {
         if (! empty($this->notFoundPrograms)) {
             $uniquePrograms = array_unique($this->notFoundPrograms);
-            $this->warn("\n⚠ Warning: ".count($uniquePrograms).' program IDs not found:');
+            $this->warn("\n⚠ Warning: " . count($uniquePrograms) . ' program IDs not found:');
 
             foreach (array_slice($uniquePrograms, 0, 5) as $id) {
                 $this->warn("  - Program ID: {$id}");
             }
 
             if (count($uniquePrograms) > 5) {
-                $this->warn('  ... and '.(count($uniquePrograms) - 5).' more');
+                $this->warn('  ... and ' . (count($uniquePrograms) - 5) . ' more');
             }
         }
 

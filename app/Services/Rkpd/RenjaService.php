@@ -44,7 +44,7 @@ class RenjaService
         $tahunAnggaran = $this->getTahunAnggaran();
 
         return [
-            'data' => $this->renjaRepo->getAll(),
+            'data' => $this->renjaRepo->getAll($tahunAnggaran),
             'data_unit' => $this->renjaRepo->getDataUnit($tahunAnggaran),
             'sumberdana' => $this->renjaRepo->getSumberDana(),
             'daerah' => $this->renjaRepo->getDataDaerah(),
@@ -66,15 +66,15 @@ class RenjaService
 
     public function getEditData(int $idSubBl): array
     {
-        $subKegiatan = $this->renjaRepo->getSubKegiatanForEdit($idSubBl);
+        $tahunAnggaran = $this->getTahunAnggaran();
+        $subKegiatan = $this->renjaRepo->getSubKegiatanForEdit($idSubBl, $tahunAnggaran);
 
         if (! $subKegiatan) {
             return ['subKegiatan' => null];
         }
 
-        $tahunAnggaran = $this->getTahunAnggaran();
-        $sumberDana = $this->renjaRepo->getSumberDanaForEdit($subKegiatan->id, $subKegiatan->kode_sbl);
-        $indikator = $this->renjaRepo->getIndikatorForEdit($subKegiatan->id, $subKegiatan->kode_sbl);
+        $sumberDana = $this->renjaRepo->getSumberDanaForEdit($subKegiatan->id, $tahunAnggaran, $subKegiatan->kode_sbl);
+        $indikator = $this->renjaRepo->getIndikatorForEdit($subKegiatan->id, $tahunAnggaran, $subKegiatan->kode_sbl);
         $dataUnit = $this->renjaRepo->getDataUnitById($subKegiatan->id_skpd, $tahunAnggaran);
         $allSumberDana = $this->renjaRepo->getSumberDana();
         $dataBulan = $this->renjaRepo->getDataBulan();
@@ -131,17 +131,17 @@ class RenjaService
                 'tahun_anggaran' => $tahunAnggaran,
             ]);
 
-            $this->insertSumberDana($data['sumber_dana'], $idSubKegBl, $codes['kode_sbl']);
+            $this->insertSumberDana($data['sumber_dana'], $idSubKegBl, $codes['kode_sbl'], $tahunAnggaran);
 
             if (! empty($data['indikator'])) {
-                $this->insertIndikator($data['indikator'], $idSubKegBl, $codes['kode_sbl']);
+                $this->insertIndikator($data['indikator'], $idSubKegBl, $codes['kode_sbl'], $tahunAnggaran);
             }
 
             DB::commit();
 
-            $message = 'Sub Kegiatan berhasil ditambahkan dengan '.count($data['sumber_dana']).' sumber dana';
+            $message = 'Sub Kegiatan berhasil ditambahkan dengan ' . count($data['sumber_dana']) . ' sumber dana';
             if (! empty($data['indikator'])) {
-                $message .= ' dan '.count($data['indikator']).' indikator';
+                $message .= ' dan ' . count($data['indikator']) . ' indikator';
             }
 
             return [
@@ -151,7 +151,7 @@ class RenjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating RENJA: '.$e->getMessage());
+            Log::error('Error creating RENJA: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -161,7 +161,8 @@ class RenjaService
         DB::beginTransaction();
 
         try {
-            $subKegiatanBelanja = $this->renjaRepo->getSubKegiatanForEdit($idSubBl);
+            $tahunAnggaran = $this->getTahunAnggaran();
+            $subKegiatanBelanja = $this->renjaRepo->getSubKegiatanForEdit($idSubBl, $tahunAnggaran);
             if (! $subKegiatanBelanja) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
@@ -176,10 +177,10 @@ class RenjaService
                 'nama_lokasi' => (string) 604,
             ]);
 
-            $this->replaceSumberDana($data['sumber_dana'], $subKegiatanBelanja);
+            $this->replaceSumberDana($data['sumber_dana'], $subKegiatanBelanja, $tahunAnggaran);
 
             if (isset($data['indikator'])) {
-                $this->replaceIndikator($data['indikator'], $subKegiatanBelanja);
+                $this->replaceIndikator($data['indikator'], $subKegiatanBelanja, $tahunAnggaran);
             }
 
             DB::commit();
@@ -190,7 +191,7 @@ class RenjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error updating RENJA: '.$e->getMessage());
+            Log::error('Error updating RENJA: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -200,14 +201,15 @@ class RenjaService
         DB::beginTransaction();
 
         try {
-            $subKegiatanBelanja = $this->renjaRepo->getSubKegiatanForEdit($idSubBl);
+            $tahunAnggaran = $this->getTahunAnggaran();
+            $subKegiatanBelanja = $this->renjaRepo->getSubKegiatanForEdit($idSubBl, $tahunAnggaran);
             if (! $subKegiatanBelanja) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
 
-            $rincianCount = $this->renjaRepo->countRincianBelanja($subKegiatanBelanja->id);
+            $rincianCount = $this->renjaRepo->countRincianBelanja($subKegiatanBelanja->id, $tahunAnggaran);
             if ($rincianCount > 0) {
-                throw new \Exception('Tidak dapat menghapus! Sub kegiatan ini sudah memiliki '.$rincianCount.' rincian belanja.');
+                throw new \Exception('Tidak dapat menghapus! Sub kegiatan ini sudah memiliki ' . $rincianCount . ' rincian belanja.');
             }
 
             $this->renjaRepo->softDeleteSubKegiatan($subKegiatanBelanja->id);
@@ -222,23 +224,11 @@ class RenjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error deleting RENJA: '.$e->getMessage());
+            Log::error('Error deleting RENJA: ' . $e->getMessage());
             throw $e;
         }
     }
-
-    /**
-     * Susun data RENJA 1 SKPD penuh (semua Urusan/Program/Kegiatan/Sub Kegiatan) untuk export PDF,
-     * mengikuti struktur laporan RENJA OPD standar (Urusan > Bidang Urusan > Program > Kegiatan > Sub Kegiatan).
-     *
-     * CATATAN KETERBATASAN DATA: Beberapa kolom di format laporan RENJA OPD standar
-     * (Target Akhir Periode Renstra, Realisasi Capaian Renja Tahun Lalu, Prakiraan Capaian
-     * Tahun Berjalan, Prioritas Nasional, Prioritas Daerah, Kelompok Sasaran, Target Prakiraan
-     * Maju Tahun Depan) TIDAK memiliki kolom yang jelas pemetaannya di skema data_sub_keg_bl
-     * saat ini. Field-field tersebut akan ditampilkan sebagai '-' dan ditandai dengan komentar
-     * HTML `<!-- UNMAPPED: nama_field -->` pada hasil render (lihat helper flaggedValue()),
-     * supaya mudah dicari & dipetakan ulang begitu kolom sumber datanya sudah jelas.
-     */
+    // export pdf
     public function getExportPdfData(int $idSkpd, int $tahunAnggaran): array
     {
         $skpd = $this->renjaRepo->getDataUnitById($idSkpd, $tahunAnggaran);
@@ -331,7 +321,7 @@ class RenjaService
 
             $indikatorText = isset($indikatorMap[$row->id])
                 ? $indikatorMap[$row->id]->map(function ($ind) {
-                    return trim(($ind->output_teks ?? '').' - '.($ind->target_output ?? '').' '.($ind->satuan_output ?? ''));
+                    return trim(($ind->output_teks ?? '') . ' - ' . ($ind->target_output ?? '') . ' ' . ($ind->satuan_output ?? ''));
                 })->filter()->implode('; ')
                 : null;
 
@@ -374,7 +364,7 @@ class RenjaService
     private function flaggedValue($value, string $fieldName): string
     {
         if ($value === null || $value === '') {
-            return '-<!-- UNMAPPED: '.$fieldName.' -->';
+            return '-<!-- UNMAPPED: ' . $fieldName . ' -->';
         }
 
         return e($value);
@@ -386,9 +376,10 @@ class RenjaService
         $start = $params['start'] ?? 0;
         $length = $params['length'] ?? 10;
 
-        $query = $this->renjaRepo->getDataTableQuery($searchValue);
-        $totalRecords = $this->renjaRepo->getTotalRecords();
-        $totalFiltered = $this->renjaRepo->getFilteredCount($searchValue);
+        $tahunAnggaran = $this->getTahunAnggaran();
+        $query = $this->renjaRepo->getDataTableQuery($searchValue, $tahunAnggaran);
+        $totalRecords = $this->renjaRepo->getTotalRecords($tahunAnggaran);
+        $totalFiltered = $this->renjaRepo->getFilteredCount($searchValue, $tahunAnggaran);
 
         $data = $query->skip($start)->take($length)->get();
         $formattedData = $this->formatDataTableRows($data);
@@ -402,15 +393,16 @@ class RenjaService
 
     public function getRincianSubKegiatan(int $id): array
     {
-        $subKegiatan = $this->renjaRepo->getSubKegiatanWithUnit($id);
+        $tahunAnggaran = $this->getTahunAnggaran();
+        $subKegiatan = $this->renjaRepo->getSubKegiatanWithUnit($id, $tahunAnggaran);
 
         if (! $subKegiatan) {
             return ['subKegiatan' => null];
         }
 
-        $sumberDana = $this->renjaRepo->getSumberDanaBySubKegiatan($id);
-        $indikator = $this->renjaRepo->getIndikatorBySubKegiatan($id);
-        $rincianBelanja = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id);
+        $sumberDana = $this->renjaRepo->getSumberDanaBySubKegiatan($id, $tahunAnggaran);
+        $indikator = $this->renjaRepo->getIndikatorBySubKegiatan($id, $tahunAnggaran);
+        $rincianBelanja = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id, $tahunAnggaran);
         $totalPerObjek = $this->groupRincianByObjek($rincianBelanja);
 
         return [
@@ -422,49 +414,110 @@ class RenjaService
         ];
     }
 
-<<<<<<< HEAD
-     public function getCetakRincianData(int $idSubBl): array
-{
-    $base = $this->getRincianSubKegiatan($idSubBl);
+    public function getCetakRincianData(int $idSubBl, ?string $tanggalTtd = null, ?string $namaTtd = null, ?string $nipTtd = null): array
+    {
+        $base = $this->getRincianSubKegiatan($idSubBl);
 
-    if (! $base['subKegiatan']) {
-        return ['subKegiatan' => null];
+        if (! $base['subKegiatan']) {
+            return ['subKegiatan' => null];
+        }
+
+        $subKegiatan = $base['subKegiatan'];
+        $rincianBelanja = $base['rincianBelanja'];
+        $tahunAnggaran = $subKegiatan->tahun_anggaran ?? date('Y');
+
+        $spmData = $this->renjaRepo->getSpmBySubGiat($subKegiatan->id_sub_giat, (int) $tahunAnggaran);
+
+        $capaianProgram = $this->renjaRepo->getCapaianProgramBySubKegiatan($idSubBl, (int) $tahunAnggaran);
+        $hasilOutput = $this->renjaRepo->getHasilOutputBySubKegiatan($idSubBl, (int) $tahunAnggaran);
+        $lokasiRows = $this->renjaRepo->getLokasiBySubKegiatan($idSubBl, (int) $tahunAnggaran);
+
+        $lokasi = $lokasiRows->map(function ($lok) {
+            $parts = array_filter([$lok->daerahteks ?? null, $lok->camatteks ?? null, $lok->lurahteks ?? null]);
+
+            return (object) ['lokasi' => implode(', ', $parts) ?: '-'];
+        });
+
+        return [
+            'subKegiatan' => $subKegiatan,
+            'sumberDana' => $base['sumberDana'],
+            'indikator' => $base['indikator'],
+            'kabupaten' => config('app.nama_kabupaten', 'Yahukimo'),
+            'tahunAnggaran' => $tahunAnggaran,
+            'waktuPelaksanaan' => $this->formatBulanRange($subKegiatan->waktu_awal ?? null, $subKegiatan->waktu_akhir ?? null),
+            'spm' => $spmData->pluck('spm_teks')->filter()->unique()->implode(', ') ?: '-',
+            'jenisLayanan' => $spmData->pluck('layanan_teks')->filter()->unique()->implode(', ') ?: '-',
+            'lokasi' => $lokasi,
+            'kelompokSasaran' => $subKegiatan->sasaran ?? '-',
+            'capaianProgram' => $capaianProgram->capaianteks ?? '-',
+            'targetCapaianProgram' => $this->formatTargetText(
+                $capaianProgram->targetcapaian ?? null,
+                $capaianProgram->satuancapaian ?? null,
+                $capaianProgram->targetcapaianteks ?? null
+            ),
+            'hasil' => $hasilOutput->outputteks ?? '-',
+            'targetHasil' => $this->formatTargetText(
+                $hasilOutput->targetoutput ?? null,
+                $hasilOutput->satuanoutput ?? null,
+                $hasilOutput->targetoutputteks ?? null
+            ),
+            'rincianRows' => $this->buildRincianRows($rincianBelanja, (int) $tahunAnggaran),
+            'grandTotal' => $rincianBelanja->sum(function ($item) {
+                return $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
+            }),
+            'ttd' => [
+                'tempat' => config('app.nama_kabupaten', 'Yahukimo'),
+                'jabatan' => 'Kepala ' . ($subKegiatan->nama_skpd ?? ''),
+                'tanggal' => $this->formatTanggalTtd($tanggalTtd),
+                'nama' => $namaTtd ?: '-',
+                'nip' => $nipTtd ?: '-',
+            ],
+        ];
     }
 
-    $subKegiatan = $base['subKegiatan'];
-    $rincianBelanja = $base['rincianBelanja'];
-    $tahunAnggaran = $subKegiatan->tahun_anggaran ?? date('Y');
+    /**
+     * Format tanggal input user (dd-mm-yyyy dari modal) ke format tampilan Indonesia.
+     * Fallback ke tanggal hari ini kalau tidak dikirim/parse gagal.
+     */
+    private function formatTanggalTtd(?string $tanggal): string
+    {
+        try {
+            if ($tanggal) {
+                return \Carbon\Carbon::createFromFormat('d-m-Y', $tanggal)->translatedFormat('d F Y');
+            }
+        } catch (\Exception $e) {
+            // fallthrough ke default di bawah
+        }
 
-    $spmData = $this->renjaRepo->getSpmBySubGiat($subKegiatan->id_sub_giat, (int) $tahunAnggaran);
+        return now()->translatedFormat('d F Y');
+    }
 
-    return [
-        'subKegiatan' => $subKegiatan,
-        'sumberDana' => $base['sumberDana'],
-        'indikator' => $base['indikator'],
-        'kabupaten' => config('app.nama_kabupaten', 'Yahukimo'),
-        'tahunAnggaran' => $tahunAnggaran,
-        'waktuPelaksanaan' => $this->formatBulanRange($subKegiatan->waktu_awal ?? null, $subKegiatan->waktu_akhir ?? null),
-        'spm' => $spmData->pluck('spm_teks')->filter()->unique()->implode(', ') ?: '-',
-        'jenisLayanan' => $spmData->pluck('layanan_teks')->filter()->unique()->implode(', ') ?: '-',
-        'rincianRows' => $this->buildRincianRows($rincianBelanja, (int) $tahunAnggaran),
-        'grandTotal' => $rincianBelanja->sum(function ($item) {
-            return $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
-        }),
-        'ttd' => [
-            'tempat' => config('app.nama_kabupaten', 'Yahukimo'),
-            'jabatan' => 'Kepala '.($subKegiatan->nama_skpd ?? ''),
-            'nama' => '-<!-- UNMAPPED: pejabat_penandatangan -->',
-            'nip' => '-<!-- UNMAPPED: nip_pejabat -->',
-        ],
-    ];
-}
+    private function formatTargetText(?string $target, ?string $satuan, ?string $targetTeks): string
+    {
+        $combined = trim(($target ?? '') . ' ' . ($satuan ?? ''));
+
+        if ($combined !== '') {
+            return $combined;
+        }
+
+        return $targetTeks ?: '-';
+    }
 
     private function formatBulanRange($bulanAwal, $bulanAkhir): string
     {
         $namaBulan = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
         ];
 
         $awal = $namaBulan[(int) $bulanAwal] ?? '-';
@@ -473,39 +526,7 @@ class RenjaService
         return "{$awal} s.d {$akhir}";
     }
 
-    // private function buildAkunHierarchy($rincianBelanja): array
-    // {
-    //     $totals = [];
-
-    //     foreach ($rincianBelanja as $item) {
-    //         $kode = $item->kode_akun;
-    //         $jumlah = ($item->volume ?? 0) * ($item->harga_satuan ?? 0);
-    //         $parts = explode('.', $kode);
-
-    //         $prefix = '';
-    //         foreach ($parts as $i => $part) {
-    //             $prefix = $i === 0 ? $part : $prefix.'.'.$part;
-    //             $totals[$prefix] = ($totals[$prefix] ?? 0) + $jumlah;
-    //         }
-    //     }
-
-    //     $namaAkunMap = $this->akunRepo->getByKodeList(array_keys($totals));
-
-    //     $rows = [];
-    //     foreach ($totals as $kode => $jumlah) {
-    //         $rows[] = [
-    //             'kode' => $kode,
-    //             'uraian' => $namaAkunMap[$kode]->nama_akun ?? '-<!-- UNMAPPED: nama_akun_level -->',
-    //             'jumlah' => $jumlah,
-    //         ];
-    //     }
-
-    //     usort($rows, fn ($a, $b) => strnatcmp($a['kode'], $b['kode']));
-
-    //     return $rows;
-    // }
-
-   private function buildRincianRows($rincianBelanja, int $tahunAnggaran): array
+    private function buildRincianRows($rincianBelanja, int $tahunAnggaran): array
     {
         $totals = [];
         $itemsByKode = [];
@@ -517,7 +538,7 @@ class RenjaService
             $parts = explode('.', $kode);
             $prefix = '';
             foreach ($parts as $i => $part) {
-                $prefix = $i === 0 ? $part : $prefix.'.'.$part;
+                $prefix = $i === 0 ? $part : $prefix . '.' . $part;
                 $totals[$prefix] = ($totals[$prefix] ?? 0) + $jumlah;
             }
 
@@ -527,7 +548,7 @@ class RenjaService
         $namaAkunMap = $this->akunRepo->getByKodeList(array_keys($totals), $tahunAnggaran);
 
         $prefixes = array_keys($totals);
-        usort($prefixes, fn ($a, $b) => strnatcmp($a, $b));
+        usort($prefixes, fn($a, $b) => strnatcmp($a, $b));
 
         $rows = [];
 
@@ -535,7 +556,7 @@ class RenjaService
             $rows[] = [
                 'type' => 'header',
                 'kode' => $kode,
-                'uraian' => $namaAkunMap[$kode]->nama_akun ?? '-<!-- UNMAPPED: kode akun '.$kode.' -->',
+                'uraian' => $namaAkunMap[$kode]->nama_akun ?? '-<!-- UNMAPPED: kode akun ' . $kode . ' -->',
                 'jumlah' => $totals[$kode],
             ];
 
@@ -552,11 +573,11 @@ class RenjaService
     private function buildPaketMintagRows(array $items): array
     {
         $rows = [];
-        $byPaket = collect($items)->groupBy(fn ($i) => $i->idsubtitle ?: 'no_paket_'.$i->id);
+        $byPaket = collect($items)->groupBy(fn($i) => $i->idsubtitle ?: 'no_paket_' . $i->id);
 
         foreach ($byPaket as $paketItems) {
             $first = $paketItems->first();
-            $totalHarga = fn ($i) => $i->total_harga ?? (($i->volume ?? 0) * ($i->harga_satuan ?? 0));
+            $totalHarga = fn($i) => $i->total_harga ?? (($i->volume ?? 0) * ($i->harga_satuan ?? 0));
 
             $rows[] = [
                 'type' => 'paket',
@@ -565,7 +586,7 @@ class RenjaService
                 'jumlah' => $paketItems->sum($totalHarga),
             ];
 
-            $byMintag = $paketItems->groupBy(fn ($i) => $i->ket_bl_teks ?: 'Tanpa Kategori');
+            $byMintag = $paketItems->groupBy(fn($i) => $i->ket_bl_teks ?: 'Tanpa Kategori');
 
             foreach ($byMintag as $mintagItems) {
                 $rows[] = [
@@ -590,88 +611,16 @@ class RenjaService
         }
 
         return $rows;
-=======
-    public function getRingkasanPaket(int $id): array
-    {
-        $subKegiatan = $this->renjaRepo->getSubKegiatanWithUnit($id);
-
-        if (! $subKegiatan) {
-            return ['subKegiatan' => null];
-        }
-
-        $sumberDana = $this->renjaRepo->getSumberDanaBySubKegiatan($id);
-        $indikator = $this->renjaRepo->getIndikatorBySubKegiatan($id);
-        $rincian = $this->renjaRepo->getRincianBelanjaBySubKegiatan($id);
-
-        // Buat map sumber dana: id_dana → nama_dana (untuk ditempel ke tiap paket)
-        $sumberDanaMap = $sumberDana->keyBy('iddana');
-
-        // -------------------------------------------------------
-        // Kelompokkan: Paket (subtitle_teks) → Mintag (ket_bl_teks)
-        // -------------------------------------------------------
-        $paketGroup = [];
-        $totalKeseluruhan = 0;
-
-        foreach ($rincian as $item) {
-            // Skip baris header paket (marker)
-            if ($item->ket_bl_teks === '--- PAKET/KELOMPOK ---') {
-                continue;
-            }
-
-            $paketKey = $item->idsubtitle ?? 'no_paket_'.$item->id;
-            $mintagKey = $item->ket_bl_teks ?: 'Tanpa Kategori';
-            $itemTotal = $item->total_harga ?? (($item->volume ?? 0) * ($item->harga_satuan ?? 0));
-
-            // Init paket
-            if (! isset($paketGroup[$paketKey])) {
-                // Ambil nama sumber dana paket ini
-                $namaDana = '-';
-                if ($item->id_dana && isset($sumberDanaMap[$item->id_dana])) {
-                    $namaDana = $sumberDanaMap[$item->id_dana]->namadana;
-                } elseif (! empty($item->nama_dana)) {
-                    $namaDana = $item->nama_dana;
-                }
-
-                $paketGroup[$paketKey] = [
-                    'idsubtitle' => $item->idsubtitle,
-                    'title' => $item->subtitle_teks ?? 'Tanpa Paket',
-                    'nama_dana' => $namaDana,
-                    'is_paket' => $item->is_paket,
-                    'jenis_bl' => $item->jenis_bl,
-                    'total' => 0,
-                    'mintag' => [],
-                ];
-            }
-
-            // Init mintag
-            if (! isset($paketGroup[$paketKey]['mintag'][$mintagKey])) {
-                $paketGroup[$paketKey]['mintag'][$mintagKey] = [
-                    'title' => $mintagKey,
-                    'total' => 0,
-                ];
-            }
-
-            $paketGroup[$paketKey]['mintag'][$mintagKey]['total'] += $itemTotal;
-            $paketGroup[$paketKey]['total'] += $itemTotal;
-            $totalKeseluruhan += $itemTotal;
-        }
-
-        return [
-            'subKegiatan' => $subKegiatan,
-            'sumberDana' => $sumberDana,
-            'indikator' => $indikator,
-            'paketGroup' => $paketGroup,
-            'totalKeseluruhan' => $totalKeseluruhan,
-        ];
->>>>>>> fa65b713ddad04c9bdb89087939694b5017d9b9e
     }
+
+
 
     public function getAkunByJenisBelanja(string $jenisBelanja, int $tahunAnggaran): array
     {
         if (! isset(self::JENIS_BELANJA_MAPPING[$jenisBelanja])) {
             return [
                 'success' => false,
-                'message' => 'Jenis belanja tidak valid: '.$jenisBelanja,
+                'message' => 'Jenis belanja tidak valid: ' . $jenisBelanja,
             ];
         }
 
@@ -683,7 +632,7 @@ class RenjaService
                 'id' => $akun->id,
                 'kode_akun' => $akun->kode_akun,
                 'nama_akun' => $akun->nama_akun,
-                'text' => $akun->kode_akun.' - '.$akun->nama_akun,
+                'text' => $akun->kode_akun . ' - ' . $akun->nama_akun,
                 'level' => $akun->level,
             ];
         });
@@ -719,7 +668,8 @@ class RenjaService
         DB::beginTransaction();
 
         try {
-            $subKegiatan = $this->renjaRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl']);
+            $tahunAnggaran = $this->getTahunAnggaran();
+            $subKegiatan = $this->renjaRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl'], $tahunAnggaran);
             if (! $subKegiatan) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
@@ -738,7 +688,7 @@ class RenjaService
                 'jenis_bl' => $data['jenis_bl'],
                 'tipe_paket' => $data['tipe_paket'],
                 'uraian_paket' => $data['uraian_paket'],
-            ]);
+            ], $tahunAnggaran);
 
             DB::commit();
 
@@ -749,7 +699,7 @@ class RenjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating paket: '.$e->getMessage());
+            Log::error('Error creating paket: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -759,7 +709,8 @@ class RenjaService
         DB::beginTransaction();
 
         try {
-            $subKegiatan = $this->renjaRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl']);
+            $tahunAnggaran = $this->getTahunAnggaran();
+            $subKegiatan = $this->renjaRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl'], $tahunAnggaran);
             if (! $subKegiatan) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
@@ -796,7 +747,7 @@ class RenjaService
                 'harga_satuan' => $hargaSatuan,
                 'total_harga' => $totalHarga,
                 'jenis_bl' => $data['jenis_bl'],
-            ]);
+            ], $tahunAnggaran);
 
             DB::commit();
 
@@ -810,7 +761,7 @@ class RenjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating rincian: '.$e->getMessage());
+            Log::error('Error creating rincian: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -837,7 +788,7 @@ class RenjaService
         ];
     }
 
-    private function insertSumberDana(array $sumberDanaList, int $idSubKegBl, string $kodeSbl): void
+    private function insertSumberDana(array $sumberDanaList, int $idSubKegBl, string $kodeSbl, int $tahunAnggaran): void
     {
         foreach ($sumberDanaList as $dana) {
             $this->renjaRepo->createDanaSubKegiatan([
@@ -845,11 +796,11 @@ class RenjaService
                 'pagu' => $dana['pagu'],
                 'idsubbl' => $idSubKegBl,
                 'kode_sbl' => $kodeSbl,
-            ]);
+            ], $tahunAnggaran);
         }
     }
 
-    private function insertIndikator(array $indikatorList, int $idSubKegBl, string $kodeSbl): void
+    private function insertIndikator(array $indikatorList, int $idSubKegBl, string $kodeSbl, int $tahunAnggaran): void
     {
         foreach ($indikatorList as $indikator) {
             $targetValue = str_replace('.', '', $indikator['target']);
@@ -861,13 +812,13 @@ class RenjaService
                 'id_output_bl' => $indikator['id_indikator'] ?? 0,
                 'idsubbl' => $idSubKegBl,
                 'kode_sbl' => $kodeSbl,
-            ]);
+            ], $tahunAnggaran);
         }
     }
 
-    private function replaceSumberDana(array $sumberDanaList, $subKegiatanBelanja): void
+    private function replaceSumberDana(array $sumberDanaList, $subKegiatanBelanja, int $tahunAnggaran): void
     {
-        $this->renjaRepo->deleteSumberDanaBySubKegiatan($subKegiatanBelanja->id);
+        $this->renjaRepo->deleteSumberDanaBySubKegiatan($subKegiatanBelanja->id, $tahunAnggaran);
 
         foreach ($sumberDanaList as $dana) {
             $sumberDanaInfo = $this->renjaRepo->getMasterSumberDana($dana['id_sumber_dana']);
@@ -884,14 +835,14 @@ class RenjaService
                     'pagu' => floatval($paguValue),
                     'kode_sbl' => $subKegiatanBelanja->kode_sbl,
                     'idsubbl' => $subKegiatanBelanja->id,
-                ]);
+                ], $tahunAnggaran);
             }
         }
     }
 
-    private function replaceIndikator(array $indikatorList, $subKegiatanBelanja): void
+    private function replaceIndikator(array $indikatorList, $subKegiatanBelanja, int $tahunAnggaran): void
     {
-        $this->renjaRepo->deleteIndikatorBySubKegiatan($subKegiatanBelanja->id);
+        $this->renjaRepo->deleteIndikatorBySubKegiatan($subKegiatanBelanja->id, $tahunAnggaran);
 
         foreach ($indikatorList as $indikator) {
             if (! empty($indikator['target'])) {
@@ -904,7 +855,7 @@ class RenjaService
                     'id_output_bl' => $indikator['id_indikator'] ?? 0,
                     'idsubbl' => $subKegiatanBelanja->id,
                     'kode_sbl' => $subKegiatanBelanja->kode_sbl,
-                ]);
+                ], $tahunAnggaran);
             }
         }
     }
@@ -920,7 +871,7 @@ class RenjaService
 
             $randomColor = $badgeColors[array_rand($badgeColors)];
             $usulanBadge = $jumlahUsulan > 0
-                ? '<span class="badge badge-'.$randomColor.' ms-2">'.$jumlahUsulan.' Usulan Pokir</span>'
+                ? '<span class="badge badge-' . $randomColor . ' ms-2">' . $jumlahUsulan . ' Usulan Pokir</span>'
                 : '';
 
             $checkIcon = $jumlahIndikator > 0
@@ -930,10 +881,10 @@ class RenjaService
             $formattedData[] = [
                 'DT_RowIndex' => count($formattedData) + 1,
                 'checkbox' => '',
-                'group_skpd' => $row->kode_skpd.' '.$row->nama_skpd,
-                'group_urusan' => $row->kode_urusan.' '.$row->nama_urusan,
-                'group_program' => $row->kode_program.' '.$row->nama_program,
-                'group_kegiatan' => $row->kode_giat.' '.$row->nama_giat,
+                'group_skpd' => $row->kode_skpd . ' ' . $row->nama_skpd,
+                'group_urusan' => $row->kode_urusan . ' ' . $row->nama_urusan,
+                'group_program' => $row->kode_program . ' ' . $row->nama_program,
+                'group_kegiatan' => $row->kode_giat . ' ' . $row->nama_giat,
                 'sub_kegiatan' => $this->renderSubKegiatanColumn($row, $checkIcon, $usulanBadge),
                 'status_sub_kegiatan' => '<span class="badge badge-light-danger">DIKUNCI</span>',
                 'status_rincian' => '<span class="badge badge-light-danger">DIKUNCI</span>',
@@ -957,9 +908,9 @@ class RenjaService
                     <i class="ki-outline ki-minus fs-3"></i>
                 </button>
                 <div>
-                    <a href="#" class="text-primary fw-bold">'.$row->kode_sub_giat.' '.$row->nama_sub_giat.'</a>
-                    '.$checkIcon.'
-                    '.$usulanBadge.'
+                    <a href="#" class="text-primary fw-bold">' . $row->kode_sub_giat . ' ' . $row->nama_sub_giat . '</a>
+                    ' . $checkIcon . '
+                    ' . $usulanBadge . '
                 </div>
             </div>
         ';
@@ -983,37 +934,30 @@ class RenjaService
                     <li><hr class="dropdown-divider"></li>
                     
                     <li>
-                        <a class="dropdown-item" href="/rkpd/renja/'.$id.'/edit">
+                        <a class="dropdown-item" href="/rkpd/renja/' . $id . '/edit">
                             <i class="ki-outline ki-pencil fs-5 me-2 text-warning"></i>
                             Edit Sub Kegiatan
                         </a>
                     </li>
                     
                     <li>
-                        <a class="dropdown-item btn-lihat-rincian" href="#" data-id="'.$id.'">
+                        <a class="dropdown-item btn-lihat-rincian" href="#" data-id="' . $id . '">
                             <i class="ki-outline ki-document fs-5 me-2 text-info"></i>
                             Lihat Rincian Belanja
                         </a>
                     </li>
 
-<<<<<<< HEAD
                      <li>
-                        <a class="dropdown-item" href="'.route('renja.cetak-rincian', $id).'" target="_blank">
+                        <a class="dropdown-item btn-cetak-rincian" href="#" data-id="' . $id . '" data-url="' . route('renja.cetak-rincian', $id) . '">
                             <i class="ki-outline ki-printer fs-5 me-2 text-primary"></i>
                             Cetak Rincian Belanja
-=======
-                    <li>
-                        <a class="dropdown-item" href="/rkpd/renja/'.$id.'/ringkasan-paket">
-                            <i class="ki-outline ki-folder fs-5 me-2 text-primary"></i>
-                            RKA Paket / Kelompok
->>>>>>> fa65b713ddad04c9bdb89087939694b5017d9b9e
                         </a>
                     </li>
                     
                     <li><hr class="dropdown-divider"></li>
                     
                     <li>
-                        <a class="dropdown-item btn-delete-renja" href="#" data-id="'.$id.'">
+                        <a class="dropdown-item btn-delete-renja" href="#" data-id="' . $id . '">
                             <i class="ki-outline ki-trash fs-5 me-2 text-danger"></i>
                             Hapus Sub Kegiatan
                         </a>

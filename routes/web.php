@@ -28,16 +28,16 @@ Route::group(['middleware' => ['auth', 'tahun.anggaran']], function () {
     });
 
     // Sub-route files
-    require __DIR__.'/dashboard/referensi.php';
-    require __DIR__.'/dashboard/rkpd.php';
-    require __DIR__.'/dashboard/standarharga.php';
-    require __DIR__.'/dashboard/pengaturan.php';
-    require __DIR__.'/dashboard/pendapatan.php';
-    require __DIR__.'/dashboard/pembiayaan.php';
+    require __DIR__ . '/dashboard/referensi.php';
+    require __DIR__ . '/dashboard/rkpd.php';
+    require __DIR__ . '/dashboard/standarharga.php';
+    require __DIR__ . '/dashboard/pengaturan.php';
+    require __DIR__ . '/dashboard/pendapatan.php';
+    require __DIR__ . '/dashboard/pembiayaan.php';
 });
 
 // ======================== AUTH ROUTES ======================== //
-require __DIR__.'/auth/auth.php';
+require __DIR__ . '/auth/auth.php';
 
 // ======================== HELPERS ======================== //
 function set_active($route)
@@ -48,3 +48,7 @@ function set_active($route)
 
     return Request::path() == $route ? 'active' : '';
 }
+
+Route::get('/404', function () {
+    abort(404);
+})->name('404');

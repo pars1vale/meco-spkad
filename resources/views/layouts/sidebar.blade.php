@@ -92,9 +92,8 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" href="https://preview.keenthemes.com/html/metronic/docs/getting-started/changelog" target="_blank"
-                title="berikan tooltip di attrubute 'title'" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
-                data-bs-placement="right">
+              <a class="menu-link" href="{{ route('404') }}" title="berikan tooltip di attrubute 'title'" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
@@ -102,9 +101,8 @@
               </a>
             </div>
             <div class="menu-item">
-              <a class="menu-link" href="https://preview.keenthemes.com/html/metronic/docs/getting-started/changelog" target="_blank"
-                title="berikan tooltip di attrubute 'title'" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click"
-                data-bs-placement="right">
+              <a class="menu-link" href="{{ route('404') }}" title="berikan tooltip di attrubute 'title'" data-bs-toggle="tooltip"
+                data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>

@@ -11,25 +11,16 @@ use Illuminate\Support\Facades\DB;
  */
 class AkunRepository
 {
-    /**
-     * Find akun by ID
-     */
     public function findById(int $id): ?Akun
     {
         return Akun::find($id);
     }
 
-    /**
-     * Find akun by ID or fail
-     */
     public function findByIdOrFail(int $id): Akun
     {
         return Akun::findOrFail($id);
     }
 
-    /**
-     * Get all active akun
-     */
     public function getAllActive(): Collection
     {
         return Akun::where('active', 1)
@@ -37,9 +28,6 @@ class AkunRepository
             ->get();
     }
 
-    /**
-     * Get akun by tahun anggaran
-     */
     public function getByTahunAnggaran(int $tahunAnggaran): Collection
     {
         return Akun::where('active', 1)
@@ -48,9 +36,6 @@ class AkunRepository
             ->get();
     }
 
-    /**
-     * Get akun by jenis belanja
-     */
     public function getByJenisBelanja(string $field, int $tahunAnggaran): Collection
     {
         return Akun::where('tahun_anggaran', $tahunAnggaran)
@@ -61,43 +46,28 @@ class AkunRepository
             ->get(['id', 'kode_akun', 'nama_akun', 'level']);
     }
 
-    /**
-     * Create new akun
-     */
     public function create(array $data): Akun
     {
         return Akun::create($data);
     }
 
-    /**
-     * Update akun
-     */
     public function update(Akun $akun, array $data): bool
     {
         return $akun->update($data);
     }
 
-    /**
-     * Soft delete akun (set active = 0)
-     */
     public function softDelete(Akun $akun): bool
     {
         $akun->active = false;
         return $akun->save();
     }
 
-    /**
-     * Restore akun (set active = 1)
-     */
     public function restore(Akun $akun): bool
     {
         $akun->active = true;
         return $akun->save();
     }
 
-    /**
-     * Bulk soft delete
-     */
     public function bulkSoftDelete(array $ids): int
     {
         return Akun::whereIn('id', $ids)
@@ -105,9 +75,6 @@ class AkunRepository
             ->update(['active' => false]);
     }
 
-    /**
-     * Get datatables data
-     */
     public function getDatatablesData(array $params)
     {
         $query = Akun::where('active', 1);
@@ -172,9 +139,6 @@ class AkunRepository
         return $query->exists();
     }
 
-    /**
-     * Count active akun
-     */
     public function countActive(): int
     {
         return Akun::where('active', 1)->count();

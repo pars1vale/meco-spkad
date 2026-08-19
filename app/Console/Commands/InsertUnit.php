@@ -20,11 +20,11 @@ class InsertUnit extends Command
 
         $sourceData = DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_unit')
-            ->table('yahukimo2026_20260107.data_unit')
+            ->table('Yahukimo_20260812.data_unit')
             ->orderBy('kode_skpd', 'asc')
             ->get();
 
-        $this->info($sourceData->count().' data ditemukan.');
+        $this->info($sourceData->count() . ' data ditemukan.');
 
         // Ambil kode_skpd yang sudah ada di DB lokal
         $existingKode = DB::table('data_unit')
@@ -114,8 +114,8 @@ class InsertUnit extends Command
             DB::table('data_unit')->insert($insertData);
         }
 
-        $this->info(count($insertData).' data berhasil diinsert.');
-        $this->warn($skippedSourceDuplicate.' duplikat kode_skpd di source dilewati.');
-        $this->warn($skippedExisting.' data sudah ada di database dilewati.');
+        $this->info(count($insertData) . ' data berhasil diinsert.');
+        $this->warn($skippedSourceDuplicate . ' duplikat kode_skpd di source dilewati.');
+        $this->warn($skippedExisting . ' data sudah ada di database dilewati.');
     }
 }

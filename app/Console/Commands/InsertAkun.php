@@ -57,7 +57,7 @@ class InsertAkun extends Command
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('❌ Error occurred: '.$e->getMessage());
+            $this->error('❌ Error occurred: ' . $e->getMessage());
 
             return Command::FAILURE;
         }
@@ -78,10 +78,10 @@ class InsertAkun extends Command
     {
         return DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_akun')
-            ->table('yahukimo2026_20260107.data_akun')
+            ->table('Yahukimo_20260812.data_akun')
             ->select(
-                'id_akun',
                 'belanja',
+                'id_akun',
                 'is_bagi_hasil',
                 'is_bankeu_khusus',
                 'is_bankeu_umum',

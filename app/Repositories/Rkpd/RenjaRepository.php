@@ -7,41 +7,37 @@ use Illuminate\Support\Facades\DB;
 
 class RenjaRepository
 {
-    protected const TAHUN_ANGGARAN_DEFAULT = 2025;
-
     protected const ID_DAERAH = 604;
 
     protected const URUSAN_X_ID = 20; // Urusan yang bisa diakses semua SKPD
 
-    // ==================== RENJA / SUB KEGIATAN ====================
-
-    public function getAll()
+    public function getAll(int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_bl')
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
     }
 
-    public function getSubKegiatanBelanjaById(int $id)
+    public function getSubKegiatanBelanjaById(int $id, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_bl')
             ->where('id', $id)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->first();
     }
 
-    public function getSubKegiatanWithUnit(int $id)
+    public function getSubKegiatanWithUnit(int $id, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_bl as dskb')
             ->select('dskb.*', 'du.nama_skpd as nama_unit')
-            ->leftJoin('data_unit as du', function ($join) {
+            ->leftJoin('data_unit as du', function ($join) use ($tahunAnggaran) {
                 $join->on('dskb.id_skpd', '=', 'du.id_skpd')
-                    ->where('du.tahun_anggaran', '=', self::TAHUN_ANGGARAN_DEFAULT);
+                    ->where('du.tahun_anggaran', '=', $tahunAnggaran);
             })
             ->where('dskb.id_sub_bl', $id)
-            ->where('dskb.tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('dskb.tahun_anggaran', $tahunAnggaran)
             ->where('dskb.active', 1)
             ->first();
     }
@@ -271,23 +267,15 @@ class RenjaRepository
         ]);
     }
 
-    // ==================== UPDATE OPERATIONS ====================
-
-    /**
-     * Get sub kegiatan untuk edit by id_sub_bl
-     */
-    public function getSubKegiatanForEdit(int $idSubBl)
+    public function getSubKegiatanForEdit(int $idSubBl, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_bl')
             ->where('id_sub_bl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->first();
     }
 
-    /**
-     * Update data sub kegiatan belanja
-     */
     public function updateSubKegiatanBelanja(int $pkId, array $data): int
     {
         return DB::table('data_sub_keg_bl')
@@ -302,9 +290,6 @@ class RenjaRepository
             ]);
     }
 
-    /**
-     * Verify update result
-     */
     public function verifyUpdate(int $pkId)
     {
         return DB::table('data_sub_keg_bl')
@@ -312,28 +297,20 @@ class RenjaRepository
             ->first();
     }
 
-    /**
-     * Delete sumber dana by idsubbl
-     */
-    public function deleteSumberDanaBySubKegiatan(int $idSubBl): int
+    public function deleteSumberDanaBySubKegiatan(int $idSubBl, int $tahunAnggaran): int
     {
         return DB::table('data_dana_sub_keg')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->delete();
     }
 
-    /**
-     * Get master sumber dana by id_dana or id
-     */
     public function getMasterSumberDana(int $idSumberDana)
     {
-        // Try by id_dana first
         $sumberDana = DB::table('sumber_dana')
             ->where('id_dana', $idSumberDana)
             ->first();
 
-        // Fallback: try by PK id
         if (! $sumberDana) {
             $sumberDana = DB::table('sumber_dana')
                 ->where('id', $idSumberDana)
@@ -343,10 +320,7 @@ class RenjaRepository
         return $sumberDana;
     }
 
-    /**
-     * Insert sumber dana sub kegiatan
-     */
-    public function insertSumberDana(array $data): int
+    public function insertSumberDana(array $data, int $tahunAnggaran): int
     {
         return DB::table('data_dana_sub_keg')->insertGetId([
             'namadana' => $data['nama_dana'],
@@ -358,25 +332,19 @@ class RenjaRepository
             'is_locked' => 0,
             'active' => 1,
             'update_at' => now(),
-            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $tahunAnggaran,
         ]);
     }
 
-    /**
-     * Delete indikator by idsubbl
-     */
-    public function deleteIndikatorBySubKegiatan(int $idSubBl): int
+    public function deleteIndikatorBySubKegiatan(int $idSubBl, int $tahunAnggaran): int
     {
         return DB::table('data_sub_keg_indikator')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->delete();
     }
 
-    /**
-     * Insert indikator sub kegiatan
-     */
-    public function insertIndikator(array $data): int
+    public function insertIndikator(array $data, int $tahunAnggaran): int
     {
         return DB::table('data_sub_keg_indikator')->insertGetId([
             'outputteks' => $data['output_teks'],
@@ -389,27 +357,19 @@ class RenjaRepository
             'bobot_kinerja' => '1',
             'active' => 1,
             'update_at' => now(),
-            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $tahunAnggaran,
         ]);
     }
 
-    // ==================== DELETE OPERATIONS ====================
-
-    /**
-     * Count rincian belanja by idsubbl
-     */
-    public function countRincianBelanja(int $idSubBl): int
+    public function countRincianBelanja(int $idSubBl, int $tahunAnggaran): int
     {
         return DB::table('data_rka')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->count();
     }
 
-    /**
-     * Soft delete sub kegiatan belanja
-     */
     public function softDeleteSubKegiatan(int $pkId): int
     {
         return DB::table('data_sub_keg_bl')
@@ -420,9 +380,6 @@ class RenjaRepository
             ]);
     }
 
-    /**
-     * Soft delete sumber dana by idsubbl
-     */
     public function softDeleteSumberDana(int $idSubBl): int
     {
         return DB::table('data_dana_sub_keg')
@@ -433,9 +390,6 @@ class RenjaRepository
             ]);
     }
 
-    /**
-     * Soft delete indikator by idsubbl
-     */
     public function softDeleteIndikator(int $idSubBl): int
     {
         return DB::table('data_sub_keg_indikator')
@@ -446,22 +400,18 @@ class RenjaRepository
             ]);
     }
 
-    /**
-     * Get sumber dana by idsubbl (untuk edit form)
-     */
-    public function getSumberDanaForEdit(int $idSubBl, ?string $kodeSbl = null)
+    public function getSumberDanaForEdit(int $idSubBl, int $tahunAnggaran, ?string $kodeSbl = null)
     {
         $query = DB::table('data_dana_sub_keg')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
 
-        // Fallback by kode_sbl if empty
         if ($query->isEmpty() && $kodeSbl) {
             $query = DB::table('data_dana_sub_keg')
                 ->where('kode_sbl', $kodeSbl)
-                ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->get();
         }
@@ -469,14 +419,11 @@ class RenjaRepository
         return $query;
     }
 
-    /**
-     * Get indikator by idsubbl (untuk edit form)
-     */
-    public function getIndikatorForEdit(int $idSubBl, ?string $kodeSbl = null)
+    public function getIndikatorForEdit(int $idSubBl, int $tahunAnggaran, ?string $kodeSbl = null)
     {
         $query = DB::table('data_sub_keg_indikator')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
 
@@ -484,7 +431,7 @@ class RenjaRepository
         if ($query->isEmpty() && $kodeSbl) {
             $query = DB::table('data_sub_keg_indikator')
                 ->where('kode_sbl', $kodeSbl)
-                ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+                ->where('tahun_anggaran', $tahunAnggaran)
                 ->where('active', 1)
                 ->get();
         }
@@ -492,18 +439,16 @@ class RenjaRepository
         return $query;
     }
 
-    // ==================== SUMBER DANA ====================
-
     public function getSumberDana()
     {
         return DB::table('sumber_dana')->get();
     }
 
-    public function getSumberDanaBySubKegiatan(int $idSubKeg)
+    public function getSumberDanaBySubKegiatan(int $idSubKeg, int $tahunAnggaran)
     {
         return DB::table('data_dana_sub_keg')
             ->where('idsubbl', $idSubKeg)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
     }
@@ -516,7 +461,7 @@ class RenjaRepository
             ->first();
     }
 
-    public function createDanaSubKegiatan(array $data): void
+    public function createDanaSubKegiatan(array $data, int $tahunAnggaran): void
     {
         $sumberDanaInfo = DB::table('sumber_dana')
             ->where('id', $data['id_sumber_dana'])
@@ -534,18 +479,16 @@ class RenjaRepository
                 'is_locked' => 0,
                 'active' => 1,
                 'update_at' => now(),
-                'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
+                'tahun_anggaran' => $tahunAnggaran,
             ]);
         }
     }
 
-    // ==================== INDIKATOR ====================
-
-    public function getIndikatorBySubKegiatan(int $idSubKeg)
+    public function getIndikatorBySubKegiatan(int $idSubKeg, int $tahunAnggaran)
     {
         return DB::table('data_sub_keg_indikator')
             ->where('idsubbl', $idSubKeg)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->get();
     }
@@ -558,7 +501,7 @@ class RenjaRepository
             ->count();
     }
 
-    public function createIndikatorSubKegiatan(array $data): void
+    public function createIndikatorSubKegiatan(array $data, int $tahunAnggaran): void
     {
         DB::table('data_sub_keg_indikator')->insert([
             'outputteks' => $data['output_teks'],
@@ -571,11 +514,9 @@ class RenjaRepository
             'bobot_kinerja' => '1',
             'active' => 1,
             'update_at' => now(),
-            'tahun_anggaran' => self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $tahunAnggaran,
         ]);
     }
-
-    // ==================== DATA UNIT / SKPD ====================
 
     public function getDataUnit(int $tahunAnggaran)
     {
@@ -592,8 +533,6 @@ class RenjaRepository
             ->where('tahun_anggaran', $tahunAnggaran)
             ->first();
     }
-
-    // ==================== REFERENSI ====================
 
     public function getDataDaerah()
     {
@@ -615,15 +554,6 @@ class RenjaRepository
         return DB::table('data_bulan')->get();
     }
 
-    // ==================== EXPORT PDF RENJA ====================
-
-    /**
-     * Ambil seluruh baris Sub Kegiatan (data_sub_keg_bl) untuk 1 SKPD + 1 tahun anggaran,
-     * terurut sesuai struktur laporan: Urusan -> Bidang Urusan -> Program -> Kegiatan -> Sub Kegiatan.
-     * Sengaja tidak pakai JOIN/aggregate di sini supaya query tetap simpel & aman dari
-     * masalah GROUP BY; sumber dana & indikator diambil terpisah lewat getSumberDanaByIds()
-     * dan getIndikatorByIds() lalu digabung di Service.
-     */
     public function getRenjaRowsForExport(int $idSkpd, int $tahunAnggaran): Collection
     {
         return DB::table('data_sub_keg_bl')
@@ -638,9 +568,6 @@ class RenjaRepository
             ->get();
     }
 
-    /**
-     * Sumber dana untuk sekumpulan id sub kegiatan (data_sub_keg_bl.id), dikelompokkan per idsubbl.
-     */
     public function getSumberDanaByIds(array $idSubBlList): Collection
     {
         if (empty($idSubBlList)) {
@@ -654,9 +581,6 @@ class RenjaRepository
             ->groupBy('idsubbl');
     }
 
-    /**
-     * Indikator untuk sekumpulan id sub kegiatan (data_sub_keg_bl.id), dikelompokkan per idsubbl.
-     */
     public function getIndikatorByIds(array $idSubBlList): Collection
     {
         if (empty($idSubBlList)) {
@@ -670,9 +594,7 @@ class RenjaRepository
             ->groupBy('idsubbl');
     }
 
-    // ==================== DATATABLE ====================
-
-    public function getDataTableQuery(?string $searchValue)
+    public function getDataTableQuery(?string $searchValue, int $tahunAnggaran)
     {
         $query = DB::table('data_sub_keg_bl as dskb')
             ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
@@ -699,7 +621,7 @@ class RenjaRepository
                 DB::raw('COUNT(DISTINCT ddsk.iddana) as jumlah_sumber_dana'),
                 DB::raw('GROUP_CONCAT(DISTINCT ddsk.namadana SEPARATOR ", ") as sumber_dana_list')
             )
-            ->where('dskb.tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('dskb.tahun_anggaran', $tahunAnggaran)
             ->where('dskb.active', 1)
             ->groupBy(
                 'dskb.id',
@@ -740,22 +662,22 @@ class RenjaRepository
         return $query;
     }
 
-    public function getTotalRecords(): int
+    public function getTotalRecords(int $tahunAnggaran): int
     {
         return DB::table('data_sub_keg_bl')
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->count();
     }
 
-    public function getFilteredCount(?string $searchValue): int
+    public function getFilteredCount(?string $searchValue, int $tahunAnggaran): int
     {
         if (! $searchValue) {
-            return $this->getTotalRecords();
+            return $this->getTotalRecords($tahunAnggaran);
         }
 
         return DB::table('data_sub_keg_bl')
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->where(function ($q) use ($searchValue) {
                 $q->where('nama_sub_giat', 'like', "%{$searchValue}%")
@@ -766,13 +688,11 @@ class RenjaRepository
             ->count();
     }
 
-    // ==================== RKA / RINCIAN BELANJA ====================
-
-    public function getRincianBelanjaBySubKegiatan(int $idSubBl)
+    public function getRincianBelanjaBySubKegiatan(int $idSubBl, int $tahunAnggaran)
     {
         return DB::table('data_rka')
             ->where('idsubbl', $idSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->orderBy('kode_akun')
             ->orderBy('is_paket')
@@ -781,7 +701,7 @@ class RenjaRepository
             ->get();
     }
 
-    public function getPaketBelanjaList(int $idRinciSubBl, int $tipePaket, ?string $jenisBl = null)
+    public function getPaketBelanjaList(int $idRinciSubBl, int $tipePaket, int $tahunAnggaran, ?string $jenisBl = null)
     {
         $query = DB::table('data_rka')
             ->select(
@@ -795,7 +715,7 @@ class RenjaRepository
                 'createdtime'
             )
             ->where('id_rinci_sub_bl', $idRinciSubBl)
-            ->where('tahun_anggaran', self::TAHUN_ANGGARAN_DEFAULT)
+            ->where('tahun_anggaran', $tahunAnggaran)
             ->where('active', 1)
             ->where('is_paket', $tipePaket)
             ->whereNotNull('subtitle_teks')
@@ -820,7 +740,7 @@ class RenjaRepository
             ->first();
     }
 
-    public function createPaketBelanja(array $data): int
+    public function createPaketBelanja(array $data, int $tahunAnggaran): int
     {
         $subKegiatan = $data['sub_kegiatan'];
         $akun = $data['akun'];
@@ -830,7 +750,7 @@ class RenjaRepository
             'id_rinci_sub_bl' => $subKegiatan->id,
             'kode_sbl' => $subKegiatan->kode_sbl,
             'kode_bl' => $subKegiatan->kode_bl,
-            'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? $tahunAnggaran,
             'jenis_bl' => $data['jenis_bl'],
             'kode_akun' => $akun->kode_akun,
             'nama_akun' => $akun->nama_akun,
@@ -866,7 +786,7 @@ class RenjaRepository
         ]);
     }
 
-    public function createRincianBelanja(array $data): int
+    public function createRincianBelanja(array $data, int $tahunAnggaran): int
     {
         $subKegiatan = $data['sub_kegiatan'];
         $akun = $data['akun'];
@@ -877,7 +797,7 @@ class RenjaRepository
             'id_rinci_sub_bl' => $subKegiatan->id,
             'kode_sbl' => $subKegiatan->kode_sbl,
             'kode_bl' => $subKegiatan->kode_bl,
-            'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? self::TAHUN_ANGGARAN_DEFAULT,
+            'tahun_anggaran' => $subKegiatan->tahun_anggaran ?? $tahunAnggaran,
             'jenis_bl' => $data['jenis_bl'],
             'kode_akun' => $akun->kode_akun,
             'nama_akun' => $akun->nama_akun,
@@ -932,5 +852,32 @@ class RenjaRepository
             ->where('dms.active', 1)
             ->where('dls.active', 1)
             ->get(['dls.spm_teks', 'dls.layanan_teks']);
+    }
+
+    public function getCapaianProgramBySubKegiatan(int $idSubBl, int $tahunAnggaran)
+    {
+        return DB::table('data_capaian_prog_sub_keg')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('active', 1)
+            ->first();
+    }
+
+    public function getHasilOutputBySubKegiatan(int $idSubBl, int $tahunAnggaran)
+    {
+        return DB::table('data_output_giat_sub_keg')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('active', 1)
+            ->first();
+    }
+
+    public function getLokasiBySubKegiatan(int $idSubBl, int $tahunAnggaran): Collection
+    {
+        return DB::table('data_lokasi_sub_keg')
+            ->where('idsubbl', $idSubBl)
+            ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('active', 1)
+            ->get(['daerahteks', 'camatteks', 'lurahteks']);
     }
 }

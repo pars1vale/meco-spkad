@@ -33,7 +33,7 @@ class InsertUrusan extends Command
 
         $data = DB::connection('data_sources')
             // ->table('u405304318_yahukimo2025.data_prog_keg')
-            ->table('yahukimo2026_20260107.data_prog_keg')
+            ->table('Yahukimo_20260812.data_prog_keg')
             ->select('id_urusan', 'kode_urusan', 'nama_urusan')
             ->distinct()
             ->orderBy('kode_urusan', 'asc')
@@ -41,7 +41,7 @@ class InsertUrusan extends Command
             ->get();
 
         // dd($data);
-        $this->info($data->count().' Data Ditemukan.');
+        $this->info($data->count() . ' Data Ditemukan.');
 
         $insertData = [];
         foreach ($data as $row) {

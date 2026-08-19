@@ -2,6 +2,7 @@
 
 namespace App\Services\Rkpd;
 
+use App\Exceptions\TahunAnggaranNotSetException;
 use App\Repositories\Referensi\AkunRepository;
 use App\Repositories\Rkpd\RincianBelanjaRepository;
 use Illuminate\Support\Facades\DB;
@@ -39,33 +40,39 @@ class RincianBelanjaService
         $this->akunRepo = $akunRepo;
     }
 
-    /**
-     * Get rincian sub kegiatan untuk ditampilkan di view
-     */
+    private function tahunAnggaran(): int
+    {
+        $tahun = session('tahun_anggaran');
+
+        if (! $tahun) {
+            throw new TahunAnggaranNotSetException('Tahun anggaran belum dipilih di session.');
+        }
+
+        return (int) $tahun;
+    }
+
     public function getRincianSubKegiatan(int $id): array
     {
-        // $id di sini adalah id_sub_bl dari route /renja/{id}/rincian
-        $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaByIdSubBl($id);
-
+        $tahunAnggaran = $this->tahunAnggaran();
+        $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaByIdSubBl($id, $tahunAnggaran);
         if (! $subKegiatan) {
             return ['subKegiatan' => null];
         }
 
         $sumberDana = $this->rincianRepo->getSumberDanaBySubKegiatan(
             $subKegiatan->id,
-            $subKegiatan->kode_sbl
+            $subKegiatan->kode_sbl,
+            $tahunAnggaran
         );
 
         $indikator = $this->rincianRepo->getIndikatorBySubKegiatan(
             $subKegiatan->id,
-            $subKegiatan->kode_sbl
+            $subKegiatan->kode_sbl,
+            $tahunAnggaran
         );
 
-        $rincianBelanja = $this->rincianRepo->getRincianBelanjaBySubKegiatan($subKegiatan->id);
-
+        $rincianBelanja = $this->rincianRepo->getRincianBelanjaBySubKegiatan($subKegiatan->id, $tahunAnggaran);
         $groupedRincian = $this->groupRincianByObjek($rincianBelanja);
-
-        // Format data terkelompok untuk view (nested structure)
         $dataTerkelompok = $this->formatDataTerkelompok($rincianBelanja);
 
         return [
@@ -78,12 +85,10 @@ class RincianBelanjaService
         ];
     }
 
-    /**
-     * Get list paket belanja
-     */
     public function getPaketBelanjaList(int $idRinciSubBl, int $tipePaket): array
     {
-        $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaById($idRinciSubBl);
+        $tahunAnggaran = $this->tahunAnggaran();
+        $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaById($idRinciSubBl, $tahunAnggaran);
 
         if (! $subKegiatan) {
             return [
@@ -92,8 +97,7 @@ class RincianBelanjaService
                 'data' => [],
             ];
         }
-
-        $paketList = $this->rincianRepo->getPaketBelanjaList($subKegiatan->kode_sbl, $tipePaket);
+        $paketList = $this->rincianRepo->getPaketBelanjaList($subKegiatan->kode_sbl, $tipePaket, $tahunAnggaran);
 
         $formattedData = $paketList->map(function ($item) {
             $displayText = preg_replace('/^\[\#\]\s*/', '', $item->uraian_paket);
@@ -117,15 +121,13 @@ class RincianBelanjaService
         ];
     }
 
-    /**
-     * Create paket belanja
-     */
     public function createPaketBelanja(array $data): array
     {
+        $tahunAnggaran = $this->tahunAnggaran();
         DB::beginTransaction();
 
         try {
-            $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl']);
+            $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl'], $tahunAnggaran);
             if (! $subKegiatan) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
@@ -144,7 +146,7 @@ class RincianBelanjaService
                 'jenis_bl' => $data['jenis_bl'],
                 'tipe_paket' => $data['tipe_paket'],
                 'uraian_paket' => $data['uraian_paket'],
-            ]);
+            ], $tahunAnggaran);
 
             DB::commit();
 
@@ -155,7 +157,7 @@ class RincianBelanjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating paket belanja: '.$e->getMessage());
+            Log::error('Error creating paket belanja: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -209,10 +211,11 @@ class RincianBelanjaService
      */
     public function createRincianBelanja(array $data): array
     {
+        $tahunAnggaran = $this->tahunAnggaran();
         DB::beginTransaction();
 
         try {
-            $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl']);
+            $subKegiatan = $this->rincianRepo->getSubKegiatanBelanjaById($data['id_rinci_sub_bl'], $tahunAnggaran);
             if (! $subKegiatan) {
                 throw new \Exception('Sub kegiatan tidak ditemukan');
             }
@@ -246,7 +249,7 @@ class RincianBelanjaService
                 'satuan' => $data['satuan'],
                 'harga_satuan' => $data['harga_satuan'],
                 'total_harga' => $totalHarga,
-            ]);
+            ], $tahunAnggaran);
 
             // Update total pagu sub kegiatan
             $totalRincian = $this->rincianRepo->calculateTotalRincian($subKegiatan->id);
@@ -261,7 +264,7 @@ class RincianBelanjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating rincian belanja: '.$e->getMessage());
+            Log::error('Error creating rincian belanja: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -305,7 +308,7 @@ class RincianBelanjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error updating rincian belanja: '.$e->getMessage());
+            Log::error('Error updating rincian belanja: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -341,7 +344,7 @@ class RincianBelanjaService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error deleting rincian belanja: '.$e->getMessage());
+            Log::error('Error deleting rincian belanja: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -377,10 +380,7 @@ class RincianBelanjaService
             });
     }
 
-    /**
-     * Format data terkelompok untuk view dengan nested structure
-     * Structure: Hashtag [#] -> Mintag [-] -> Rekening -> Items
-     */
+    // nested structure: Hashtag [#] -> Mintag [-] -> Rekening -> Items
     private function formatDataTerkelompok($rincianBelanja)
     {
         $result = [];
@@ -410,7 +410,7 @@ class RincianBelanjaService
                 // Format: [-] Kategori Belanja -> Nama Komponen
                 $text = $item->ket_bl_teks ?? $item->spek;
                 if (preg_match('/^\[\-\]\s*(.+?)\s*-/', $text, $matches)) {
-                    return '[#] '.trim($matches[1]);
+                    return '[#] ' . trim($matches[1]);
                 }
 
                 return 'Lain-lain';
