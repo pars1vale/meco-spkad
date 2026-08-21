@@ -426,6 +426,32 @@ class RenjaService
         $rincianBelanja = $base['rincianBelanja'];
         $tahunAnggaran = $subKegiatan->tahun_anggaran ?? date('Y');
 
+        $dataUnit = $this->renjaRepo->getDataUnitById((int) $subKegiatan->id_skpd, (int) $tahunAnggaran);
+        $namaTtdDefault = trim((string) ($dataUnit->namakepala ?? ''));
+        $nipTtdDefault = trim((string) ($dataUnit->nipkepala ?? ''));
+        $hasTtdDefault = $namaTtdDefault !== '' && $nipTtdDefault !== '';
+
+        // Unit Organisasi (induk) & Sub Unit Organisasi.
+        // is_skpd = 1 -> ini SKPD induk sendiri, tidak ada sub unit.
+        // is_skpd = 0 -> ini sub unit, induknya dicari lewat data_unit.id_unit (FK ke id_skpd induk).
+        $isSkpdInduk = (int) ($dataUnit->is_skpd ?? 1) === 1;
+
+        if ($isSkpdInduk) {
+            $unitOrganisasi = $subKegiatan->kode_skpd . ' ' . $subKegiatan->nama_skpd;
+            $subUnitOrganisasi = '-';
+        } else {
+            $dataUnitInduk = $this->renjaRepo->getDataUnitById((int) $dataUnit->id_unit, (int) $tahunAnggaran);
+            $unitOrganisasi = $dataUnitInduk
+                ? $dataUnitInduk->kode_skpd . ' ' . $dataUnitInduk->nama_skpd
+                : '-';
+            $subUnitOrganisasi = $subKegiatan->kode_skpd . ' ' . $subKegiatan->nama_skpd;
+        }
+
+        // Default dari data_unit (namakepala/nipkepala) jadi prioritas utama.
+        // Kalau tidak lengkap di data_unit, baru pakai input dari form modal (fallback).
+        $namaTtdFinal = $hasTtdDefault ? $namaTtdDefault : ($namaTtd ?: '-');
+        $nipTtdFinal = $hasTtdDefault ? $nipTtdDefault : ($nipTtd ?: '-');
+
         $spmData = $this->renjaRepo->getSpmBySubGiat($subKegiatan->id_sub_giat, (int) $tahunAnggaran);
 
         $capaianProgram = $this->renjaRepo->getCapaianProgramBySubKegiatan($idSubBl, (int) $tahunAnggaran);
@@ -440,6 +466,8 @@ class RenjaService
 
         return [
             'subKegiatan' => $subKegiatan,
+            'unitOrganisasi' => $unitOrganisasi,
+            'subUnitOrganisasi' => $subUnitOrganisasi,
             'sumberDana' => $base['sumberDana'],
             'indikator' => $base['indikator'],
             'kabupaten' => config('app.nama_kabupaten', 'Yahukimo'),
@@ -469,8 +497,8 @@ class RenjaService
                 'tempat' => config('app.nama_kabupaten', 'Yahukimo'),
                 'jabatan' => 'Kepala ' . ($subKegiatan->nama_skpd ?? ''),
                 'tanggal' => $this->formatTanggalTtd($tanggalTtd),
-                'nama' => $namaTtd ?: '-',
-                'nip' => $nipTtd ?: '-',
+                'nama' => $namaTtdFinal,
+                'nip' => $nipTtdFinal,
             ],
         ];
     }
@@ -479,6 +507,28 @@ class RenjaService
      * Format tanggal input user (dd-mm-yyyy dari modal) ke format tampilan Indonesia.
      * Fallback ke tanggal hari ini kalau tidak dikirim/parse gagal.
      */
+    /**
+     * Cek apakah SKPD dari sub kegiatan ini punya default nama/NIP kepala di data_unit.
+     * Dipakai modal cetak-rincian untuk menentukan perlu tidaknya menampilkan form nama & NIP.
+     */
+    public function getTtdDefault(int $idSubBl): array
+    {
+        $tahunAnggaran = $this->getTahunAnggaran();
+        $subKegiatan = $this->renjaRepo->getSubKegiatanWithUnit($idSubBl, $tahunAnggaran);
+
+        if (! $subKegiatan) {
+            return ['has_default' => false];
+        }
+
+        $dataUnit = $this->renjaRepo->getDataUnitById((int) $subKegiatan->id_skpd, $tahunAnggaran);
+        $nama = trim((string) ($dataUnit->namakepala ?? ''));
+        $nip = trim((string) ($dataUnit->nipkepala ?? ''));
+
+        return [
+            'has_default' => $nama !== '' && $nip !== '',
+        ];
+    }
+
     private function formatTanggalTtd(?string $tanggal): string
     {
         try {
@@ -948,7 +998,7 @@ class RenjaService
                     </li>
 
                      <li>
-                        <a class="dropdown-item btn-cetak-rincian" href="#" data-id="' . $id . '" data-url="' . route('renja.cetak-rincian', $id) . '">
+                        <a class="dropdown-item btn-cetak-rincian" href="#" data-id="' . $id . '" data-url="' . route('renja.cetak-rincian', $id) . '" data-ttd-url="' . route('renja.ttd-default', $id) . '">
                             <i class="ki-outline ki-printer fs-5 me-2 text-primary"></i>
                             Cetak Rincian Belanja
                         </a>

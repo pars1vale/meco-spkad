@@ -291,7 +291,11 @@
         </tr>
         <tr>
           <td class="label">Unit Organisasi</td>
-          <td class="value">: {{ $subKegiatan->kode_skpd }} {{ $subKegiatan->nama_skpd }}</td>
+          <td class="value">: {{ $unitOrganisasi }}</td>
+        </tr>
+        <tr>
+          <td class="label">Sub Unit Organisasi</td>
+          <td class="value">: {{ $subUnitOrganisasi }}</td>
         </tr>
         <tr>
           <td class="label">Program</td>

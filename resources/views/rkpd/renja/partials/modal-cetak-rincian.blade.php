@@ -21,16 +21,24 @@
             <input class="form-control form-control-solid" placeholder="Pilih tanggal" id="cetak_rincian_tanggal" autocomplete="off" required>
           </div>
 
-          <div class="mb-5">
-            <label class="required form-label">Nama Penandatangan</label>
-            <input type="text" class="form-control form-control-solid" id="cetak_rincian_nama" placeholder="Nama lengkap" required>
+          <div id="cetak_rincian_ttd_loading" class="text-muted fs-7 mb-3 d-none">
+            Memeriksa data penandatangan default...
           </div>
 
-          <div class="mb-0">
-            <label class="required form-label">NIP Penandatangan</label>
-            <input type="text" class="form-control form-control-solid" id="cetak_rincian_nip" placeholder="NIP" inputmode="numeric" maxlength="18"
-              required>
-            <div class="form-text">Maksimal 18 digit angka.</div>
+          <div id="cetak_rincian_ttd_fields" class="d-none">
+            <div class="alert alert-secondary py-2 px-3 mb-4 fs-7" id="cetak_rincian_ttd_info"></div>
+
+            <div class="mb-5">
+              <label class="required form-label">Nama Penandatangan</label>
+              <input type="text" class="form-control form-control-solid" id="cetak_rincian_nama" placeholder="Nama lengkap">
+            </div>
+
+            <div class="mb-0">
+              <label class="required form-label">NIP Penandatangan</label>
+              <input type="text" class="form-control form-control-solid" id="cetak_rincian_nip" placeholder="NIP" inputmode="numeric"
+                maxlength="18">
+              <div class="form-text">Maksimal 18 digit angka.</div>
+            </div>
           </div>
         </form>
       </div>
@@ -63,25 +71,54 @@
 
       $('#cetak_rincian_id').val($(this).data('id'));
       $('#form_cetak_rincian').data('base-url', $(this).data('url'));
+      $('#form_cetak_rincian').data('has-default', false);
       document.getElementById('cetak_rincian_tanggal')._flatpickr?.clear();
       $('#cetak_rincian_nama').val('');
       $('#cetak_rincian_nip').val('');
 
+      $('#cetak_rincian_ttd_fields').addClass('d-none');
+      $('#cetak_rincian_ttd_loading').removeClass('d-none');
+      $('#btn_confirm_cetak_rincian').prop('disabled', true);
+
       const modal = new bootstrap.Modal(document.getElementById('kt_modal_cetak_rincian'));
       modal.show();
+
+      $.get($(this).data('ttd-url'))
+        .done(function(res) {
+          const hasDefault = !!res.has_default;
+          $('#form_cetak_rincian').data('has-default', hasDefault);
+
+          if (hasDefault) {
+            $('#cetak_rincian_ttd_fields').addClass('d-none');
+          } else {
+            $('#cetak_rincian_ttd_info').text('Data penandatangan default tidak ditemukan, silakan isi manual.');
+            $('#cetak_rincian_ttd_fields').removeClass('d-none');
+          }
+        })
+        .fail(function() {
+          // Gagal cek default -> aman, minta isi manual daripada blokir total
+          $('#form_cetak_rincian').data('has-default', false);
+          $('#cetak_rincian_ttd_info').text('Gagal memeriksa data default, silakan isi manual.');
+          $('#cetak_rincian_ttd_fields').removeClass('d-none');
+        })
+        .always(function() {
+          $('#cetak_rincian_ttd_loading').addClass('d-none');
+          $('#btn_confirm_cetak_rincian').prop('disabled', false);
+        });
     });
 
     $('#btn_confirm_cetak_rincian').on('click', function() {
       const baseUrl = $('#form_cetak_rincian').data('base-url');
+      const hasDefault = $('#form_cetak_rincian').data('has-default');
       const tanggal = $('#cetak_rincian_tanggal').val().trim();
       const nama = $('#cetak_rincian_nama').val().trim();
       const nip = $('#cetak_rincian_nip').val().trim();
 
-      if (!baseUrl || !tanggal || !nama || !nip) {
+      if (!baseUrl || !tanggal) {
         Swal.fire({
           icon: 'warning',
           title: 'Lengkapi data',
-          text: 'Tanggal, nama, dan NIP penandatangan wajib diisi.',
+          text: 'Tanggal wajib diisi.',
         });
         return;
       }
@@ -96,21 +133,36 @@
         return;
       }
 
-      const nipPattern = /^\d{1,18}$/;
-      if (!nipPattern.test(nip)) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'NIP tidak valid',
-          text: 'NIP hanya boleh berisi angka, maksimal 18 digit.',
-        });
-        return;
+      if (!hasDefault) {
+        if (!nama || !nip) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Lengkapi data',
+            text: 'Nama dan NIP penandatangan wajib diisi.',
+          });
+          return;
+        }
+
+        const nipPattern = /^\d{1,18}$/;
+        if (!nipPattern.test(nip)) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'NIP tidak valid',
+            text: 'NIP hanya boleh berisi angka, maksimal 18 digit.',
+          });
+          return;
+        }
       }
 
-      const params = new URLSearchParams({
-        tanggal: tanggal,
-        nama_ttd: nama,
-        nip_ttd: nip,
-      });
+      const paramsObj = {
+        tanggal: tanggal
+      };
+      if (!hasDefault) {
+        paramsObj.nama_ttd = nama;
+        paramsObj.nip_ttd = nip;
+      }
+
+      const params = new URLSearchParams(paramsObj);
 
       window.open(baseUrl + '?' + params.toString(), '_blank');
 

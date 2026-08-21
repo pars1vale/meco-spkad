@@ -66,12 +66,17 @@ class RenjaController extends Controller
         }
     }
 
+    public function ttdDefault(int $id)
+    {
+        return response()->json($this->renjaService->getTtdDefault($id));
+    }
+
     public function cetakRincian(Request $request, int $id)
     {
         $tanggalTtd = $request->query('tanggal');
         $nipTtd = $request->query('nip_ttd');
 
-        if ($tanggalTtd && ! preg_match('/^\d{2}-\d{2}-\d{4}$/', $tanggalTtd)) {
+        if (! $tanggalTtd || ! preg_match('/^\d{2}-\d{2}-\d{4}$/', $tanggalTtd)) {
             abort(422, 'Format tanggal tidak valid, gunakan dd-mm-yyyy');
         }
 
@@ -200,5 +205,15 @@ class RenjaController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+    public function ringkasanPaket(int $id)
+    {
+        $data = $this->renjaService->getRingkasanPaket($id);
+
+        if (! $data['subKegiatan']) {
+            abort(404);
+        }
+
+        return view('cetakan.ringkasan_paket_v3', $data);
     }
 }
