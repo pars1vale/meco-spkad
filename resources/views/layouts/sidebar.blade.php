@@ -189,37 +189,6 @@
             </div>
           </div>
         </div>
-        {{-- analisis dan rekap datas --}}
-        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-          <span class="menu-link">
-            <span class="menu-icon">
-              <i class="ki-outline ki-book-open fs-2"></i>
-            </span>
-            <span class="menu-title">Analisis dan Rekap Data</span>
-            <span class="menu-arrow"></span>
-          </span>
-          <div class="menu-sub menu-sub-accordion">
-            <div class="menu-item">
-              <a class="menu-link {{-- {{ Request::routeIs('bidang-urusan.index') ? 'active' : '' }} --}}" href="{{-- {{ route('bidang-urusan.index') }} --}}" title="Check out over 200 in-house components"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
-                <span class="menu-bullet">
-                  <span class="bullet bullet-dot"></span>
-                </span>
-                <span class="menu-title">Rekap Data</span>
-              </a>
-            </div>
-            <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
-                <span class="menu-bullet">
-                  <span class="bullet bullet-dot"></span>
-                </span>
-                <span class="menu-title">Ringkasan</span>
-              </a>
-            </div>
-          </div>
-        </div>
         {{-- RKPD --}}
         <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
           <span class="menu-link">
@@ -268,15 +237,49 @@
                 <span class="menu-title">Renja</span>
               </a>
             </div>
-            <div class="menu-item">
-              <a class="menu-link" {{-- {{ Request::routeIs('referensi.program.index') ? 'active' : '' }}
-                                    --}} href="{{-- {{ route('referensi.program.index') }} --}}" title="Check out the complete documentation"
-                data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss="click" data-bs-placement="right">
+            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+              <span class="menu-link">
                 <span class="menu-bullet">
                   <span class="bullet bullet-dot"></span>
                 </span>
-                <span class="menu-title">Laporan</span>
-              </a>
+                <span class="menu-title">Dokumen Anggaran</span>
+                <span class="menu-arrow"></span>
+              </span>
+
+              <div class="menu-sub menu-sub-accordion">
+                <div class="menu-item">
+                  <a class="menu-link {{ Request::routeIs('rka-skpd.index') ? 'active' : '' }}" href="{{ route('rka-skpd.index') }}">
+                    <span class="menu-bullet">
+                      <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">RKA SKPD</span>
+                  </a>
+                </div>
+                <div class="menu-item">
+                  <a class="menu-link" href="#">
+                    <span class="menu-bullet">
+                      <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">RKA Pendapatan</span>
+                  </a>
+                </div>
+                <div class="menu-item">
+                  <a class="menu-link" href="#">
+                    <span class="menu-bullet">
+                      <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">RKA Rekap Belanja</span>
+                  </a>
+                </div>
+                <div class="menu-item">
+                  <a class="menu-link" href="#">
+                    <span class="menu-bullet">
+                      <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">RKA Pembiayaan</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>

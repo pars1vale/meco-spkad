@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaSkpdController;
 use App\Http\Controllers\Rkpd\JadwalController;
 use App\Http\Controllers\Rkpd\RenjaController;
 use App\Http\Controllers\Rkpd\RincianBelanjaController;
@@ -69,4 +70,11 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     // Mintag (Kategori Belanja)
     Route::get('mintag/list', [RincianBelanjaController::class, 'getMintagList'])->name('mintag.list');
     Route::post('mintag/store', [RincianBelanjaController::class, 'storeMintag'])->name('mintag.store');
+
+    // dokumen anggaran
+    Route::middleware('auth')->prefix('dokumen-anggaran')->group(function () {
+        Route::get('/rka-skpd', [RkaSkpdController::class, 'index'])->name('rka-skpd.index');
+        Route::get('/rka-skpd/{idSkpd}/ttd-default', [RkaSkpdController::class, 'ttdDefault'])->name('rka-skpd.ttd-default');
+        Route::get('/rka-skpd/{idSkpd}/cetak', [RkaSkpdController::class, 'cetak'])->name('rka-skpd.cetak');
+    });
 });
