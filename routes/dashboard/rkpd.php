@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaPendapatanController;
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaSkpdController;
 use App\Http\Controllers\Rkpd\JadwalController;
 use App\Http\Controllers\Rkpd\RenjaController;
@@ -76,5 +77,10 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
         Route::get('/rka-skpd', [RkaSkpdController::class, 'index'])->name('rka-skpd.index');
         Route::get('/rka-skpd/{idSkpd}/ttd-default', [RkaSkpdController::class, 'ttdDefault'])->name('rka-skpd.ttd-default');
         Route::get('/rka-skpd/{idSkpd}/cetak', [RkaSkpdController::class, 'cetak'])->name('rka-skpd.cetak');
+
+        Route::get('/rka-pendapatan', [RkaPendapatanController::class, 'index'])->name('rka-pendapatan.index');
+        Route::get('/rka-pendapatan/{idSkpd}/ttd-default', [RkaPendapatanController::class, 'ttdDefault'])->name('rka-pendapatan.ttd-default');
+        Route::get('/rka-pendapatan/{idSkpd}/cetak', [RkaPendapatanController::class, 'cetak'])->name('rka-pendapatan.cetak');
+        Route::get('/rka-pendapatan/{idSkpd}/unduh', [RkaPendapatanController::class, 'unduhPdf'])->name('rka-pendapatan.unduh');
     });
 });

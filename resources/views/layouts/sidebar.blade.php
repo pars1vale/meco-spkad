@@ -256,7 +256,7 @@
                   </a>
                 </div>
                 <div class="menu-item">
-                  <a class="menu-link" href="#">
+                  <a class="menu-link  {{ Request::routeIs('rka-pendapatan.index') ? 'active' : '' }}" href="{{ route('rka-pendapatan.index') }}">
                     <span class="menu-bullet">
                       <span class="bullet bullet-dot"></span>
                     </span>

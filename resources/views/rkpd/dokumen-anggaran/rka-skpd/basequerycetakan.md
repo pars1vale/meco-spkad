@@ -7,7 +7,6 @@ SELECT LEFT(dr.kode_akun, 6) AS kode_level_6, da.nama_akun AS nama_akun, SUM(dr.
 -- base query pembiayaan
 SELECT LEFT(db.kode_akun, 6) AS kode_level_6, da.nama_akun AS nama_akun, SUM(db.total) AS jumlah FROM data_pembiayaan AS db LEFT JOIN akun AS da ON LEFT(db.kode_akun, 6) COLLATE utf8mb4_unicode_ci = da.kode_akun COLLATE utf8mb4_unicode_ci AND da.level = 6 WHERE db.id_skpd = 3047 AND db.tahun_anggaran = 2026 GROUP BY db.id_skpd, LEFT(db.kode_akun, 6), da.nama_akun ORDER BY LEFT(db.kode_akun, 6);
 
-
 -- revisii
 
 -- pendapatan
