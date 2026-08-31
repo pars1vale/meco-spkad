@@ -7,17 +7,19 @@
   <style>
     @page {
       size: A4 portrait;
-      margin: 6mm 2mm 10mm 2mm;
+      margin: 3mm 3mm 10mm 3mm;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       font-family: Arial, sans-serif;
       font-size: 11px;
       line-height: 1.3;
-      width: 210mm;
-      min-height: 297mm;
-      margin: 0 auto;
-      padding: 6mm 12mm;
+      margin: 0;
+      padding: 0 3mm;
       background: #fff;
     }
 
@@ -31,6 +33,8 @@
       border: 1px solid #000;
       padding: 4px 6px;
       vertical-align: middle;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .download-btn {
@@ -102,6 +106,14 @@
       border-top: none;
     }
 
+    table.catatan td.c-label {
+      width: 120px;
+    }
+
+    table.catatan td.c-colon {
+      width: 10px;
+    }
+
     .tim-anggaran {
       font-size: 12px;
     }
@@ -166,7 +178,7 @@
   <table class="skpd-identity keep-together">
     <tr>
       <td class="no-boder" style="width: 15%;">Organisasi</td>
-      <td class="no-boder" style="width: 3%;" colspan="2">:</td>
+      <td class="no-boder" style="width: 3%;">:</td>
       <td class="no-boder" style="width: 82%;" colspan="2">{{ $organisasi }}</td>
     </tr>
   </table>
@@ -246,21 +258,17 @@
 
     <table class="table-rincian table-ringkasan">
       <colgroup>
-        <col style="width: 15%;">
-        <col style="width: 30%;">
-        <col style="width: 14%;">
-        <col style="width: 11%;">
-        <col style="width: 15%;">
-        <col style="width: 15%;">
+        <col style="width: 60%;">
+        <col style="width: 40%;">
       </colgroup>
       <tbody>
         <tr class="bold bg-gray text-right">
-          <td style="padding: 2.5mm;" colspan="5">Jumlah Pendapatan</td>
+          <td style="padding: 2.5mm;">Jumlah Pendapatan</td>
           <td>{{ $service->formatRupiah($totalPendapatan) }}</td>
         </tr>
         <tr>
-          <td colspan="4" style="border-right: none; border-top: none;"></td>
-          <td colspan="2" class="text-center" style="border-top: none;">
+          <td style="border-right: none; border-top: none;"></td>
+          <td class="text-center" style="border-top: none;">
             Kab. {{ $kabupaten }}, {{ $tanggalTtd }}<br>
             Kepala {{ $namaUnit }}
             <br><br><br><br>
@@ -274,52 +282,37 @@
 
   <br>
 
-  <table class="pembahasan keep-together">
-    <colgroup>
-      <col style="width: 13%;">
-      <col style="width: 2%;">
-      <col style="width: 85%;">
-    </colgroup>
-
-    <tr>
-      <td>Pembahasan</td>
-      <td class="titik">:</td>
-      <td></td>
-    </tr>
-
-    <tr>
-      <td>Tanggal</td>
-      <td class="titik">:</td>
-      <td></td>
-    </tr>
-
-    <tr>
-      <td>Catatan</td>
-      <td class="titik">:</td>
-      <td></td>
-    </tr>
-
-    <tr>
-      <td>1.</td>
-      <td colspan="2"></td>
-    </tr>
-
-    <tr>
-      <td>2.</td>
-      <td colspan="2"></td>
-    </tr>
-
-    <tr>
-      <td>3.</td>
-      <td colspan="2"></td>
-    </tr>
-
-    <tr>
-      <td>Dst</td>
-      <td colspan="2"></td>
-    </tr>
+  <table class="catatan">
+    <tbody>
+      <tr>
+        <td class="c-label bold">Pembahasan</td>
+        <td class="c-colon">:</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="c-label bold">Tanggal</td>
+        <td class="c-colon">:</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="c-label bold">Catatan</td>
+        <td class="c-colon">:</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td colspan="2">1.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td colspan="2">2.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td colspan="2">Dst</td>
+        <td></td>
+      </tr>
+    </tbody>
   </table>
-
   <br>
 
   <table class="tim-anggaran keep-together">

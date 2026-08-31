@@ -3,21 +3,20 @@
 namespace App\Http\Controllers\Rkpd\DokumenAnggaran;
 
 use App\Http\Controllers\Controller;
-use App\Services\Rkpd\DokumenAnggaran\RkaPendapatanService;
+use App\Services\Rkpd\DokumenAnggaran\RkaPembiayaanService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class RkaPendapatanController extends Controller
+class RkaPembiayaanController extends Controller
 {
-    public function __construct(protected RkaPendapatanService $service) {}
+    public function __construct(protected RkaPembiayaanService $service) {}
 
     public function index(Request $request)
     {
-
         $tahunAnggaran = (int) ($request->session()->get('tahun_anggaran') ?? date('Y'));
         $skpdList = $this->service->getAllSkpdForList($tahunAnggaran);
 
-        return view('rkpd.dokumen-anggaran.rka-pendapatan.index', compact('skpdList', 'tahunAnggaran'));
+        return view('rkpd.dokumen-anggaran.rka-pembiayaan.index', compact('skpdList', 'tahunAnggaran'));
     }
 
     public function ttdDefault(Request $request, int $idSkpd)
@@ -53,15 +52,10 @@ class RkaPendapatanController extends Controller
         $data['namaTtdRaw'] = $request->input('nama_ttd');
         $data['nipTtdRaw'] = $request->input('nip_ttd');
 
-        return view('rkpd.dokumen-anggaran.rka-pendapatan.pdf', $data);
+        // FIX: sebelumnya 'rka-pembbiayaan.pdf' (typo, view tidak ketemu)
+        return view('rkpd.dokumen-anggaran.rka-pembiayaan.pdf', $data);
     }
 
-    /**
-     * Tombol di pdf.blade.php memanggil endpoint ini (GET, query string sama
-     * dengan yang dipakai untuk render preview) — menggantikan window.print().
-     * Data & session tanggal_ttd/nama_ttd/nip_ttd harus dikirim ulang dari
-     * form/link di halaman preview karena ini request baru (bukan reuse state).
-     */
     public function unduhPdf(Request $request, int $idSkpd)
     {
         $request->validate([
@@ -82,17 +76,10 @@ class RkaPendapatanController extends Controller
         $data['tahunAnggaran'] = $tahunAnggaran;
         $data['kabupaten'] = 'Yahukimo';
         $data['service'] = $this->service;
-        $data['idSkpd'] = $idSkpd;
-        $data['tanggalTtdRaw'] = $request->input('tanggal_ttd');
-        $data['namaTtdRaw'] = $request->input('nama_ttd');
-        $data['nipTtdRaw'] = $request->input('nip_ttd');
 
-        $kodeSkpd = $data['kodeSkpd'] ?? $data['kode_skpd'] ?? $idSkpd;
+        $pdf = Pdf::loadView('rkpd.dokumen-anggaran.rka-pembiayaan.pdf', $data + ['isDownload' => true]);
 
-        $pdf = Pdf::loadView('rkpd.dokumen-anggaran.rka-pendapatan.pdf', $data + ['isDownload' => true]);
-        // ->setPaper('a4', 'portrait');
-
-        $namaFile = 'RKA-Pendapatan-' . $kodeSkpd . '-' . $tahunAnggaran . '.pdf';
+        $namaFile = 'RKA-Pembiayaan-' . $idSkpd . '-' . $tahunAnggaran . '.pdf';
 
         return $pdf->download($namaFile);
     }
