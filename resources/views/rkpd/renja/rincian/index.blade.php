@@ -25,10 +25,6 @@
             <i class="ki-outline ki-arrow-left fs-3"></i>
             Kembali
           </a>
-          <button type="button" class="btn btn-sm btn-primary" onclick="window.print()">
-            <i class="ki-outline ki-printer fs-3"></i>
-            Cetak
-          </button>
         </div>
       </div>
     </div>
