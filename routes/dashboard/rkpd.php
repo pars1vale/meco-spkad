@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaPembiayaanController;
+use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaRekapBelanjaController;
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaPendapatanController;
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaSkpdController;
 use App\Http\Controllers\Rkpd\JadwalController;
@@ -88,5 +89,10 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
         Route::get('/rka-pembiayaan/{idSkpd}/ttd-default', [RkaPembiayaanController::class, 'ttdDefault'])->name('rka-pembiayaan.ttd-default');
         Route::get('/rka-pembiayaan/{idSkpd}/cetak', [RkaPembiayaanController::class, 'cetak'])->name('rka-pembiayaan.cetak');
         Route::get('/rka-pembiayaan/{idSkpd}/unduh', [RkaPembiayaanController::class, 'unduhPdf'])->name('rka-pembiayaan.unduh');
+
+        Route::get('/rka-rekap-belanja', [RkaRekapBelanjaController::class, 'index'])->name('rka-rekap-belanja.index');
+        Route::get('/rka-rekap-belanja/{idSkpd}/ttd-default', [RkaRekapBelanjaController::class, 'ttdDefault'])->name('rka-rekap-belanja.ttd-default');
+        Route::get('/rka-rekap-belanja/{idSkpd}/cetak', [RkaRekapBelanjaController::class, 'cetak'])->name('rka-rekap-belanja.cetak');
+        Route::get('/rka-rekap-belanja/{idSkpd}/unduh', [RkaRekapBelanjaController::class, 'unduhPdf'])->name('rka-rekap-belanja.unduh');
     });
 });
