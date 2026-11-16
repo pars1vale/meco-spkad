@@ -265,7 +265,7 @@ class RincianBelanjaController extends Controller
 
             $data = $akunList->map(function ($akun) {
                 return [
-                    'id' => $akun->id,
+                    'id' => $akun->id_akun,
                     'kode_akun' => $akun->kode_akun,
                     'nama_akun' => $akun->nama_akun,
                     'text' => $akun->kode_akun . ' - ' . $akun->nama_akun,
@@ -294,7 +294,7 @@ class RincianBelanjaController extends Controller
             $akunId = $request->akun_id;
 
             $akun = DB::table('akun')
-                ->where('id', $akunId)
+                ->where('id_akun', $akunId)
                 ->first();
 
             if (! $akun) {
@@ -307,7 +307,7 @@ class RincianBelanjaController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'id' => $akun->id,
+                    'id' => $akun->id_akun,
                     'kode_akun' => $akun->kode_akun,
                     'nama_akun' => $akun->nama_akun,
                     'level' => $akun->level,
@@ -446,7 +446,7 @@ class RincianBelanjaController extends Controller
             }
 
             $akun = DB::table('akun')
-                ->where('id', $request->id_akun)
+                ->where('id_akun', $request->id_akun)
                 ->first();
 
             if (! $akun) {
@@ -657,7 +657,7 @@ class RincianBelanjaController extends Controller
             // 2. GET DATA AKUN
             // ================================================
             $akun = DB::table('akun')
-                ->where('id', $request->id_akun)
+                ->where('id_akun', $request->id_akun)
                 ->first();
 
             if (! $akun) {
