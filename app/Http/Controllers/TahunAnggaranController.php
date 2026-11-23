@@ -51,7 +51,7 @@ class TahunAnggaranController extends Controller
         $tahunSekarang = (int) date('Y');
         $tahunList = [];
 
-        for ($i = $tahunSekarang - 4; $i <= $tahunSekarang + 1; $i++) {
+        for ($i = $tahunSekarang - 1; $i <= $tahunSekarang + 1; $i++) {
             $tahunList[] = $i;
         }
 

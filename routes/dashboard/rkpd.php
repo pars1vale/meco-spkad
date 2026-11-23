@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaPembiayaanController;
+use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaRekapBelanjaController;
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaPendapatanController;
 use App\Http\Controllers\Rkpd\DokumenAnggaran\RkaSkpdController;
 use App\Http\Controllers\Rkpd\JadwalController;
@@ -40,6 +41,7 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
     Route::get('/renja/sub-kegiatan', [RenjaController::class, 'getSubKegiatanBySkpd'])->name('sub-kegiatan');
     Route::post('/rkpd/renja/store', [RenjaController::class, 'store'])->name('renja.store');
     Route::get('renja/data', [RenjaController::class, 'getData'])->name('renja.data');
+    Route::get('renja/ringkasan-pagu', [RenjaController::class, 'ringkasanPagu'])->name('renja.ringkasan-pagu');
     Route::get('/renja/{id}/edit', [RenjaController::class, 'edit'])->name('renja.edit');
     Route::put('/renja/{id}', [RenjaController::class, 'update'])->name('renja.update');
     Route::delete('/renja/{id}', [RenjaController::class, 'destroy'])->name('renja.destroy');
@@ -88,5 +90,10 @@ Route::middleware('auth')->prefix('rkpd')->group(function () {
         Route::get('/rka-pembiayaan/{idSkpd}/ttd-default', [RkaPembiayaanController::class, 'ttdDefault'])->name('rka-pembiayaan.ttd-default');
         Route::get('/rka-pembiayaan/{idSkpd}/cetak', [RkaPembiayaanController::class, 'cetak'])->name('rka-pembiayaan.cetak');
         Route::get('/rka-pembiayaan/{idSkpd}/unduh', [RkaPembiayaanController::class, 'unduhPdf'])->name('rka-pembiayaan.unduh');
+
+        Route::get('/rka-rekap-belanja', [RkaRekapBelanjaController::class, 'index'])->name('rka-rekap-belanja.index');
+        Route::get('/rka-rekap-belanja/{idSkpd}/ttd-default', [RkaRekapBelanjaController::class, 'ttdDefault'])->name('rka-rekap-belanja.ttd-default');
+        Route::get('/rka-rekap-belanja/{idSkpd}/cetak', [RkaRekapBelanjaController::class, 'cetak'])->name('rka-rekap-belanja.cetak');
+        Route::get('/rka-rekap-belanja/{idSkpd}/unduh', [RkaRekapBelanjaController::class, 'unduhPdf'])->name('rka-rekap-belanja.unduh');
     });
 });

@@ -594,10 +594,11 @@ class RenjaRepository
             ->groupBy('idsubbl');
     }
 
-    public function getDataTableQuery(?string $searchValue, int $tahunAnggaran)
+    public function getDataTableQuery(?string $searchValue, int $tahunAnggaran, int $idSkpd)
     {
         $query = DB::table('data_sub_keg_bl as dskb')
             ->leftJoin('data_dana_sub_keg as ddsk', 'dskb.id', '=', 'ddsk.idsubbl')
+            ->where('dskb.id_skpd', $idSkpd)
             ->select(
                 'dskb.id',
                 'dskb.id_sub_bl',
@@ -662,22 +663,24 @@ class RenjaRepository
         return $query;
     }
 
-    public function getTotalRecords(int $tahunAnggaran): int
+    public function getTotalRecords(int $tahunAnggaran, int $idSkpd): int
     {
         return DB::table('data_sub_keg_bl')
             ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('id_skpd', $idSkpd)
             ->where('active', 1)
             ->count();
     }
 
-    public function getFilteredCount(?string $searchValue, int $tahunAnggaran): int
+    public function getFilteredCount(?string $searchValue, int $tahunAnggaran, int $idSkpd): int
     {
         if (! $searchValue) {
-            return $this->getTotalRecords($tahunAnggaran);
+            return $this->getTotalRecords($tahunAnggaran, $idSkpd);
         }
 
         return DB::table('data_sub_keg_bl')
             ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('id_skpd', $idSkpd)
             ->where('active', 1)
             ->where(function ($q) use ($searchValue) {
                 $q->where('nama_sub_giat', 'like', "%{$searchValue}%")

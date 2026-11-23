@@ -186,7 +186,7 @@
               <div class="separator separator-dashed my-7"></div>
 
               <div class="mb-7">
-                <label class="fs-6 fw-semibold mb-5">Indikator Kinerja</label>
+                <label class="fs-6 fw-semibold mb-5">Indikator Keluaran Sub Kegiatan</label>
 
                 @foreach ($indikator as $index => $ind)
                   <div class="row align-items-center mb-3">

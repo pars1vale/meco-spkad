@@ -185,6 +185,16 @@ class RenjaController extends Controller
 
     public function getData(Request $request)
     {
+        if (! $request->filled('id_skpd')) {
+            return response()->json([
+                'draw' => intval($request->draw ?? 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'SKPD belum dipilih',
+            ], 422);
+        }
+
         try {
             $result = $this->renjaService->getDataTableData($request->all());
 
@@ -205,6 +215,19 @@ class RenjaController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    public function ringkasanPagu(Request $request)
+    {
+        $idSkpd = (int) $request->query('id_skpd');
+        if ($idSkpd <= 0) {
+            return response()->json(['success' => false, 'message' => 'id_skpd wajib diisi'], 422);
+        }
+
+        $tahunAnggaran = (int) session('tahun_anggaran');
+        $data = $this->renjaService->getRingkasanPaguBySkpd($idSkpd, $tahunAnggaran);
+
+        return response()->json(['success' => true, 'data' => $data]);
     }
     public function ringkasanPaket(int $id)
     {

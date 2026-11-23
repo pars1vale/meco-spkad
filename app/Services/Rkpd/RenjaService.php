@@ -43,14 +43,41 @@ class RenjaService
     {
         $tahunAnggaran = $this->getTahunAnggaran();
 
+        // NOTE: 'data' (getAll semua SKPD) sengaja tidak di-load lagi di sini.
+        // Index sekarang landing dengan SKPD selector dulu; tabel tree baru
+        // di-fetch on-demand per SKPD lewat getDataTableData().
         return [
-            'data' => $this->renjaRepo->getAll($tahunAnggaran),
             'data_unit' => $this->renjaRepo->getDataUnit($tahunAnggaran),
             'sumberdana' => $this->renjaRepo->getSumberDana(),
             'daerah' => $this->renjaRepo->getDataDaerah(),
             'kec' => $this->renjaRepo->getDataKecamatan(),
             'kel' => $this->renjaRepo->getDataKelurahan(),
             'bln' => $this->renjaRepo->getDataBulan(),
+        ];
+    }
+
+    /**
+     * Ringkasan pagu per SKPD untuk 6 summary card di index.
+     *
+     * TODO (perlu konfirmasi rumus bisnis sebelum diisi):
+     * - batasan_pagu   : dari mana? (SIPD? kolom master lain?)
+     * - inputan_pagu   : total pagu yg sudah diinput user utk SKPD ini?
+     * - pagu_validasi  : hasil validasi apa, dan siapa yg memvalidasi?
+     * - rincian        : total dari data_rka? sudah ada getRincianBelanjaBySubKegiatan per sub kegiatan
+     * - realisasi      : dari sistem/tabel realisasi mana? tidak ditemukan di kode existing
+     * - persentase     : realisasi / apa? (pagu_validasi atau rincian?)
+     *
+     * Sengaja return 0 semua dulu -- JANGAN diisi rumus asumsi.
+     */
+    public function getRingkasanPaguBySkpd(int $idSkpd, int $tahunAnggaran): array
+    {
+        return [
+            'batasan_pagu' => 0,
+            'inputan_pagu' => 0,
+            'pagu_validasi' => 0,
+            'rincian' => 0,
+            'realisasi' => 0,
+            'persentase' => 0,
         ];
     }
 
@@ -375,11 +402,18 @@ class RenjaService
         $searchValue = $params['search']['value'] ?? null;
         $start = $params['start'] ?? 0;
         $length = $params['length'] ?? 10;
+        $idSkpd = (int) ($params['id_skpd'] ?? 0);
+
+        if ($idSkpd <= 0) {
+            // Jangan query tanpa filter SKPD -- itu balik lagi ke masalah lama
+            // (tarik seluruh 82 SKPD sekaligus).
+            throw new \InvalidArgumentException('id_skpd wajib diisi');
+        }
 
         $tahunAnggaran = $this->getTahunAnggaran();
-        $query = $this->renjaRepo->getDataTableQuery($searchValue, $tahunAnggaran);
-        $totalRecords = $this->renjaRepo->getTotalRecords($tahunAnggaran);
-        $totalFiltered = $this->renjaRepo->getFilteredCount($searchValue, $tahunAnggaran);
+        $query = $this->renjaRepo->getDataTableQuery($searchValue, $tahunAnggaran, $idSkpd);
+        $totalRecords = $this->renjaRepo->getTotalRecords($tahunAnggaran, $idSkpd);
+        $totalFiltered = $this->renjaRepo->getFilteredCount($searchValue, $tahunAnggaran, $idSkpd);
 
         $data = $query->skip($start)->take($length)->get();
         $formattedData = $this->formatDataTableRows($data);

@@ -13,209 +13,151 @@
           <div data-type="error" data-message="{{ session('error') }}"></div>
         @endif
       </div>
-      {{-- header card --}}
-      <div class="row gx-5 gx-xl-10 mb-xl-10">
-        {{-- inputan, batasan, validasi PAGU --}}
-        <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
-          <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
-            style="background-color: #080655; min-height: 200px;">
-            <div class="card-header pt-5">
-              <div class="card-title d-flex flex-column">
-                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Batasan Pagu</span>
-                <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Active Projects</span>
-              </div>
-            </div>
-            <div class="card-body d-flex align-items-end pt-0 pb-5">
-              <div class="d-flex align-items-center flex-column mt-3 w-100">
-                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
-                  <span>43 Pending</span>
-                  <span>72%</span>
-                </div>
-                <div class="h-8px w-100 bg-light-danger rounded">
-                  <div class="bg-danger rounded h-8px" role="progressbar" style="width: 72%;" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
-          <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
-            style="background-color: #1C325E; min-height: 200px;">
-            <div class="card-header pt-5">
-              <div class="card-title d-flex flex-column">
-                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Inputan Pagu</span>
-                <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Completed Tasks</span>
-              </div>
-            </div>
-            <div class="card-body d-flex align-items-end pt-0 pb-5">
-              <div class="d-flex align-items-center flex-column mt-3 w-100">
-                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
-                  <span>38 Done</span>
-                  <span>85%</span>
-                </div>
-                <div class="h-8px w-100 bg-light-success rounded">
-                  <div class="bg-success rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
-          <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
-            style="background-color: #7239EA; min-height: 200px;">
-            <div class="card-header pt-5">
-              <div class="card-title d-flex flex-column">
-                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Pagu Validasi</span>
-                <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Total Clients</span>
-              </div>
-            </div>
-            <div class="card-body d-flex align-items-end pt-0 pb-5">
-              <div class="d-flex align-items-center flex-column mt-3 w-100">
-                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
-                  <span>89 Active</span>
-                  <span>63%</span>
-                </div>
-                <div class="h-8px w-100 bg-light-primary rounded">
-                  <div class="bg-primary rounded h-8px" role="progressbar" style="width: 63%;" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {{-- rincian, realisasi, persentase  --}}
-        <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
-          <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
-            style="background-color: #F1416C; min-height: 200px;">
-            <div class="card-header pt-5">
-              <div class="card-title d-flex flex-column">
-                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Rincian</span>
-                <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Overdue Items</span>
-              </div>
-            </div>
-            <div class="card-body d-flex align-items-end pt-0 pb-5">
-              <div class="d-flex align-items-center flex-column mt-3 w-100">
-                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
-                  <span>15 Critical</span>
-                  <span>54%</span>
-                </div>
-                <div class="h-8px w-100 bg-light-warning rounded">
-                  <div class="bg-warning rounded h-8px" role="progressbar" style="width: 54%;" aria-valuenow="54" aria-valuemin="0" aria-valuemax="100">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
-          <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
-            style="background-color: #00A3FF; min-height: 200px;">
-            <div class="card-header pt-5">
-              <div class="card-title d-flex flex-column">
-                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Realisasi</span>
-                <span class="text-white opacity-50 pt-1 fw-semibold fs-6">New Messages</span>
-              </div>
-            </div>
-            <div class="card-body d-flex align-items-end pt-0 pb-5">
-              <div class="d-flex align-items-center flex-column mt-3 w-100">
-                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
-                  <span>198 Unread</span>
-                  <span>61%</span>
-                </div>
-                <div class="h-8px w-100 bg-light-info rounded">
-                  <div class="bg-info rounded h-8px" role="progressbar" style="width: 61%;" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4 col-xl-4 mb-10">
-          <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-center border-0 mb-5 mb-xl-10"
-            style="background-color: #50CD89; min-height: 200px;">
-            <div class="card-header pt-5">
-              <div class="card-title d-flex flex-column">
-                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">Persentase</span>
-                <span class="text-white opacity-50 pt-1 fw-semibold fs-6">Team Members</span>
-              </div>
-            </div>
-            <div class="card-body d-flex align-items-end pt-0 pb-5">
-              <div class="d-flex align-items-center flex-column mt-3 w-100">
-                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-50 w-100 mt-auto mb-2">
-                  <span>76 Online</span>
-                  <span>85%</span>
-                </div>
-                <div class="h-8px w-100 bg-white bg-opacity-25 rounded">
-                  <div class="bg-white rounded h-8px" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0"
-                    aria-valuemax="100"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {{-- SKPD selector: wajib dipilih dulu sebelum summary & tree tampil --}}
+      <div class="card mb-5">
+        <div class="card-body d-flex align-items-center gap-3">
+          <label class="fs-6 fw-semibold mb-0 text-nowrap">Pilih SKPD</label>
+          <select class="form-select form-select-solid w-100 w-md-400px" id="filter_skpd" data-control="select2" data-placeholder="-- Pilih SKPD --">
+            <option value="">-- Pilih SKPD --</option>
+            @foreach ($data_unit as $unit)
+              <option value="{{ $unit->id_skpd }}">{{ $unit->kode_skpd }} - {{ $unit->nama_skpd }}</option>
+            @endforeach
+          </select>
         </div>
       </div>
-      {{-- content card --}}
-      <div class="card">
-        <div class="card-header border-0 pt-6">
-          <div class="card-title">
-            <div class="d-flex align-items-center position-relative my-1">
-              <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
-              <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari">
+
+      {{-- Placeholder sebelum SKPD dipilih --}}
+      <div id="belum_pilih_skpd" class="alert alert-light-primary d-flex align-items-center p-5 rounded mb-5">
+        <i class="ki-outline ki-information fs-2hx me-3 text-primary"></i>
+        <div class="d-flex flex-column">
+          <h4 class="mb-1 text-primary">Pilih SKPD terlebih dahulu</h4>
+          <span>Ringkasan pagu dan daftar sub kegiatan akan tampil setelah SKPD dipilih.</span>
+        </div>
+      </div>
+
+      <div id="konten_skpd" style="display:none;">
+
+        {{-- header card --}}
+        <div class="row gx-5 gx-xl-10 mb-xl-10">
+          {{-- inputan, batasan, validasi PAGU --}}
+          <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+            <div class="card card-flush border-0 mb-5 mb-xl-10" style="background-color: #080655; min-height: 150px;">
+              <div class="card-body d-flex flex-column justify-content-center align-items-start">
+                <span class="fs-2hx fw-bold text-white lh-1 ls-n2">
+                  <span id="card_batasan_pagu">Rp 0</span>
+                </span>
+                <span class="text-white opacity-75 pt-2 fw-semibold fs-6">Batasan Pagu</span>
+              </div>
             </div>
           </div>
-          <div class="card-toolbar">
-            <div class="dropdown">
-              <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="btnExportPdfDropdown" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                <i class="ki-outline ki-file-down fs-3"></i>
-                Export PDF
-              </button>
-              <div class="dropdown-menu p-4" style="min-width: 280px;" aria-labelledby="btnExportPdfDropdown">
-                <div class="mb-3">
-                  <label class="form-label fs-7 fw-semibold">Pilih SKPD</label>
-                  <select class="form-select form-select-sm" id="export_pdf_id_skpd">
-                    <option value="">-- Pilih SKPD --</option>
-                    @foreach ($data_unit as $unit)
-                      <option value="{{ $unit->id_skpd }}">{{ $unit->kode_skpd }} - {{ $unit->nama_skpd }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fs-7 fw-semibold">Tahun Anggaran</label>
-                  <input type="number" class="form-control form-control-sm" id="export_pdf_tahun" value="{{ date('Y') }}" min="2020"
-                    max="2100">
-                </div>
-                <button type="button" class="btn btn-sm btn-primary w-100" id="btnDoExportPdf">
-                  <i class="ki-outline ki-file-down fs-4"></i>
-                  Download PDF
-                </button>
+
+          <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+            <div class="card card-flush border-0 mb-5 mb-xl-10" style="background-color: #1C325E; min-height: 150px;">
+              <div class="card-body d-flex flex-column justify-content-center align-items-start">
+                <span class="fs-2hx fw-bold text-white lh-1 ls-n2">
+                  <span id="card_inputan_pagu">Rp 0</span>
+                </span>
+                <span class="text-white opacity-75 pt-2 fw-semibold fs-6">Inputan Pagu</span>
               </div>
             </div>
-            <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
-              <div class="w-150px me-3"></div>
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_kegiatan">Tambah</button>
-            </div>
-            <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
-              <div class="fw-bold me-5">
-                <span class="me-2" data-kt-customer-table-select="selected_count"></span>Terpilih
+          </div>
+
+          <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+            <div class="card card-flush border-0 mb-5 mb-xl-10" style="background-color: #7239EA; min-height: 150px;">
+              <div class="card-body d-flex flex-column justify-content-center align-items-start">
+                <span class="fs-2hx fw-bold text-white lh-1 ls-n2">
+                  <span id="card_pagu_validasi">Rp 0</span>
+                </span>
+                <span class="text-white opacity-75 pt-2 fw-semibold fs-6">Pagu Validasi</span>
               </div>
-              <button type="button" class="btn btn-danger" id="bulk_delete_btn">Hapus yg Terpilih</button>
+            </div>
+          </div>
+
+          {{-- rincian, realisasi, persentase --}}
+          <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+            <div class="card card-flush border-0 mb-5 mb-xl-10" style="background-color: #F1416C; min-height: 150px;">
+              <div class="card-body d-flex flex-column justify-content-center align-items-start">
+                <span class="fs-2hx fw-bold text-white lh-1 ls-n2">
+                  <span id="card_rincian">Rp 0</span>
+                </span>
+                <span class="text-white opacity-75 pt-2 fw-semibold fs-6">Rincian</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+            <div class="card card-flush border-0 mb-5 mb-xl-10" style="background-color: #00A3FF; min-height: 150px;">
+              <div class="card-body d-flex flex-column justify-content-center align-items-start">
+                <span class="fs-2hx fw-bold text-white lh-1 ls-n2">
+                  <span id="card_realisasi">Rp 0</span>
+                </span>
+                <span class="text-white opacity-75 pt-2 fw-semibold fs-6">Realisasi</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+            <div class="card card-flush border-0 mb-5 mb-xl-10" style="background-color: #50CD89; min-height: 150px;">
+              <div class="card-body d-flex flex-column justify-content-center align-items-start">
+                <span class="fs-2hx fw-bold text-white lh-1 ls-n2">
+                  <span id="card_persentase">0,00%</span>
+                </span>
+                <span class="text-white opacity-75 pt-2 fw-semibold fs-6">Persentase</span>
+              </div>
             </div>
           </div>
         </div>
-
-        <div class="card-body pt-0">
-          @if ($data->isEmpty())
-            <div class="alert alert-warning d-flex align-items-center p-5 rounded">
-              <i class="ki-outline ki-information fs-2hx me-3 text-warning"></i>
-              <div class="d-flex flex-column">
-                <h4 class="mb-1 text-warning">Tidak ada data</h4>
-                <span>Tidak ada data yang ditemukan.</span>
+        {{-- content card --}}
+        <div class="card">
+          <div class="card-header border-0 pt-6">
+            <div class="card-title">
+              <div class="d-flex align-items-center position-relative my-1">
+                <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
+                <input type="text" id="kt_datatable_search_input" class="form-control form-control-solid w-250px ps-12" placeholder="Cari">
               </div>
             </div>
-          @else
+            <div class="card-toolbar">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="btnExportPdfDropdown" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  <i class="ki-outline ki-file-down fs-3"></i>
+                  Export PDF
+                </button>
+                <div class="dropdown-menu p-4" style="min-width: 280px;" aria-labelledby="btnExportPdfDropdown">
+                  <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Pilih SKPD</label>
+                    <select class="form-select form-select-sm" id="export_pdf_id_skpd">
+                      <option value="">-- Pilih SKPD --</option>
+                      @foreach ($data_unit as $unit)
+                        <option value="{{ $unit->id_skpd }}">{{ $unit->kode_skpd }} - {{ $unit->nama_skpd }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Tahun Anggaran</label>
+                    <input type="number" class="form-control form-control-sm" id="export_pdf_tahun" value="{{ date('Y') }}" min="2020"
+                      max="2100">
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary w-100" id="btnDoExportPdf">
+                    <i class="ki-outline ki-file-down fs-4"></i>
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end" data-kt-customer-table-toolbar="base">
+                <div class="w-150px me-3"></div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_kegiatan">Tambah</button>
+              </div>
+              <div class="d-flex justify-content-end align-items-center d-none" data-kt-customer-table-toolbar="selected">
+                <div class="fw-bold me-5">
+                  <span class="me-2" data-kt-customer-table-select="selected_count"></span>Terpilih
+                </div>
+                <button type="button" class="btn btn-danger" id="bulk_delete_btn">Hapus yg Terpilih</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body pt-0">
             <table id="kt_datatable_column_rendering" class="table table-striped table-row-bordered gy-5 gs-7">
               <thead>
                 <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
@@ -236,7 +178,7 @@
                 </tr>
               </thead>
             </table>
-          @endif
+          </div>
         </div>
       </div>
     </div>
